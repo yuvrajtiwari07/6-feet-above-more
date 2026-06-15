@@ -1,0 +1,768 @@
+import { Product, CompleteFit } from '../types';
+
+export const PRODUCTS: Product[] = [
+  // ETHNIC WEAR
+  {
+    id: 'eth-1',
+    brand: 'Manyavar',
+    title: 'Emerald Green Draped Chikankari Kurta',
+    category: 'Ethnic Wear',
+    subCategory: 'Kurtas',
+    images: [
+      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Wedding', 'Festive', 'Date Night'],
+    seasons: ['Summer', 'Winter'],
+    colors: ['Green', 'Gold'],
+    fitType: 'Regular Tall',
+    retailer: 'Myntra',
+    affiliateUrl: 'https://www.myntra.com/kurta-emerald-lamba',
+    priceAtRetailer: 3999,
+    measurements: {
+      totalLength: 118, // cm (Extra long for tall torso drape)
+      shoulder: 52,
+      chest: 114,
+      sleeveLength: 71, // cm
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Perfect elegant knee length drape.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Hits exactly at the knee. Sleek silhouette.' },
+      { band: '6_4_6_5', status: 'friendly', note: 'Slightly above knee, still very dignified.' },
+      { band: '6_6_plus', status: 'community', note: 'Requires churidar styling to compensate for absolute length.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'eth-2',
+    brand: 'Westside',
+    title: 'Ivory Royal Linen Nehru Jacket & Kurta Set',
+    category: 'Ethnic Wear',
+    subCategory: 'Kurtas',
+    images: [
+      'https://images.unsplash.com/photo-1621184455862-c163dfb30e0f?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Wedding', 'Date Night', 'Festive'],
+    seasons: ['Summer'],
+    colors: ['White', 'Ivory'],
+    fitType: 'Classic Tall',
+    retailer: 'Tata CLiQ',
+    affiliateUrl: 'https://www.tatacliq.com/westside-nehru-set-lamba',
+    priceAtRetailer: 4599,
+    measurements: {
+      totalLength: 122,
+      shoulder: 54,
+      chest: 120,
+      sleeveLength: 73,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Ultra rich look. Feels like a sherwani.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Tested on 6\'3" model. Shoulder fits broad frames nicely without pulling.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Longer side slits accommodate tall strides effortlessly.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Good arm length; the sleeve hems have broad margins for adjustments.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'eth-3',
+    brand: 'Fabindia',
+    title: 'Indigo Indigo Ikat Cotton Long Kurta',
+    category: 'Ethnic Wear',
+    subCategory: 'Kurtas',
+    images: [
+      'https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'College', 'Festive'],
+    seasons: ['Summer'],
+    colors: ['Blue'],
+    fitType: 'Relaxed Tall',
+    retailer: 'Ajio',
+    affiliateUrl: 'https://www.ajio.com/fabindia-ikat-lamba',
+    priceAtRetailer: 2499,
+    measurements: {
+      totalLength: 114,
+      shoulder: 50,
+      chest: 110,
+      sleeveLength: 68,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Relaxed bohemian drape. Looks superb.' },
+      { band: '6_2_6_3', status: 'friendly', note: 'Comes down just below the knees.' },
+      { band: '6_4_6_5', status: 'community', note: 'A bit light. Hem line might end 2 inches above knee.' },
+      { band: '6_6_plus', status: 'runs_short', note: 'Sleeve ends are slightly short on long forearms.' },
+    ],
+    verifiedTier: 'community',
+  },
+
+  // FORMAL WEAR
+  {
+    id: 'form-1',
+    brand: 'Zara',
+    title: 'Premium Structured Navy Suit Blazer',
+    category: 'Formals',
+    subCategory: 'Blazers',
+    images: [
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Office', 'Wedding', 'Date Night'],
+    seasons: ['Winter', 'Summer'],
+    colors: ['Blue', 'Navy'],
+    fitType: 'Slim Tall',
+    retailer: 'Zara India',
+    affiliateUrl: 'https://www.zara.com/in/navy-suit-blazer-lamba',
+    priceAtRetailer: 8990,
+    measurements: {
+      totalLength: 82, // Long blazer profile
+      shoulder: 51,
+      chest: 112,
+      sleeveLength: 72, // Extra long sleeve
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Impeccable tailored drape. Might need 1cm sleeve hem-up.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Verified by 6\'2" Advocate. Classic corporate drape, doesn\'t ride up when typing.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Perfect wrist coverage. Waist cinching sits at natural tall waist.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Excellent sleeve drop, back vent covers torso comfortably.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'form-2',
+    brand: 'H&M',
+    title: 'Easy-Iron Tall Oxford Shirt - Ice Blue',
+    category: 'Formals',
+    subCategory: 'Shirts',
+    images: [
+      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Office', 'Casual', 'College'],
+    seasons: ['Summer'],
+    colors: ['Blue', 'Aqua'],
+    fitType: 'Slim Tall',
+    retailer: 'H&M India',
+    affiliateUrl: 'https://www2.hm.com/in/oxford-shirt-tall-lamba',
+    priceAtRetailer: 1999,
+    measurements: {
+      totalLength: 81,
+      shoulder: 49,
+      chest: 108,
+      sleeveLength: 71,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Plenty of fabric to stay tucked in all day.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Tailored fit that contours without restricting long arms.' },
+      { band: '6_4_6_5', status: 'verified', note: 'No pulling in the underarms. Back length yields standard look.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Stays tucked in well, cuffs end exactly at wristbone.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'form-3',
+    brand: 'Raymond',
+    title: 'Executive Steel-Grey Professional Trousers',
+    category: 'Formals',
+    subCategory: 'Trousers',
+    images: [
+      'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Office', 'Wedding'],
+    seasons: ['Winter', 'Summer'],
+    colors: ['Grey'],
+    fitType: 'Tailored Straight',
+    retailer: 'Myntra',
+    affiliateUrl: 'https://www.myntra.com/raymond-steel-trousers-lamba',
+    priceAtRetailer: 2999,
+    measurements: {
+      inseam: 91, // 36-inch deep inseam!
+      rise: 29,
+      legOpening: 21,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Needs normal tailoring to shorten, but rise ensures high waist comfort.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Perfect drape on 34" and 35" leg sizes.' },
+      { band: '6_4_6_5', status: 'verified', note: 'No flood-pant look! Perfect break on dress shoes.' },
+      { band: '6_6_plus', status: 'verified', note: 'Verified by 6\'7" tech-lead. Beautiful full-break length.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'form-4',
+    brand: 'Zodiac',
+    title: 'Cotton Micro-Check Executive Shirt',
+    category: 'Formals',
+    subCategory: 'Shirts',
+    images: [
+      'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Office', 'Wedding'],
+    seasons: ['Winter', 'Summer'],
+    colors: ['White', 'Navy'],
+    fitType: 'Structured Regular',
+    retailer: 'Tata CLiQ',
+    affiliateUrl: 'https://www.tatacliq.com/zodiac-microcheck-shirt',
+    priceAtRetailer: 3299,
+    measurements: {
+      totalLength: 83,
+      shoulder: 51,
+      chest: 116,
+      sleeveLength: 72,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Great fabric weight. Long hem fits easy.' },
+      { band: '6_2_6_3', status: 'friendly', note: 'Sleeve cuffs are solid and rigid.' },
+      { band: '6_4_6_5', status: 'friendly', note: 'Collar is proportioned properly so tie does not look small.' },
+      { band: '6_6_plus', status: 'community', note: 'Runs nicely with arms spread out. Fit verified by tall patrons.' },
+    ],
+    verifiedTier: 'friendly',
+  },
+
+  // STREETWEAR
+  {
+    id: 'street-1',
+    brand: 'Zara',
+    title: 'Distressed Heavyweight Charcoal Oversized Tee',
+    category: 'Streetwear',
+    subCategory: 'Oversized Tees',
+    images: [
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'College', 'Date Night', 'Travel'],
+    seasons: ['Summer', 'Winter'],
+    colors: ['Grey', 'Black'],
+    fitType: 'Oversized Loose',
+    retailer: 'Zara India',
+    affiliateUrl: 'https://www.zara.com/in/charcoal-oversized-tee-lamba',
+    priceAtRetailer: 2290,
+    measurements: {
+      totalLength: 84, // Extremely long boxy drop
+      shoulder: 56,
+      chest: 124,
+      sleeveLength: 31, // Drop shoulder ends below elbow on 6'3"
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Extremely baggy, heavy hypebeast vibe.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Tee reaches the base of thigh. Boxy aesthetic done right.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Doesn\'t crop. Beautiful drape, feels substantial.' },
+      { band: '6_6_plus', status: 'verified', note: 'Finally, an oversized tee that actually looks oversized on 6\'7" guys.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'street-2',
+    brand: 'H&M',
+    title: 'Hypebeast Multi-Pocket Utility Cargo Pants',
+    category: 'Streetwear',
+    subCategory: 'Cargo Pants',
+    images: [
+      'https://images.unsplash.com/photo-1517423568366-8b83523034fd?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'Travel', 'College'],
+    seasons: ['Winter', 'Summer'],
+    colors: ['Black', 'Green'],
+    fitType: 'Oversized Drop',
+    retailer: 'H&M India',
+    affiliateUrl: 'https://www2.hm.com/in/hype-cargos-lamba',
+    priceAtRetailer: 3499,
+    measurements: {
+      inseam: 89, // 35" inseam with ankle bungee toggles
+      rise: 31,
+      legOpening: 24,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Can stack heavily at the bottom. Adjust toggles to fit.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Beautiful cargo pockets placement. Fits broad hips cleanly.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Pockets are at standard thigh height, not riding up near hips.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Excellent slouchy fit, bungees allow customized break.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'street-3',
+    brand: 'Bewakoof Heavy',
+    title: 'Graphic Print Heavy Knit Hood - Cobalt Blue',
+    category: 'Streetwear',
+    subCategory: 'Hoodies',
+    images: [
+      'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'Travel', 'Date Night'],
+    seasons: ['Winter'],
+    colors: ['Blue'],
+    fitType: 'Boxy Extreme',
+    retailer: 'Ajio',
+    affiliateUrl: 'https://www.ajio.com/bewakoof-heavy-hoodie',
+    priceAtRetailer: 2199,
+    measurements: {
+      totalLength: 82,
+      shoulder: 54,
+      chest: 122,
+      sleeveLength: 72,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Feels super cozy and chunky.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Sleeve cuffs stay put around wrists even with overhead motions.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Bottom ribbing rests comfortably below waistline, never rides up.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Awesome drape. Hood is oversized enough for larger heads.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'street-4',
+    brand: 'Adidas Originals',
+    title: 'Adicolor Classics Superstar Track Pants',
+    category: 'Streetwear',
+    subCategory: 'Joggers',
+    images: [
+      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'Gym', 'Travel'],
+    seasons: ['Summer', 'Winter'],
+    colors: ['Black', 'White'],
+    fitType: 'Relaxed Athleisure',
+    retailer: 'Flipkart',
+    affiliateUrl: 'https://www.flipkart.com/adidas-originals-track-lamba',
+    priceAtRetailer: 4999,
+    measurements: {
+      inseam: 88,
+      rise: 29,
+      legOpening: 18,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Tapered, sporty look with minor ankle stack.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Perfect straight drop alongside sneakers.' },
+      { band: '6_4_6_5', status: 'friendly', note: 'Clean visual lines without squeezing muscular calves.' },
+      { band: '6_6_plus', status: 'community', note: 'Leaves a subtle athletic ankle reveal.' },
+    ],
+    verifiedTier: 'community',
+  },
+
+  // SUMMER WEAR
+  {
+    id: 'summ-1',
+    brand: 'Zara',
+    title: 'Relaxed Fit Pastel Sage Linen Shirt',
+    category: 'Summer',
+    subCategory: 'Shirts',
+    images: [
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Vacation', 'Casual', 'Date Night'],
+    seasons: ['Summer'],
+    colors: ['Green', 'Sage'],
+    fitType: 'Lax Linen',
+    retailer: 'Zara India',
+    affiliateUrl: 'https://www.zara.com/in/sage-linen-shirt-lamba',
+    priceAtRetailer: 3290,
+    measurements: {
+      totalLength: 80,
+      shoulder: 50,
+      chest: 114,
+      sleeveLength: 70,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Breezy and super aesthetic for beaches.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Chest is wide; doesn\'t stretch awkwardly across shoulders.' },
+      { band: '6_4_6_5', status: 'friendly', note: 'Excellent roll-up sleeve adaptability. Cuff sits correctly when down.' },
+      { band: '6_6_plus', status: 'community', note: 'Wear it unbuttoned over a white tee for optimal length styling.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'summ-2',
+    brand: 'Westside',
+    title: 'Breezy Oatmeal Linen Blend Drawstring Chinos',
+    category: 'Summer',
+    subCategory: 'Chinos',
+    images: [
+      'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Vacation', 'Casual', 'Brunch'],
+    seasons: ['Summer'],
+    colors: ['Beige', 'Ivory'],
+    fitType: 'Fluid Straight',
+    retailer: 'Tata CLiQ',
+    affiliateUrl: 'https://www.tatacliq.com/westside-oatmeal-drawstring-lamba',
+    priceAtRetailer: 1899,
+    measurements: {
+      inseam: 89,
+      rise: 30,
+      legOpening: 22,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Easy, pool-side linen stack. Drawstring helps hold waist.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Verified by 6\'3" architect. Elastic waistband adjusts on hip bone.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Wonderful lightweight leg cooling, perfect break at loafers.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Very generous inseam. Won\'t look like three-quarter pants.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'summ-3',
+    brand: 'Uniqlo',
+    title: 'Supima Cotton Crew Neck Tee - Lemon Yellow',
+    category: 'Summer',
+    subCategory: 'T-Shirts',
+    images: [
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'College', 'Gym'],
+    seasons: ['Summer'],
+    colors: ['Yellow', 'Lemon'],
+    fitType: 'Relaxed Athleisure',
+    retailer: 'Uniqlo India',
+    affiliateUrl: 'https://www.uniqlo.com/in/supima-lemon-lamba',
+    priceAtRetailer: 1290,
+    measurements: {
+      totalLength: 79,
+      shoulder: 48,
+      chest: 106,
+      sleeveLength: 26,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Great length, doesn\'t shrink in the wash!' },
+      { band: '6_2_6_3', status: 'verified', note: 'Tailored fit that frames collarbones nicely.' },
+      { band: '6_4_6_5', status: 'friendly', note: 'Covers rear belt line during stretches.' },
+      { band: '6_6_plus', status: 'community', note: 'Fits close to body. Consider a size-up for long torsos.' },
+    ],
+    verifiedTier: 'friendly',
+  },
+  {
+    id: 'summ-4',
+    brand: 'H&M',
+    title: 'Tall Fit Drawstring Linen Shorts',
+    category: 'Summer',
+    subCategory: 'Shorts',
+    images: [
+      'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Vacation', 'Casual', 'Brunch'],
+    seasons: ['Summer'],
+    colors: ['Beige', 'White'],
+    fitType: 'Mid-Length Relaxed',
+    retailer: 'H&M India',
+    affiliateUrl: 'https://www2.hm.com/in/linen-shorts-tall-lamba',
+    priceAtRetailer: 1499,
+    measurements: {
+      inseam: 26, // 10" inseam hits mid-thigh to top-knee appropriately
+      rise: 29,
+      legOpening: 28,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Hits just at the top of the knee.' },
+      { band: '6_2_6_3', status: 'verified', note: 'The ideal above-the-knee length for tall calves.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Doesn\'t look like compression brief cut. Elegant mid-thigh drape.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Great leg opening width prevents balloon style.' },
+    ],
+    verifiedTier: 'verified',
+  },
+
+  // WINTER WEAR
+  {
+    id: 'wint-1',
+    brand: 'Zara',
+    title: 'Italian Wool Blend Double-Breasted Trench Coat',
+    category: 'Winter',
+    subCategory: 'Jackets',
+    images: [
+      'https://images.unsplash.com/photo-1544923246-77307dd654cb?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Office', 'Date Night', 'Travel'],
+    seasons: ['Winter'],
+    colors: ['Burgundy', 'Brown'],
+    fitType: 'Structured Long',
+    retailer: 'Zara India',
+    affiliateUrl: 'https://www.zara.com/in/italian-wool-trench-lamba',
+    priceAtRetailer: 14990,
+    measurements: {
+      totalLength: 104, // Stunning knee-length trench
+      shoulder: 53,
+      chest: 118,
+      sleeveLength: 73,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Dramatic long coat look, ends below knees.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Verified by 6\'2" creative director. Belt sits accurately above hips.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Tested tall masterpiece. Perfect thigh draping.' },
+      { band: '6_6_plus', status: 'verified', note: 'Stupendous coverage. Sleeves do not pull tight on cuffs.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'wint-2',
+    brand: 'H&M',
+    title: 'Merino Wool Tall Turtleneck Sweater',
+    category: 'Winter',
+    subCategory: 'Hoodies',
+    images: [
+      'https://images.unsplash.com/photo-1614975058789-41316d0e2e9c?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Office', 'Date Night', 'Casual'],
+    seasons: ['Winter'],
+    colors: ['Black', 'Grey'],
+    fitType: 'Formfitting Tall',
+    retailer: 'H&M India',
+    affiliateUrl: 'https://www2.hm.com/in/merino-turtle-lamba',
+    priceAtRetailer: 3999,
+    measurements: {
+      totalLength: 80,
+      shoulder: 49,
+      chest: 108,
+      sleeveLength: 71,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Very clean silhouette, fits around waist cleanly.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Rich ribbed neck stays upright, sleeves are ample.' },
+      { band: '6_4_6_5', status: 'verified', note: 'No riding up when arms are fully raised.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Elastic wool allows nice snug fit.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'wint-3',
+    brand: 'Jack & Jones',
+    title: 'Fleece-Lined Denim Biker Jacket',
+    category: 'Winter',
+    subCategory: 'Jackets',
+    images: [
+      'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'Travel', 'Date Night'],
+    seasons: ['Winter'],
+    colors: ['Blue', 'Indigo'],
+    fitType: 'Trucker regular',
+    retailer: 'Myntra',
+    affiliateUrl: 'https://www.myntra.com/jack-jones-biker-lamba',
+    priceAtRetailer: 5499,
+    measurements: {
+      totalLength: 79,
+      shoulder: 52,
+      chest: 116,
+      sleeveLength: 69,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Excellent bulky frame.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Shoulder width provides easy rotation.' },
+      { band: '6_4_6_5', status: 'friendly', note: 'Ends exactly at belt buckle, great hipster trucker profile.' },
+      { band: '6_6_plus', status: 'runs_short', note: 'Torso length may feel slightly cropped on ultra tall bodies.' },
+    ],
+    verifiedTier: 'community',
+  },
+
+  // FOOTWEAR & SNEAKERS (Tall sizes 11, 12, 13, 14, 15)
+  {
+    id: 'foot-1',
+    brand: 'Adidas',
+    title: 'Samba OG Classic Sneakers (Big Sizes 11-14)',
+    category: 'Sneakers',
+    subCategory: 'Sneakers',
+    images: [
+      'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'College', 'Travel'],
+    seasons: ['Summer', 'Winter'],
+    colors: ['White', 'Black'],
+    fitType: 'Slim Classic',
+    retailer: 'Adidas India',
+    affiliateUrl: 'https://www.adidas.co.in/samba-big-size-lamba',
+    priceAtRetailer: 10999,
+    measurements: {
+      legOpening: 12, // sole width scale
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Matches size 11 exceptionally.' },
+      { band: '6_2_6_3', status: 'verified', note: 'True UK 12/13 stock checked at Delhi store.' },
+      { band: '6_4_6_5', status: 'verified', note: 'No pinching in toe box for tall frames.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Excellent arch support for larger weights.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'foot-2',
+    brand: 'Nike',
+    title: 'Air Jordan 1 High OG (Big Sizes up to UK 15)',
+    category: 'Sneakers',
+    subCategory: 'Sneakers',
+    images: [
+      'https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'College', 'Date Night'],
+    seasons: ['Winter', 'Summer'],
+    colors: ['Red', 'Black', 'White'],
+    fitType: 'Ankle Support Hype',
+    retailer: 'Nike India',
+    affiliateUrl: 'https://www.nike.com/in/jordan-air-lamba',
+    priceAtRetailer: 16995,
+    measurements: {},
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Incredible ankle stability.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Fits high instep tall feet beautifully.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Verified by tall basketball players.' },
+      { band: '6_6_plus', status: 'verified', note: 'One of the few sneakers available in authentic India UK 14 and 15.' },
+    ],
+    verifiedTier: 'verified',
+  },
+
+  // ADDITIONAL GARMENTS
+  {
+    id: 'add-1',
+    brand: 'Zara',
+    title: 'Cotton Twill High-Waisted Chino Trousers',
+    category: 'Formals',
+    subCategory: 'Chinos',
+    images: [
+      'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Office', 'Date Night', 'Casual'],
+    seasons: ['Summer', 'Winter'],
+    colors: ['Khaki', 'Beige'],
+    fitType: 'High-Rise Straight',
+    retailer: 'Zara India',
+    affiliateUrl: 'https://www.zara.com/in/high-rise-chino-lamba',
+    priceAtRetailer: 3990,
+    measurements: {
+      inseam: 92,
+      rise: 32, // high rise for tall legs
+      legOpening: 22,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Nice pleated waist. Can hem to size.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Excellent high waist fitting. Elongates legs.' },
+      { band: '6_4_6_5', status: 'verified', note: 'Rise feels proportional, not pinching.' },
+      { band: '6_6_plus', status: 'verified', note: 'True long inseam with cuffs for custom elongation.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'add-2',
+    brand: 'H&M',
+    title: 'Textured-Knit Oversized Polo Shirt',
+    category: 'Formals',
+    subCategory: 'Polo T-Shirts',
+    images: [
+      'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'Office', 'Brunch'],
+    seasons: ['Summer'],
+    colors: ['Ivory', 'Beige'],
+    fitType: 'Waffle Loose',
+    retailer: 'H&M India',
+    affiliateUrl: 'https://www2.hm.com/in/waffle-polo-lamba',
+    priceAtRetailer: 2299,
+    measurements: {
+      totalLength: 81,
+      shoulder: 51,
+      chest: 112,
+      sleeveLength: 29,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Comfortable draping waffle knit.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Perfect smart-casual collar presence.' },
+      { band: '6_4_6_5', status: 'friendly', note: 'Looks incredibly professional and structured.' },
+      { band: '6_6_plus', status: 'friendly', note: 'Sleeve drape ends well above the elbow, feels premium.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'add-3',
+    brand: 'Levis',
+    title: 'Levis 501 Original Button Fly Tall Denim',
+    category: 'Streetwear',
+    subCategory: 'Jeans',
+    images: [
+      'https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Casual', 'Date Night', 'College'],
+    seasons: ['Summer', 'Winter'],
+    colors: ['Blue', 'Indigo'],
+    fitType: 'Straight Original',
+    retailer: 'Levi Store',
+    affiliateUrl: 'https://www.levi.in/501-tall-indigo-lamba',
+    priceAtRetailer: 4999,
+    measurements: {
+      inseam: 92, // 36L
+      rise: 29,
+      legOpening: 20,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'friendly', note: 'Hemming recommended but original waist ratio is great.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Checked by 6\'2" engineer. No restrictive pulling in the mid-thigh.' },
+      { band: '6_4_6_5', status: 'verified', note: 'The quintessential tall straight-cut denim.' },
+      { band: '6_6_plus', status: 'verified', note: 'Excellent ankle coverage, robust thick denim that stacks well.' },
+    ],
+    verifiedTier: 'verified',
+  },
+  {
+    id: 'add-4',
+    brand: 'Westside',
+    title: 'Earthy Linen Cargo Joggers for Tall Legs',
+    category: 'Summer',
+    subCategory: 'Joggers',
+    images: [
+      'https://images.unsplash.com/photo-1454721768404-38ffd0789843?w=800&auto=format&fit=crop',
+    ],
+    occasions: ['Travel', 'Casual', 'Vacation'],
+    seasons: ['Summer'],
+    colors: ['Brown', 'Sage'],
+    fitType: 'Tapered Utility',
+    retailer: 'Tata CLiQ',
+    affiliateUrl: 'https://www.tatacliq.com/westside-linen-jogger-lamba',
+    priceAtRetailer: 2199,
+    measurements: {
+      inseam: 86,
+      rise: 31,
+      legOpening: 16,
+    },
+    verdicts: [
+      { band: '6_0_6_1', status: 'verified', note: 'Super breezy vacation look.' },
+      { band: '6_2_6_3', status: 'verified', note: 'Stretches nicely with ankle cuffs.' },
+      { band: '6_4_6_5', status: 'friendly', note: 'Ankle cuff sits higher on shin, great for breezy beach strolls.' },
+      { band: '6_6_plus', status: 'runs_short', note: 'Becomes a 7/8 crop pants look above 6\'6". Style accordingly.' },
+    ],
+    verifiedTier: 'verified',
+  }
+];
+
+export const COMPLETE_FITS: CompleteFit[] = [
+  {
+    id: 'fit-1',
+    title: 'Business Casual Tall Executive',
+    theme: 'formals',
+    items: [
+      { role: 'shirt', productId: 'form-2' }, // Tall Oxford Shirt
+      { role: 'pant', productId: 'form-3' },  // Raymond Steel Grey Trousers
+      { role: 'shoes', productId: 'foot-1' }  // Adidas Samba OG
+    ],
+    stylingNotes: 'Designed for a modern Mumbai/Delhi corporate office environment. The Ice Blue H&M Oxford shirt stays tucked in effortlessly, layered beautifully with Raymonds steel-grey high rise trousers. Completing the look with classic Sambas keeps the posture relaxed yet sleek.'
+  },
+  {
+    id: 'fit-2',
+    title: 'Regal Sangeet/Festive Drape',
+    theme: 'ethnic',
+    items: [
+      { role: 'shirt', productId: 'eth-1' }, // Emerald Chikankari Kurta
+      { role: 'pant', productId: 'add-1' },  // Cotton Twill Khaki Chinos
+      { role: 'shoes', productId: 'foot-1' }
+    ],
+    stylingNotes: 'Celebrate your towering frame in full Indian glory. The drape of Manyavars emerald Chikankari kurta runs longer than standard kurtas, ensuring your torso is framed majestically. Paired with high-rise straight chinos for a smart indo-western fusion.'
+  },
+  {
+    id: 'fit-3',
+    title: 'Hypebeast Street Slouch Look',
+    theme: 'streetwear',
+    items: [
+      { role: 'shirt', productId: 'street-1' }, // Distressed Charcoal Tee
+      { role: 'pant', productId: 'street-2' },  // H&M Cargo Pants
+      { role: 'shoes', productId: 'foot-2' }  // Nike Air Jordan 1
+    ],
+    stylingNotes: 'Perfect balanced oversized aesthetic without drowning. Zaras Heavyweight Charcoal Tee gives the desired chest draping, falling smoothly onto the H&M multi-pocket cargos. Jordans anchor the fit, styled nicely with ankle bungee stacks.'
+  },
+  {
+    id: 'fit-4',
+    title: 'Ocean Sundowner Linen Casual',
+    theme: 'summer',
+    items: [
+      { role: 'shirt', productId: 'summ-1' }, // Sage Linen Shirt
+      { role: 'pant', productId: 'summ-2' },  // Drawstring Oatmeal Chinos
+      { role: 'shoes', productId: 'foot-1' }
+    ],
+    stylingNotes: 'Ideal for a seaside resort vacation in Goa or a premium weekend brunch. Sage green Zara linen shirt rolled up to mid-forearms, styled loosely over Westsides lightweight drawstring oats chinos. Light, crisp, airy and calculated perfectly for broad tall gaits.'
+  }
+];

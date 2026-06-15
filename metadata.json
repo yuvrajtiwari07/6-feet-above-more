@@ -1,0 +1,6 @@
+{
+  "name": "6feetabove&more",
+  "description": "Premium apparel discovery platform meticulously curated for tall statures (6'0\" and above). Aligning sleeves, inseams, and waist drops to fit and elevate your frame.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Theme Colors Redefined (High-Fashion Fusion: Myntra + AJIO + Souled Store) */
+  --color-lemon: #FF3F6C;             /* Myntra's Iconic fashion-forward pink-pulse! */
+  --color-electric: #111111;          /* AJIO's Sleek high-contract Jet Black! */
+  --color-near-black: #141416;        /* Deep high-saturation charcoal text */
+  --color-off-white: #F9F8F6;         /* Soft, luxurious creamy clothing-catalog off-white */
+  
+  /* Accent Shades */
+  --color-accent-coral: #FF3F6C;      /* Myntra Rose */
+  --color-accent-purple: #FF2E93;     /* Myntra Accent Pink */
+  --color-accent-neon: #FFCC00;       /* Souled Store Joyful Yellow */
+  --color-accent-pink: #E11B22;       /* Souled Store signature Pop Comic Red */
+  
+  /* Bespoke color extensions */
+  --color-brand-cyan: #00AFB9;
+  --color-brand-orange: #FF5E36;
+  --color-brand-purple: #7D2AE8;
+  
+  /* Typography Variables */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-grotesk: "Space Grotesk", sans-serif;
+  
+  /* Utility Shadows & Border Radius */
+  --radius-xl: 18px;
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
+}
+
+/* Custom styles for editorial layout effects */
+@layer utilities {
+  .text-tall {
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+  .glass {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(17, 20, 24, 0.08);
+  }
+  .glass-light {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(17, 20, 24, 0.05);
+  }
+  .broken-grid-clip {
+    clip-path: polygon(0% 0%, 100% 0%, 95% 94%, 0% 100%);
+  }
+  /* Playful retro drop shadow (Souled Store sticker vibe) */
+  .pop-shadow {
+    box-shadow: 4px 4px 0px 0px #111111;
+  }
+  .pop-shadow-lg {
+    box-shadow: 8px 8px 0px 0px #111111;
+  }
+  .pop-shadow-sm {
+    box-shadow: 2px 2px 0px 0px #111111;
+  }
+}
+
+/* Base style resets and customizations */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-off-white);
+  color: var(--color-near-black);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, .heading-tall {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Animated custom gradient mesh background (Soft Canva creative palette) */
+.animated-mesh {
+  background: radial-gradient(at 10% 20%, rgba(0, 196, 204, 0.08) 0px, transparent 50%),
+              radial-gradient(at 90% 10%, rgba(125, 42, 232, 0.06) 0px, transparent 50%),
+              radial-gradient(at 50% 80%, rgba(255, 94, 54, 0.04) 0px, transparent 50%);
+  background-size: 200% 200%;
+}
