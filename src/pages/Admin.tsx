@@ -42,7 +42,7 @@ export const Admin: React.FC = () => {
   const [fitType, setFitType] = useState('Regular Tall');
   const [verifiedTier, setVerifiedTier] = useState<'verified' | 'friendly' | 'community'>('verified');
   const [outOfStock, setOutOfStock] = useState(false);
-  
+
   // Array/Complex structures (built as comma-separated or dynamic fields)
   const [imagesInput, setImagesInput] = useState('');
   const [occasionsInput, setOccasionsInput] = useState('Casual, Festive');
@@ -50,6 +50,16 @@ export const Admin: React.FC = () => {
   const [colorsInput, setColorsInput] = useState('Navy, Blue');
   const [sizesInput, setSizesInput] = useState('M, L, XL, XXL, 3XL');
   const [verificationBadgesInput, setVerificationBadgesInput] = useState('Extra Long Torso, Tested on 6\'3"');
+  const [tagsInput, setTagsInput] = useState('tall, extra-length');
+
+  // ── NEW expanded fields ───────────────────────────────────────────────
+  const [material, setMaterial] = useState('');
+  const [careInstructions, setCareInstructions] = useState('');
+  const [weightGrams, setWeightGrams] = useState<string>('');
+  const [countryOfOrigin, setCountryOfOrigin] = useState('India');
+  const [discountPercent, setDiscountPercent] = useState<string>('0');
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [skuCode, setSkuCode] = useState('');
 
   // Measurements
   const [totalLength, setTotalLength] = useState<string>('');
@@ -152,6 +162,7 @@ export const Admin: React.FC = () => {
     setColorsInput('Blue, Charcoal');
     setSizesInput('M, L, XL, XXL, 3XL');
     setVerificationBadgesInput('Extra Arm Sleeve length, Verified Broad Armhole');
+    setTagsInput('tall, extra-length');
 
     setTotalLength('82');
     setSleeveLength('71');
@@ -168,6 +179,15 @@ export const Admin: React.FC = () => {
     setVerdict4_5_Note('Generous shoulders accommodate high reach.');
     setVerdict6_plus_Status('community');
     setVerdict6_plus_Note('Tail ends might look a tad tailored but fits decently.');
+
+    // New expanded defaults
+    setMaterial('');
+    setCareInstructions('');
+    setWeightGrams('');
+    setCountryOfOrigin('India');
+    setDiscountPercent('0');
+    setIsFeatured(false);
+    setSkuCode('');
 
     setMerchantLinks([]);
     setCustomReviews([]);
@@ -199,6 +219,16 @@ export const Admin: React.FC = () => {
     setColorsInput(p.colors.join(', '));
     setSizesInput(p.sizes ? p.sizes.join(', ') : 'M, L, XL, XXL, 3XL');
     setVerificationBadgesInput(p.verificationBadges ? p.verificationBadges.join(', ') : 'Verified Arm Length, Broad Chest');
+    setTagsInput((p as any).tags ? (p as any).tags.join(', ') : '');
+
+    // New expanded fields
+    setMaterial((p as any).material || '');
+    setCareInstructions((p as any).careInstructions || '');
+    setWeightGrams((p as any).weightGrams?.toString() || '');
+    setCountryOfOrigin((p as any).countryOfOrigin || 'India');
+    setDiscountPercent((p as any).discountPercent?.toString() || '0');
+    setIsFeatured(!!(p as any).isFeatured);
+    setSkuCode((p as any).skuCode || '');
 
     // Measurements
     setTotalLength(p.measurements?.totalLength?.toString() || '');
@@ -249,6 +279,7 @@ export const Admin: React.FC = () => {
     const colors = colorsInput.split(',').map(s => s.trim()).filter(Boolean);
     const sizes = sizesInput.split(',').map(s => s.trim()).filter(Boolean);
     const verificationBadges = verificationBadgesInput.split(',').map(s => s.trim()).filter(Boolean);
+    const tags = tagsInput.split(',').map(s => s.trim()).filter(Boolean);
 
     // Build measurements record
     const measurements: any = {};
@@ -276,7 +307,7 @@ export const Admin: React.FC = () => {
       description,
       priceAtRetailer: Number(priceAtRetailer),
       retailer,
-      affiliateUrl: affiliateUrl || 'https://lamba.tall.fashion/redirect',
+      affiliateUrl: affiliateUrl || 'https://6feetabove.com/redirect',
       fitType,
       verifiedTier,
       images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&auto=format&fit=crop'],
@@ -291,8 +322,17 @@ export const Admin: React.FC = () => {
       merchantLinks,
       customReviews,
       reviewsCount: customReviews.length,
-      averageRating: customReviews.length > 0 ? Number((customReviews.reduce((acc, curr) => acc + curr.rating, 0) / customReviews.length).toFixed(1)) : 5
-    };
+      averageRating: customReviews.length > 0 ? Number((customReviews.reduce((acc, curr) => acc + curr.rating, 0) / customReviews.length).toFixed(1)) : 5,
+      // New expanded fields
+      ...(material && { material }),
+      ...(careInstructions && { careInstructions }),
+      ...(weightGrams && { weightGrams: Number(weightGrams) }),
+      countryOfOrigin: countryOfOrigin || 'India',
+      tags,
+      discountPercent: Number(discountPercent) || 0,
+      isFeatured,
+      ...(skuCode && { skuCode }),
+    } as Product;
 
     try {
       if (editMode) {
@@ -310,7 +350,7 @@ export const Admin: React.FC = () => {
       }, 1500);
 
     } catch (err: any) {
-      setFormError('Authentication Failure or Firestore Schema block: ' + err.message);
+      setFormError('Save failed: ' + (err.message || 'Unknown error. Check admin permissions.'));
     }
   };
 
@@ -701,6 +741,20 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
+            {/* Grid 6b: Tags */}
+            <div>
+              <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
+                Searchable Tags (comma-separated, e.g. tall, extra-sleeve, summer)
+              </label>
+              <input
+                type="text"
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
+                placeholder="tall, extra-length, linen, featured"
+              />
+            </div>
+
             {/* Grid 7: Detail spec matrices comma-separated */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-4 border border-black/10 rounded-2xl">
               <div>
@@ -885,6 +939,91 @@ export const Admin: React.FC = () => {
                     className="md:col-span-2 px-3 py-2 border border-black/15 rounded-lg text-xs font-medium"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Grid 9b: NEW EXPANDED PRODUCT FIELDS */}
+            <div className="border border-[#7D2AE8]/20 rounded-2xl p-5 space-y-4 bg-[#7D2AE8]/3">
+              <div>
+                <span className="font-display font-black uppercase text-[#7D2AE8] text-sm block">Extended Product Details</span>
+                <p className="text-[9px] text-[#112133]/55 font-serif">Material, care, logistics, and merchandising fields.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Material / Fabric</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 100% Cotton, Linen Blend"
+                    value={material}
+                    onChange={(e) => setMaterial(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Care Instructions</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Machine wash cold, hang dry"
+                    value={careInstructions}
+                    onChange={(e) => setCareInstructions(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Country of Origin</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. India, Bangladesh"
+                    value={countryOfOrigin}
+                    onChange={(e) => setCountryOfOrigin(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Manufacturer SKU Code</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. ZA-OS-TEE-CHR-L"
+                    value={skuCode}
+                    onChange={(e) => setSkuCode(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Weight (grams)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 320"
+                    value={weightGrams}
+                    onChange={(e) => setWeightGrams(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Discount % (0–100)</label>
+                  <input
+                    type="number"
+                    min="0" max="100"
+                    value={discountPercent}
+                    onChange={(e) => setDiscountPercent(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isFeatured}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                    className="w-4 h-4 text-[#7D2AE8] focus:ring-[#7D2AE8] border-black/20 rounded"
+                  />
+                  <span className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider">
+                    ⭐ Feature on Homepage / Highlights Section
+                  </span>
+                </label>
               </div>
             </div>
 

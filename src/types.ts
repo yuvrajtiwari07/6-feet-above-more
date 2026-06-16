@@ -23,20 +23,20 @@ export interface Product {
   brand: string;
   title: string;
   category: string;
-  subCategory?: string; // e.g. T-Shirt, Shirt, Kurta
+  subCategory?: string;      // e.g. T-Shirt, Shirt, Kurta
   images: string[];
   occasions: string[];
   seasons: string[];
   colors: string[];
-  fitType: string; // e.g. Regular, Slim, Oversized
-  retailer: string; // Zara, H&M, Ajio, Myntra, etc.
+  fitType: string;           // e.g. Regular, Slim, Oversized
+  retailer: string;          // Zara, H&M, Ajio, Myntra, etc.
   affiliateUrl: string;
   priceAtRetailer: number;
   measurements: Measurement;
   verdicts: FitVerdict[];
   verifiedTier: 'verified' | 'friendly' | 'community';
-  
-  // Custom richer items requested by user
+
+  // Rich optional fields
   description?: string;
   outOfStock?: boolean;
   sizes?: string[];
@@ -45,6 +45,24 @@ export interface Product {
   averageRating?: number;
   customReviews?: { author: string; rating: number; text: string; date: string }[];
   verificationBadges?: string[];
+
+  // ── NEW expanded product fields ──────────────────────────
+  /** Fabric / material type, e.g. "100% Cotton", "Linen Blend" */
+  material?: string;
+  /** Care instructions, e.g. "Machine wash cold, tumble dry low" */
+  careInstructions?: string;
+  /** Product weight in grams (for shipping estimates) */
+  weightGrams?: number;
+  /** Country of manufacturing, e.g. "India", "Bangladesh" */
+  countryOfOrigin?: string;
+  /** Searchable free-form tags, e.g. ["tall", "extra-long-sleeve", "summer"] */
+  tags?: string[];
+  /** Current discount percentage off original price (0–100) */
+  discountPercent?: number;
+  /** Whether this product is shown on the featured/homepage section */
+  isFeatured?: boolean;
+  /** Manufacturer's own SKU code */
+  skuCode?: string;
 }
 
 export interface CompleteFit {
@@ -59,7 +77,7 @@ export interface CompleteFit {
 }
 
 export interface UserPreferences {
-  height: string; // e.g. '6\'2"', '6\'4"'
+  height: string;    // e.g. '6\'2"', '6\'4"'
   bodyType: 'Lean' | 'Athletic' | 'Broad' | 'Heavy';
   preferredBrands: string[];
   occasions: string[];

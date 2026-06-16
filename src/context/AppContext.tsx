@@ -1,17 +1,25 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { HeightBand, UserPreferences, Product } from '../types';
-import { db, auth, googleProvider, signInWithPopup, signOut, handleFirestoreError, OperationType } from '../firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, getDocFromServer, collection, onSnapshot, deleteDoc } from 'firebase/firestore';
+import {
+  supabase,
+  signInWithGoogle,
+  signOut,
+  getAccessToken,
+  User,
+} from '../supabase';
 
-export type RouteType = 
-  | 'home' 
-  | 'category' 
-  | 'product' 
-  | 'fit-finder' 
-  | 'complete-fits' 
-  | 'search' 
-  | 'saved' 
+// ── Admin whitelist (client-side UX only — enforced server-side) ─────────────
+const ADMIN_EMAILS = ['ytiwari@argusoft.com', 'yuvrajtiwari0710@gmail.com'];
+
+// ── Route types ───────────────────────────────────────────────────────────────
+export type RouteType =
+  | 'home'
+  | 'category'
+  | 'product'
+  | 'fit-finder'
+  | 'complete-fits'
+  | 'search'
+  | 'saved'
   | 'profile'
   | 'admin';
 
@@ -20,21 +28,22 @@ interface RouteState {
   params: Record<string, string>;
 }
 
+// ── Context type ──────────────────────────────────────────────────────────────
 interface AppContextType {
   // Height Profile
-  height: string; // e.g. "6'2" or "6'6+"
+  height: string;
   heightBand: HeightBand;
   setHeight: (h: string) => Promise<void>;
   bodyType: 'Lean' | 'Athletic' | 'Broad' | 'Heavy';
   setBodyType: (bt: 'Lean' | 'Athletic' | 'Broad' | 'Heavy') => Promise<void>;
   preferences: UserPreferences;
   updatePreferences: (p: Partial<UserPreferences>) => Promise<void>;
-  
+
   // Grid Density / Card Size
   cardSize: 'small' | 'medium' | 'large';
   setCardSize: (s: 'small' | 'medium' | 'large') => Promise<void>;
-  
-  // Saved state (Wishlist)
+
+  // Saved (Wishlist)
   savedProductIds: string[];
   toggleSaveProduct: (id: string) => Promise<void>;
   savedFitIds: string[];
@@ -49,13 +58,13 @@ interface AppContextType {
   trackAffiliateClick: (productId: string, retailer: string, url: string) => Promise<void>;
   clickLogs: { productId: string; timestamp: Date; retailer: string }[];
 
-  // Firebase Auth additions
+  // Auth
   user: User | null;
-  loadingFirebase: boolean;
-  loginWithGoogle: () => Promise<User>;
+  loadingFirebase: boolean; // kept for backward compat — actually "loadingAuth"
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 
-  // Firestore Products Management
+  // Products
   products: Product[];
   loadingProducts: boolean;
   isAdmin: boolean;
@@ -66,7 +75,6 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Helper to convert selection string to HeightBand enum
 export function getHeightBand(height: string): HeightBand {
   if (height === "6'0" || height === "6'1") return '6_0_6_1';
   if (height === "6'2" || height === "6'3") return '6_2_6_3';
@@ -74,305 +82,244 @@ export function getHeightBand(height: string): HeightBand {
   return '6_6_plus';
 }
 
+// ── API helper ────────────────────────────────────────────────────────────────
+async function apiFetch(
+  path: string,
+  options: RequestInit = {}
+): Promise<any> {
+  const token = await getAccessToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const res = await fetch(path, { ...options, headers });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ── Provider ──────────────────────────────────────────────────────────────────
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 1. Load initial states from LocalStorage or Defaults
-  const [height, setHeightState] = useState<string>(() => {
-    return localStorage.getItem('lamba_height') || "6'3";
-  });
-  const [bodyType, setBodyTypeState] = useState<'Lean' | 'Athletic' | 'Broad' | 'Heavy'>(() => {
-    return (localStorage.getItem('lamba_body_type') as any) || 'Athletic';
-  });
+  // ── Local state with localStorage fallback ──────────────────────────────
+  const [height, setHeightState] = useState<string>(
+    () => localStorage.getItem('lamba_height') || "6'3"
+  );
+  const [bodyType, setBodyTypeState] = useState<'Lean' | 'Athletic' | 'Broad' | 'Heavy'>(
+    () => (localStorage.getItem('lamba_body_type') as any) || 'Athletic'
+  );
   const [savedProductIds, setSavedProductIds] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('lamba_saved_products') || '[]');
-    } catch { return []; }
+    try { return JSON.parse(localStorage.getItem('lamba_saved_products') || '[]'); }
+    catch { return []; }
   });
   const [savedFitIds, setSavedFitIds] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('lamba_saved_fits') || '[]');
-    } catch { return []; }
+    try { return JSON.parse(localStorage.getItem('lamba_saved_fits') || '[]'); }
+    catch { return []; }
   });
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     try {
-      const saved = localStorage.getItem('lamba_preferences');
-      if (saved) return JSON.parse(saved);
+      const s = localStorage.getItem('lamba_preferences');
+      if (s) return JSON.parse(s);
     } catch {}
-    return {
-      height: "6'3",
-      bodyType: 'Athletic',
-      preferredBrands: [],
-      occasions: []
-    };
+    return { height: "6'3", bodyType: 'Athletic', preferredBrands: [], occasions: [] };
   });
-
-  const [cardSize, setCardSizeState] = useState<'small' | 'medium' | 'large'>(() => {
-    return (localStorage.getItem('lamba_card_size') as any) || 'medium';
-  });
-
+  const [cardSize, setCardSizeState] = useState<'small' | 'medium' | 'large'>(
+    () => (localStorage.getItem('lamba_card_size') as any) || 'medium'
+  );
   const [clickLogs, setClickLogs] = useState<{ productId: string; timestamp: Date; retailer: string }[]>([]);
 
-  // Firestore Products State
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState<boolean>(true);
-
-  // Firebase Auth State
+  // ── Auth state ──────────────────────────────────────────────────────────
   const [user, setUser] = useState<User | null>(null);
-  const [loadingFirebase, setLoadingFirebase] = useState<boolean>(true);
+  const [loadingFirebase, setLoadingFirebase] = useState(true);
 
-  // Calculate height band dynamically
+  // ── Products state ──────────────────────────────────────────────────────
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
   const heightBand = getHeightBand(height);
+  const isAdmin = user ? ADMIN_EMAILS.includes(user.email ?? '') : false;
 
-  // Calculate administrative privileges
-  const isAdmin = user ? (
-    user.email === 'ytiwari@argusoft.com' || user.email === 'yuvrajtiwari0710@gmail.com'
-  ) : false;
-
-  // Validate connection inside an effect as required by skill rules
-  useEffect(() => {
-    async function testConnection() {
-      try {
-        await getDocFromServer(doc(db, 'test', 'connection'));
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('the client is offline')) {
-          console.error("Please check your Firebase configuration.");
-        }
-      }
-    }
-    testConnection();
-  }, []);
-
-  // Fetch products collection real-time
-  useEffect(() => {
+  // ── Fetch products from REST API ────────────────────────────────────────
+  const fetchProducts = useCallback(async () => {
     setLoadingProducts(true);
-    const unsub = onSnapshot(collection(db, 'products'), async (snapshot) => {
-      const items: Product[] = [];
-      snapshot.forEach((docSnap) => {
-        items.push({ id: docSnap.id, ...docSnap.data() } as Product);
-      });
-
-      if (items.length === 0) {
-        // Automatically seed with default lookbook products if the table is currently empty
-        try {
-          const { PRODUCTS } = await import('../data/mockData');
-          for (const item of PRODUCTS) {
-            await setDoc(doc(db, 'products', item.id), item);
-          }
-        } catch (err) {
-          console.error("Auto-seeding default products failed:", err);
-        }
-      } else {
-        setProducts(items);
-        setLoadingProducts(false);
-      }
-    }, (error) => {
-      console.error("Failed to fetch products from Firestore:", error);
-      handleFirestoreError(error, OperationType.GET, 'products');
-    });
-
-    return () => unsub();
+    try {
+      const data = await apiFetch('/api/products');
+      setProducts(data.products ?? []);
+    } catch (err) {
+      console.error('[AppContext] Failed to fetch products:', err);
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
   }, []);
 
-  // Sync state modifications helper
-  const syncProfileChange = async (updatedFields: Record<string, any>) => {
-    if (!auth.currentUser) return;
-    try {
-      const docRef = doc(db, 'users', auth.currentUser.uid);
-      const isUserAdmin = auth.currentUser.email === 'ytiwari@argusoft.com' || auth.currentUser.email === 'yuvrajtiwari0710@gmail.com';
-      await setDoc(docRef, {
-        ...updatedFields,
-        userId: auth.currentUser.uid,
-        email: auth.currentUser.email || '',
-        isAdmin: isUserAdmin,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-    } catch (e) {
-      console.error("Failed to sync profile change to Firestore:", e);
-      handleFirestoreError(e, OperationType.WRITE, `users/${auth.currentUser.uid}`);
-    }
-  };
-
-  // Load profile definitions
-  const loadProfileFromFirestore = async (uid: string) => {
-    try {
-      const docRef = doc(db, 'users', uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.height) {
-          setHeightState(data.height);
-          localStorage.setItem('lamba_height', data.height);
-        }
-        if (data.bodyType) {
-          setBodyTypeState(data.bodyType as any);
-          localStorage.setItem('lamba_body_type', data.bodyType);
-        }
-        if (data.cardSize) {
-          setCardSizeState(data.cardSize as any);
-          localStorage.setItem('lamba_card_size', data.cardSize);
-        }
-        if (data.savedProductIds) {
-          setSavedProductIds(data.savedProductIds);
-          localStorage.setItem('lamba_saved_products', JSON.stringify(data.savedProductIds));
-        }
-        if (data.savedFitIds) {
-          setSavedFitIds(data.savedFitIds);
-          localStorage.setItem('lamba_saved_fits', JSON.stringify(data.savedFitIds));
-        }
-        if (data.preferences) {
-          setPreferences(data.preferences as any);
-          localStorage.setItem('lamba_preferences', JSON.stringify(data.preferences));
-        }
-      } else {
-        // Document does not exist, seed immediately
-        const isUserAdmin = auth.currentUser?.email === 'ytiwari@argusoft.com' || auth.currentUser?.email === 'yuvrajtiwari0710@gmail.com';
-        const localData = {
-          userId: uid,
-          email: auth.currentUser?.email || '',
-          isAdmin: isUserAdmin,
-          height,
-          bodyType,
-          cardSize,
-          savedProductIds,
-          savedFitIds,
-          preferences,
-          updatedAt: serverTimestamp()
-        };
-        await setDoc(docRef, localData);
-      }
-    } catch (e) {
-      console.error("Error loading profile from Firestore:", e);
-      handleFirestoreError(e, OperationType.GET, `users/${uid}`);
-    }
-  };
-
-  // Track Auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        await loadProfileFromFirestore(currentUser.uid);
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // ── Sync user profile from/to backend ──────────────────────────────────
+  const syncProfileFromBackend = useCallback(async () => {
+    try {
+      const data = await apiFetch('/api/users/profile');
+      const profile = data.profile;
+      if (!profile) return;
+
+      if (profile.height) {
+        setHeightState(profile.height);
+        localStorage.setItem('lamba_height', profile.height);
       }
+      if (profile.bodyType) {
+        setBodyTypeState(profile.bodyType);
+        localStorage.setItem('lamba_body_type', profile.bodyType);
+      }
+      if (profile.cardSize) {
+        setCardSizeState(profile.cardSize);
+        localStorage.setItem('lamba_card_size', profile.cardSize);
+      }
+      if (profile.savedProductIds) {
+        setSavedProductIds(profile.savedProductIds);
+        localStorage.setItem('lamba_saved_products', JSON.stringify(profile.savedProductIds));
+      }
+      if (profile.savedFitIds) {
+        setSavedFitIds(profile.savedFitIds);
+        localStorage.setItem('lamba_saved_fits', JSON.stringify(profile.savedFitIds));
+      }
+      if (profile.preferences && Object.keys(profile.preferences).length > 0) {
+        setPreferences(profile.preferences);
+        localStorage.setItem('lamba_preferences', JSON.stringify(profile.preferences));
+      }
+    } catch (err) {
+      console.warn('[AppContext] Profile sync failed (non-fatal):', err);
+    }
+  }, []);
+
+  const syncProfileToBackend = useCallback(async (updates: Record<string, any>) => {
+    try {
+      await apiFetch('/api/users/profile', {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+    } catch (err) {
+      console.warn('[AppContext] Failed to sync profile to backend:', err);
+    }
+  }, []);
+
+  // ── Auth state listener ──────────────────────────────────────────────────
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data }) => {
+      const sessionUser = data.session?.user ?? null;
+      setUser(sessionUser);
+      if (sessionUser) syncProfileFromBackend();
       setLoadingFirebase(false);
     });
-    return () => unsubscribe();
-  }, []);
 
-  // Google Sign-In helper
-  const loginWithGoogle = async (): Promise<User> => {
+    // Listen for auth changes (login/logout/token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        const sessionUser = session?.user ?? null;
+        setUser(sessionUser);
+        if (sessionUser) {
+          await syncProfileFromBackend();
+        }
+        setLoadingFirebase(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [syncProfileFromBackend]);
+
+  // ── Auth actions ─────────────────────────────────────────────────────────
+  const loginWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      return result.user;
-    } catch (e) {
-      console.error("Login with Google failed:", e);
-      throw e;
+      await signInWithGoogle();
+      // Session will be handled by onAuthStateChange after redirect
+    } catch (err) {
+      console.error('[AppContext] Google login failed:', err);
+      throw err;
     }
   };
 
-  // Sign out helper
   const logout = async () => {
     try {
-      await signOut(auth);
-    } catch (e) {
-      console.error("Logout failed:", e);
+      await signOut();
+    } catch (err) {
+      console.error('[AppContext] Logout failed:', err);
     }
   };
 
-  // Products Mutation operations
+  // ── Product mutations (admin-only — enforced server-side) ────────────────
   const addProduct = async (p: Product) => {
-    try {
-      await setDoc(doc(db, 'products', p.id), {
-        ...p,
-        updatedAt: serverTimestamp()
-      });
-    } catch (e) {
-      console.error("addProduct failed:", e);
-      handleFirestoreError(e, OperationType.WRITE, `products/${p.id}`);
+    const data = await apiFetch('/api/products', {
+      method: 'POST',
+      body: JSON.stringify(p),
+    });
+    if (data.product) {
+      setProducts(prev => [data.product, ...prev.filter(x => x.id !== data.product.id)]);
     }
   };
 
   const updateProduct = async (id: string, p: Partial<Product>) => {
-    try {
-      await setDoc(doc(db, 'products', id), {
-        ...p,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-    } catch (e) {
-      console.error("updateProduct failed:", e);
-      handleFirestoreError(e, OperationType.WRITE, `products/${id}`);
+    const data = await apiFetch(`/api/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(p),
+    });
+    if (data.product) {
+      setProducts(prev => prev.map(x => x.id === id ? data.product : x));
     }
   };
 
   const deleteProduct = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'products', id));
-    } catch (e) {
-      console.error("deleteProduct failed:", e);
-      handleFirestoreError(e, OperationType.DELETE, `products/${id}`);
-    }
+    await apiFetch(`/api/products/${id}`, { method: 'DELETE' });
+    setProducts(prev => prev.filter(x => x.id !== id));
   };
 
-  // Sync state modifications to local storages
+  // ── Profile setters ──────────────────────────────────────────────────────
   const setHeight = async (h: string) => {
     setHeightState(h);
     localStorage.setItem('lamba_height', h);
-    
-    let updatedPreferences: any = null;
+    let updatedPrefs: any;
     setPreferences(prev => {
       const updated = { ...prev, height: h };
       localStorage.setItem('lamba_preferences', JSON.stringify(updated));
-      updatedPreferences = updated;
+      updatedPrefs = updated;
       return updated;
     });
-
-    if (auth.currentUser) {
-      await syncProfileChange({
-        height: h,
-        preferences: updatedPreferences || { ...preferences, height: h }
-      });
-    }
+    if (user) await syncProfileToBackend({ height: h, preferences: updatedPrefs });
   };
 
   const setBodyType = async (bt: 'Lean' | 'Athletic' | 'Broad' | 'Heavy') => {
     setBodyTypeState(bt);
     localStorage.setItem('lamba_body_type', bt);
-    
-    let updatedPreferences: any = null;
+    let updatedPrefs: any;
     setPreferences(prev => {
       const updated = { ...prev, bodyType: bt };
       localStorage.setItem('lamba_preferences', JSON.stringify(updated));
-      updatedPreferences = updated;
+      updatedPrefs = updated;
       return updated;
     });
-
-    if (auth.currentUser) {
-      await syncProfileChange({
-        bodyType: bt,
-        preferences: updatedPreferences || { ...preferences, bodyType: bt }
-      });
-    }
+    if (user) await syncProfileToBackend({ bodyType: bt, preferences: updatedPrefs });
   };
 
   const setCardSize = async (size: 'small' | 'medium' | 'large') => {
     setCardSizeState(size);
     localStorage.setItem('lamba_card_size', size);
-    if (auth.currentUser) {
-      await syncProfileChange({ cardSize: size });
-    }
+    if (user) await syncProfileToBackend({ cardSize: size });
   };
 
   const updatePreferences = async (p: Partial<UserPreferences>) => {
-    let updatedPreferences: any = null;
+    let updatedPrefs: any;
     setPreferences(prev => {
       const updated = { ...prev, ...p };
       localStorage.setItem('lamba_preferences', JSON.stringify(updated));
-      updatedPreferences = updated;
+      updatedPrefs = updated;
       return updated;
     });
-    if (auth.currentUser) {
-      await syncProfileChange({
-        preferences: updatedPreferences || { ...preferences, ...p }
-      });
-    }
+    if (user) await syncProfileToBackend({ preferences: updatedPrefs });
   };
 
   const toggleSaveProduct = async (id: string) => {
@@ -383,9 +330,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       finalIds = next;
       return next;
     });
-    if (auth.currentUser) {
-      await syncProfileChange({ savedProductIds: finalIds });
-    }
+    if (user) await syncProfileToBackend({ savedProductIds: finalIds });
   };
 
   const toggleSaveFit = async (id: string) => {
@@ -396,16 +341,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       finalIds = next;
       return next;
     });
-    if (auth.currentUser) {
-      await syncProfileChange({ savedFitIds: finalIds });
-    }
+    if (user) await syncProfileToBackend({ savedFitIds: finalIds });
   };
 
-  // 2. Hash Routing Engine (SPA Navigation built for safe container iframe preview)
+  // ── Routing ──────────────────────────────────────────────────────────────
   const [route, setRoute] = useState<RouteState>({ current: 'home', params: {} });
   const [routeHistory, setRouteHistory] = useState<RouteState[]>([]);
 
-  // Parse location hash
   const parseHash = (hashString: string): RouteState => {
     if (!hashString || hashString === '#' || hashString === '#/') {
       return { current: 'home', params: {} };
@@ -413,22 +355,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const cleanHash = hashString.replace(/^#\/?/, '');
     const segments = cleanHash.split('/');
     const current = segments[0] as RouteType;
-    
     const params: Record<string, string> = {};
     if (segments[1]) {
-      if (current === 'category') {
-        params.categoryName = decodeURIComponent(segments[1]);
-      } else if (current === 'product') {
-        params.productId = decodeURIComponent(segments[1]);
-      } else if (current === 'search') {
-        params.query = decodeURIComponent(segments[1]);
-      }
+      if (current === 'category')    params.categoryName = decodeURIComponent(segments[1]);
+      else if (current === 'product') params.productId   = decodeURIComponent(segments[1]);
+      else if (current === 'search')  params.query        = decodeURIComponent(segments[1]);
     }
-    
     return { current: current || 'home', params };
   };
 
-  // Safe navigation function that pushes hashes
   const navigate = (target: RouteType, params?: Record<string, string>) => {
     let hash = `#${target}`;
     if (params) {
@@ -436,7 +371,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       else if (params.productId) hash += `/${encodeURIComponent(params.productId)}`;
       else if (params.query) hash += `/${encodeURIComponent(params.query)}`;
     }
-    
     setRouteHistory(prev => [...prev, route]);
     window.location.hash = hash;
   };
@@ -444,39 +378,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const goBack = () => {
     if (routeHistory.length > 0) {
       const prev = routeHistory[routeHistory.length - 1];
-      setRouteHistory(history => history.slice(0, -1));
+      setRouteHistory(h => h.slice(0, -1));
       navigate(prev.current, prev.params);
     } else {
       navigate('home');
     }
   };
 
-  // Listen for hashchange events
   useEffect(() => {
-    const handleHashChange = () => {
-      const state = parseHash(window.location.hash);
-      setRoute(state);
-    };
-
+    const handleHashChange = () => setRoute(parseHash(window.location.hash));
     window.addEventListener('hashchange', handleHashChange);
     handleHashChange();
-
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // 3. Track Affiliate Click Link redirection
+  // ── Affiliate click tracking ──────────────────────────────────────────────
   const trackAffiliateClick = async (productId: string, retailer: string, url: string) => {
-    const log = { productId, timestamp: new Date(), retailer };
-    setClickLogs(prev => [log, ...prev]);
-
+    setClickLogs(prev => [{ productId, timestamp: new Date(), retailer }, ...prev]);
     try {
-      await fetch('/api/track', {
+      await apiFetch('/api/products/track', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, retailer, affiliateUrl: url })
+        body: JSON.stringify({ productId, retailer, affiliateUrl: url }),
       });
     } catch (e) {
-      console.warn("Could not log click on backend:", e);
+      console.warn('[AppContext] Could not log affiliate click:', e);
     }
   };
 
@@ -505,14 +430,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         loadingFirebase,
         loginWithGoogle,
         logout,
-        
-        // Extended Firestore systems
         products,
         loadingProducts,
         isAdmin,
         addProduct,
         updateProduct,
-        deleteProduct
+        deleteProduct,
       }}
     >
       {children}
@@ -522,8 +445,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 export const useApp = () => {
   const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used inside an AppProvider');
-  }
+  if (!context) throw new Error('useApp must be used inside an AppProvider');
   return context;
 };
