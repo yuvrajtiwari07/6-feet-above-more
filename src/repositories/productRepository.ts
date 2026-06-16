@@ -12,6 +12,8 @@ function rowToProduct(row: any): Product {
     title:               row.title,
     category:            row.category,
     subCategory:         row.sub_category,
+    productSegment:      row.product_segment ?? 'Upperwear',
+    productType:         row.product_type ?? 'T-Shirt',
     description:         row.description,
     fitType:             row.fit_type,
     retailer:            row.retailer,
@@ -63,7 +65,7 @@ export const productRepository = {
       params.push(filters.brand);
     }
     if (filters?.search) {
-      text += ` AND (LOWER(title) LIKE $${idx} OR LOWER(brand) LIKE $${idx} OR LOWER(category) LIKE $${idx})`;
+      text += ` AND (LOWER(title) LIKE $${idx} OR LOWER(brand) LIKE $${idx} OR LOWER(category) LIKE $${idx} OR LOWER(product_segment) LIKE $${idx} OR LOWER(product_type) LIKE $${idx})`;
       params.push(`%${filters.search.toLowerCase()}%`);
       idx++;
     }
@@ -88,16 +90,16 @@ export const productRepository = {
   async create(p: Product): Promise<Product> {
     const text = `
       INSERT INTO products (
-        id, brand, title, category, sub_category, description, fit_type,
-        retailer, affiliate_url, price_at_retailer, images, occasions,
-        seasons, colors, sizes, verified_tier, out_of_stock,
+        id, brand, title, category, sub_category, product_segment, product_type,
+        description, fit_type, retailer, affiliate_url, price_at_retailer,
+        images, occasions, seasons, colors, sizes, verified_tier, out_of_stock,
         verification_badges, merchant_links, custom_reviews, reviews_count,
         average_rating, measurements, verdicts,
         material, care_instructions, weight_grams, country_of_origin,
         tags, discount_percent, is_featured, sku_code
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
-        $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
+        $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34
       )
       ON CONFLICT (id) DO UPDATE SET
         brand = EXCLUDED.brand, title = EXCLUDED.title,
@@ -106,6 +108,7 @@ export const productRepository = {
     `;
     const params = [
       p.id, p.brand, p.title, p.category, p.subCategory ?? null,
+      p.productSegment, p.productType,
       p.description ?? null, p.fitType, p.retailer, p.affiliateUrl,
       p.priceAtRetailer, p.images, p.occasions, p.seasons, p.colors,
       p.sizes ?? [], p.verifiedTier, p.outOfStock ?? false,
@@ -113,10 +116,10 @@ export const productRepository = {
       JSON.stringify(p.customReviews ?? []), p.reviewsCount ?? 0,
       p.averageRating ?? 5.0, JSON.stringify(p.measurements ?? {}),
       JSON.stringify(p.verdicts ?? []),
-      (p as any).material ?? null, (p as any).careInstructions ?? null,
-      (p as any).weightGrams ?? null, (p as any).countryOfOrigin ?? 'India',
-      (p as any).tags ?? [], (p as any).discountPercent ?? 0,
-      (p as any).isFeatured ?? false, (p as any).skuCode ?? null,
+      p.material ?? null, p.careInstructions ?? null,
+      p.weightGrams ?? null, p.countryOfOrigin ?? 'India',
+      p.tags ?? [], p.discountPercent ?? 0,
+      p.isFeatured ?? false, p.skuCode ?? null,
     ];
     const rows = await query(text, params);
     return rowToProduct(rows[0]);
@@ -126,7 +129,8 @@ export const productRepository = {
     // Build SET clause dynamically
     const fieldMap: Record<string, string> = {
       brand: 'brand', title: 'title', category: 'category',
-      subCategory: 'sub_category', description: 'description',
+      subCategory: 'sub_category', productSegment: 'product_segment',
+      productType: 'product_type', description: 'description',
       fitType: 'fit_type', retailer: 'retailer', affiliateUrl: 'affiliate_url',
       priceAtRetailer: 'price_at_retailer', images: 'images',
       occasions: 'occasions', seasons: 'seasons', colors: 'colors',

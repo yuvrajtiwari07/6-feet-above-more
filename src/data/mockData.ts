@@ -4,6 +4,8 @@ export const PRODUCTS: Product[] = [
   // ETHNIC WEAR
   {
     id: 'eth-1',
+    productSegment: 'Ethnic Wear',
+    productType: 'Kurta',
     brand: 'Manyavar',
     title: 'Emerald Green Draped Chikankari Kurta',
     category: 'Ethnic Wear',
@@ -19,10 +21,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.myntra.com/kurta-emerald-lamba',
     priceAtRetailer: 3999,
     measurements: {
-      totalLength: 118, // cm (Extra long for tall torso drape)
-      shoulder: 52,
-      chest: 114,
-      sleeveLength: 71, // cm
+      totalLength: { value: 118, unit: 'cm' }, // cm (Extra long for tall torso drape)
+      shoulder: { value: 52, unit: 'cm' },
+      chest: { value: 114, unit: 'cm' },
+      sleeveLength: { value: 71, unit: 'cm' }, // cm
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Perfect elegant knee length drape.' },
@@ -34,6 +36,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'eth-2',
+    productSegment: 'Outerwear',
+    productType: 'Jacket',
     brand: 'Westside',
     title: 'Ivory Royal Linen Nehru Jacket & Kurta Set',
     category: 'Ethnic Wear',
@@ -49,10 +53,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.tatacliq.com/westside-nehru-set-lamba',
     priceAtRetailer: 4599,
     measurements: {
-      totalLength: 122,
-      shoulder: 54,
-      chest: 120,
-      sleeveLength: 73,
+      totalLength: { value: 122, unit: 'cm' },
+      shoulder: { value: 54, unit: 'cm' },
+      chest: { value: 120, unit: 'cm' },
+      sleeveLength: { value: 73, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Ultra rich look. Feels like a sherwani.' },
@@ -64,6 +68,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'eth-3',
+    productSegment: 'Ethnic Wear',
+    productType: 'Kurta',
     brand: 'Fabindia',
     title: 'Indigo Indigo Ikat Cotton Long Kurta',
     category: 'Ethnic Wear',
@@ -79,10 +85,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.ajio.com/fabindia-ikat-lamba',
     priceAtRetailer: 2499,
     measurements: {
-      totalLength: 114,
-      shoulder: 50,
-      chest: 110,
-      sleeveLength: 68,
+      totalLength: { value: 114, unit: 'cm' },
+      shoulder: { value: 50, unit: 'cm' },
+      chest: { value: 110, unit: 'cm' },
+      sleeveLength: { value: 68, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Relaxed bohemian drape. Looks superb.' },
@@ -96,6 +102,8 @@ export const PRODUCTS: Product[] = [
   // FORMAL WEAR
   {
     id: 'form-1',
+    productSegment: 'Upperwear',
+    productType: 'T-Shirt',
     brand: 'Zara',
     title: 'Premium Structured Navy Suit Blazer',
     category: 'Formals',
@@ -111,10 +119,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.zara.com/in/navy-suit-blazer-lamba',
     priceAtRetailer: 8990,
     measurements: {
-      totalLength: 82, // Long blazer profile
-      shoulder: 51,
-      chest: 112,
-      sleeveLength: 72, // Extra long sleeve
+      totalLength: { value: 82, unit: 'cm' }, // Long blazer profile
+      shoulder: { value: 51, unit: 'cm' },
+      chest: { value: 112, unit: 'cm' },
+      sleeveLength: { value: 72, unit: 'cm' }, // Extra long sleeve
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Impeccable tailored drape. Might need 1cm sleeve hem-up.' },
@@ -126,6 +134,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'form-2',
+    productSegment: 'Upperwear',
+    productType: 'Shirt',
     brand: 'H&M',
     title: 'Easy-Iron Tall Oxford Shirt - Ice Blue',
     category: 'Formals',
@@ -141,10 +151,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www2.hm.com/in/oxford-shirt-tall-lamba',
     priceAtRetailer: 1999,
     measurements: {
-      totalLength: 81,
-      shoulder: 49,
-      chest: 108,
-      sleeveLength: 71,
+      totalLength: { value: 81, unit: 'cm' },
+      shoulder: { value: 49, unit: 'cm' },
+      chest: { value: 108, unit: 'cm' },
+      sleeveLength: { value: 71, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Plenty of fabric to stay tucked in all day.' },
@@ -156,6 +166,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'form-3',
+    productSegment: 'Bottomwear',
+    productType: 'Trousers',
     brand: 'Raymond',
     title: 'Executive Steel-Grey Professional Trousers',
     category: 'Formals',
@@ -171,9 +183,9 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.myntra.com/raymond-steel-trousers-lamba',
     priceAtRetailer: 2999,
     measurements: {
-      inseam: 91, // 36-inch deep inseam!
-      rise: 29,
-      legOpening: 21,
+      inseam: { value: 91, unit: 'cm' }, // 36-inch deep inseam!
+      rise: { value: 29, unit: 'cm' },
+      legOpening: { value: 21, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Needs normal tailoring to shorten, but rise ensures high waist comfort.' },
@@ -185,6 +197,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'form-4',
+    productSegment: 'Upperwear',
+    productType: 'Shirt',
     brand: 'Zodiac',
     title: 'Cotton Micro-Check Executive Shirt',
     category: 'Formals',
@@ -200,10 +214,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.tatacliq.com/zodiac-microcheck-shirt',
     priceAtRetailer: 3299,
     measurements: {
-      totalLength: 83,
-      shoulder: 51,
-      chest: 116,
-      sleeveLength: 72,
+      totalLength: { value: 83, unit: 'cm' },
+      shoulder: { value: 51, unit: 'cm' },
+      chest: { value: 116, unit: 'cm' },
+      sleeveLength: { value: 72, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Great fabric weight. Long hem fits easy.' },
@@ -217,6 +231,8 @@ export const PRODUCTS: Product[] = [
   // STREETWEAR
   {
     id: 'street-1',
+    productSegment: 'Upperwear',
+    productType: 'T-Shirt',
     brand: 'Zara',
     title: 'Distressed Heavyweight Charcoal Oversized Tee',
     category: 'Streetwear',
@@ -232,10 +248,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.zara.com/in/charcoal-oversized-tee-lamba',
     priceAtRetailer: 2290,
     measurements: {
-      totalLength: 84, // Extremely long boxy drop
-      shoulder: 56,
-      chest: 124,
-      sleeveLength: 31, // Drop shoulder ends below elbow on 6'3"
+      totalLength: { value: 84, unit: 'cm' }, // Extremely long boxy drop
+      shoulder: { value: 56, unit: 'cm' },
+      chest: { value: 124, unit: 'cm' },
+      sleeveLength: { value: 31, unit: 'cm' }, // Drop shoulder ends below elbow on 6'3"
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Extremely baggy, heavy hypebeast vibe.' },
@@ -247,6 +263,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'street-2',
+    productSegment: 'Bottomwear',
+    productType: 'Cargo Pants',
     brand: 'H&M',
     title: 'Hypebeast Multi-Pocket Utility Cargo Pants',
     category: 'Streetwear',
@@ -262,9 +280,9 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www2.hm.com/in/hype-cargos-lamba',
     priceAtRetailer: 3499,
     measurements: {
-      inseam: 89, // 35" inseam with ankle bungee toggles
-      rise: 31,
-      legOpening: 24,
+      inseam: { value: 89, unit: 'cm' }, // 35" inseam with ankle bungee toggles
+      rise: { value: 31, unit: 'cm' },
+      legOpening: { value: 24, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Can stack heavily at the bottom. Adjust toggles to fit.' },
@@ -276,6 +294,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'street-3',
+    productSegment: 'Outerwear',
+    productType: 'Hoodie',
     brand: 'Bewakoof Heavy',
     title: 'Graphic Print Heavy Knit Hood - Cobalt Blue',
     category: 'Streetwear',
@@ -291,10 +311,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.ajio.com/bewakoof-heavy-hoodie',
     priceAtRetailer: 2199,
     measurements: {
-      totalLength: 82,
-      shoulder: 54,
-      chest: 122,
-      sleeveLength: 72,
+      totalLength: { value: 82, unit: 'cm' },
+      shoulder: { value: 54, unit: 'cm' },
+      chest: { value: 122, unit: 'cm' },
+      sleeveLength: { value: 72, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Feels super cozy and chunky.' },
@@ -306,6 +326,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'street-4',
+    productSegment: 'Bottomwear',
+    productType: 'Joggers',
     brand: 'Adidas Originals',
     title: 'Adicolor Classics Superstar Track Pants',
     category: 'Streetwear',
@@ -321,9 +343,9 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.flipkart.com/adidas-originals-track-lamba',
     priceAtRetailer: 4999,
     measurements: {
-      inseam: 88,
-      rise: 29,
-      legOpening: 18,
+      inseam: { value: 88, unit: 'cm' },
+      rise: { value: 29, unit: 'cm' },
+      legOpening: { value: 18, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Tapered, sporty look with minor ankle stack.' },
@@ -337,6 +359,8 @@ export const PRODUCTS: Product[] = [
   // SUMMER WEAR
   {
     id: 'summ-1',
+    productSegment: 'Upperwear',
+    productType: 'Shirt',
     brand: 'Zara',
     title: 'Relaxed Fit Pastel Sage Linen Shirt',
     category: 'Summer',
@@ -352,10 +376,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.zara.com/in/sage-linen-shirt-lamba',
     priceAtRetailer: 3290,
     measurements: {
-      totalLength: 80,
-      shoulder: 50,
-      chest: 114,
-      sleeveLength: 70,
+      totalLength: { value: 80, unit: 'cm' },
+      shoulder: { value: 50, unit: 'cm' },
+      chest: { value: 114, unit: 'cm' },
+      sleeveLength: { value: 70, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Breezy and super aesthetic for beaches.' },
@@ -367,6 +391,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'summ-2',
+    productSegment: 'Bottomwear',
+    productType: 'Chinos',
     brand: 'Westside',
     title: 'Breezy Oatmeal Linen Blend Drawstring Chinos',
     category: 'Summer',
@@ -382,9 +408,9 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.tatacliq.com/westside-oatmeal-drawstring-lamba',
     priceAtRetailer: 1899,
     measurements: {
-      inseam: 89,
-      rise: 30,
-      legOpening: 22,
+      inseam: { value: 89, unit: 'cm' },
+      rise: { value: 30, unit: 'cm' },
+      legOpening: { value: 22, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Easy, pool-side linen stack. Drawstring helps hold waist.' },
@@ -396,6 +422,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'summ-3',
+    productSegment: 'Upperwear',
+    productType: 'Shirt',
     brand: 'Uniqlo',
     title: 'Supima Cotton Crew Neck Tee - Lemon Yellow',
     category: 'Summer',
@@ -411,10 +439,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.uniqlo.com/in/supima-lemon-lamba',
     priceAtRetailer: 1290,
     measurements: {
-      totalLength: 79,
-      shoulder: 48,
-      chest: 106,
-      sleeveLength: 26,
+      totalLength: { value: 79, unit: 'cm' },
+      shoulder: { value: 48, unit: 'cm' },
+      chest: { value: 106, unit: 'cm' },
+      sleeveLength: { value: 26, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Great length, doesn\'t shrink in the wash!' },
@@ -426,6 +454,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'summ-4',
+    productSegment: 'Bottomwear',
+    productType: 'Shorts',
     brand: 'H&M',
     title: 'Tall Fit Drawstring Linen Shorts',
     category: 'Summer',
@@ -441,9 +471,9 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www2.hm.com/in/linen-shorts-tall-lamba',
     priceAtRetailer: 1499,
     measurements: {
-      inseam: 26, // 10" inseam hits mid-thigh to top-knee appropriately
-      rise: 29,
-      legOpening: 28,
+      inseam: { value: 26, unit: 'cm' }, // 10" inseam hits mid-thigh to top-knee appropriately
+      rise: { value: 29, unit: 'cm' },
+      legOpening: { value: 28, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Hits just at the top of the knee.' },
@@ -457,6 +487,8 @@ export const PRODUCTS: Product[] = [
   // WINTER WEAR
   {
     id: 'wint-1',
+    productSegment: 'Outerwear',
+    productType: 'Jacket',
     brand: 'Zara',
     title: 'Italian Wool Blend Double-Breasted Trench Coat',
     category: 'Winter',
@@ -472,10 +504,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.zara.com/in/italian-wool-trench-lamba',
     priceAtRetailer: 14990,
     measurements: {
-      totalLength: 104, // Stunning knee-length trench
-      shoulder: 53,
-      chest: 118,
-      sleeveLength: 73,
+      totalLength: { value: 104, unit: 'cm' }, // Stunning knee-length trench
+      shoulder: { value: 53, unit: 'cm' },
+      chest: { value: 118, unit: 'cm' },
+      sleeveLength: { value: 73, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Dramatic long coat look, ends below knees.' },
@@ -487,6 +519,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'wint-2',
+    productSegment: 'Outerwear',
+    productType: 'Hoodie',
     brand: 'H&M',
     title: 'Merino Wool Tall Turtleneck Sweater',
     category: 'Winter',
@@ -502,10 +536,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www2.hm.com/in/merino-turtle-lamba',
     priceAtRetailer: 3999,
     measurements: {
-      totalLength: 80,
-      shoulder: 49,
-      chest: 108,
-      sleeveLength: 71,
+      totalLength: { value: 80, unit: 'cm' },
+      shoulder: { value: 49, unit: 'cm' },
+      chest: { value: 108, unit: 'cm' },
+      sleeveLength: { value: 71, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Very clean silhouette, fits around waist cleanly.' },
@@ -517,6 +551,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'wint-3',
+    productSegment: 'Outerwear',
+    productType: 'Jacket',
     brand: 'Jack & Jones',
     title: 'Fleece-Lined Denim Biker Jacket',
     category: 'Winter',
@@ -532,10 +568,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.myntra.com/jack-jones-biker-lamba',
     priceAtRetailer: 5499,
     measurements: {
-      totalLength: 79,
-      shoulder: 52,
-      chest: 116,
-      sleeveLength: 69,
+      totalLength: { value: 79, unit: 'cm' },
+      shoulder: { value: 52, unit: 'cm' },
+      chest: { value: 116, unit: 'cm' },
+      sleeveLength: { value: 69, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Excellent bulky frame.' },
@@ -549,6 +585,8 @@ export const PRODUCTS: Product[] = [
   // FOOTWEAR & SNEAKERS (Tall sizes 11, 12, 13, 14, 15)
   {
     id: 'foot-1',
+    productSegment: 'Footwear',
+    productType: 'Sneakers',
     brand: 'Adidas',
     title: 'Samba OG Classic Sneakers (Big Sizes 11-14)',
     category: 'Sneakers',
@@ -564,7 +602,7 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.adidas.co.in/samba-big-size-lamba',
     priceAtRetailer: 10999,
     measurements: {
-      legOpening: 12, // sole width scale
+      legOpening: { value: 12, unit: 'cm' }, // sole width scale
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Matches size 11 exceptionally.' },
@@ -576,6 +614,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'foot-2',
+    productSegment: 'Footwear',
+    productType: 'Sneakers',
     brand: 'Nike',
     title: 'Air Jordan 1 High OG (Big Sizes up to UK 15)',
     category: 'Sneakers',
@@ -603,6 +643,8 @@ export const PRODUCTS: Product[] = [
   // ADDITIONAL GARMENTS
   {
     id: 'add-1',
+    productSegment: 'Bottomwear',
+    productType: 'Chinos',
     brand: 'Zara',
     title: 'Cotton Twill High-Waisted Chino Trousers',
     category: 'Formals',
@@ -618,9 +660,9 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.zara.com/in/high-rise-chino-lamba',
     priceAtRetailer: 3990,
     measurements: {
-      inseam: 92,
-      rise: 32, // high rise for tall legs
-      legOpening: 22,
+      inseam: { value: 92, unit: 'cm' },
+      rise: { value: 32, unit: 'cm' }, // high rise for tall legs
+      legOpening: { value: 22, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Nice pleated waist. Can hem to size.' },
@@ -632,6 +674,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'add-2',
+    productSegment: 'Upperwear',
+    productType: 'Shirt',
     brand: 'H&M',
     title: 'Textured-Knit Oversized Polo Shirt',
     category: 'Formals',
@@ -647,10 +691,10 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www2.hm.com/in/waffle-polo-lamba',
     priceAtRetailer: 2299,
     measurements: {
-      totalLength: 81,
-      shoulder: 51,
-      chest: 112,
-      sleeveLength: 29,
+      totalLength: { value: 81, unit: 'cm' },
+      shoulder: { value: 51, unit: 'cm' },
+      chest: { value: 112, unit: 'cm' },
+      sleeveLength: { value: 29, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Comfortable draping waffle knit.' },
@@ -662,6 +706,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'add-3',
+    productSegment: 'Bottomwear',
+    productType: 'Jeans',
     brand: 'Levis',
     title: 'Levis 501 Original Button Fly Tall Denim',
     category: 'Streetwear',
@@ -677,9 +723,9 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.levi.in/501-tall-indigo-lamba',
     priceAtRetailer: 4999,
     measurements: {
-      inseam: 92, // 36L
-      rise: 29,
-      legOpening: 20,
+      inseam: { value: 92, unit: 'cm' }, // 36L
+      rise: { value: 29, unit: 'cm' },
+      legOpening: { value: 20, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'friendly', note: 'Hemming recommended but original waist ratio is great.' },
@@ -691,6 +737,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'add-4',
+    productSegment: 'Bottomwear',
+    productType: 'Cargo Pants',
     brand: 'Westside',
     title: 'Earthy Linen Cargo Joggers for Tall Legs',
     category: 'Summer',
@@ -706,9 +754,9 @@ export const PRODUCTS: Product[] = [
     affiliateUrl: 'https://www.tatacliq.com/westside-linen-jogger-lamba',
     priceAtRetailer: 2199,
     measurements: {
-      inseam: 86,
-      rise: 31,
-      legOpening: 16,
+      inseam: { value: 86, unit: 'cm' },
+      rise: { value: 31, unit: 'cm' },
+      legOpening: { value: 16, unit: 'cm' },
     },
     verdicts: [
       { band: '6_0_6_1', status: 'verified', note: 'Super breezy vacation look.' },

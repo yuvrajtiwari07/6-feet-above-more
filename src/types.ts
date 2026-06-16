@@ -1,13 +1,14 @@
 export type HeightBand = '6_0_6_1' | '6_2_6_3' | '6_4_6_5' | '6_6_plus';
 
-export interface Measurement {
-  inseam?: number;       // for pants/bottoms
-  totalLength?: number;  // for shirts/tops/kurtas
-  sleeveLength?: number; // for long sleeves/shirts
-  shoulder?: number;     // for tops
-  chest?: number;        // for tops
-  legOpening?: number;   // for pants
-  rise?: number;         // for pants
+export interface MeasurementValue {
+  value: number;
+  unit: 'cm' | 'inches';
+}
+
+export interface MerchantOutlet {
+  store: string;
+  url: string;
+  price: number;
 }
 
 export type VerdictStatus = 'verified' | 'friendly' | 'community' | 'runs_short';
@@ -23,7 +24,9 @@ export interface Product {
   brand: string;
   title: string;
   category: string;
-  subCategory?: string;      // e.g. T-Shirt, Shirt, Kurta
+  subCategory?: string;      // e.g. T-Shirt, Shirt, Kurta (kept for backward compatibility)
+  productSegment: string;    // e.g. Upperwear, Bottomwear, Footwear
+  productType: string;       // e.g. T-Shirt, Shirt, Sneakers
   images: string[];
   occasions: string[];
   seasons: string[];
@@ -32,7 +35,7 @@ export interface Product {
   retailer: string;          // Zara, H&M, Ajio, Myntra, etc.
   affiliateUrl: string;
   priceAtRetailer: number;
-  measurements: Measurement;
+  measurements: Record<string, MeasurementValue>;
   verdicts: FitVerdict[];
   verifiedTier: 'verified' | 'friendly' | 'community';
 
@@ -40,28 +43,20 @@ export interface Product {
   description?: string;
   outOfStock?: boolean;
   sizes?: string[];
-  merchantLinks?: { retailer: string; url: string; price: number }[];
+  merchantLinks?: MerchantOutlet[];
   reviewsCount?: number;
   averageRating?: number;
   customReviews?: { author: string; rating: number; text: string; date: string }[];
   verificationBadges?: string[];
 
   // ── NEW expanded product fields ──────────────────────────
-  /** Fabric / material type, e.g. "100% Cotton", "Linen Blend" */
   material?: string;
-  /** Care instructions, e.g. "Machine wash cold, tumble dry low" */
   careInstructions?: string;
-  /** Product weight in grams (for shipping estimates) */
   weightGrams?: number;
-  /** Country of manufacturing, e.g. "India", "Bangladesh" */
   countryOfOrigin?: string;
-  /** Searchable free-form tags, e.g. ["tall", "extra-long-sleeve", "summer"] */
   tags?: string[];
-  /** Current discount percentage off original price (0–100) */
   discountPercent?: number;
-  /** Whether this product is shown on the featured/homepage section */
   isFeatured?: boolean;
-  /** Manufacturer's own SKU code */
   skuCode?: string;
 }
 

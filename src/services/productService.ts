@@ -11,6 +11,8 @@ function validateProduct(p: Partial<Product>): string | null {
   if (!p.brand?.trim()) return 'Brand is required';
   if (!p.title?.trim()) return 'Title is required';
   if (!p.category?.trim()) return 'Category is required';
+  if (!p.productSegment?.trim()) return 'Product Segment is required';
+  if (!p.productType?.trim()) return 'Product Type is required';
   if (typeof p.priceAtRetailer !== 'number' || p.priceAtRetailer < 0) {
     return 'Price must be a non-negative number';
   }
@@ -18,7 +20,7 @@ function validateProduct(p: Partial<Product>): string | null {
   if (p.verifiedTier && !validTiers.includes(p.verifiedTier)) {
     return `verifiedTier must be one of: ${validTiers.join(', ')}`;
   }
-  const discountPercent = (p as any).discountPercent;
+  const discountPercent = p.discountPercent;
   if (discountPercent !== undefined && (discountPercent < 0 || discountPercent > 100)) {
     return 'discountPercent must be between 0 and 100';
   }
@@ -28,22 +30,24 @@ function validateProduct(p: Partial<Product>): string | null {
 function sanitizeProduct(p: Product): Product {
   return {
     ...p,
-    id:           p.id.trim().toLowerCase(),
-    brand:        p.brand.trim(),
-    title:        p.title.trim(),
-    category:     p.category.trim(),
-    subCategory:  p.subCategory?.trim(),
-    description:  p.description?.trim(),
-    retailer:     p.retailer?.trim() ?? '',
-    affiliateUrl: p.affiliateUrl?.trim() || 'https://6feetabove.com/redirect',
+    id:             p.id.trim().toLowerCase(),
+    brand:          p.brand.trim(),
+    title:          p.title.trim(),
+    category:       p.category.trim(),
+    subCategory:    p.subCategory?.trim(),
+    productSegment: p.productSegment.trim(),
+    productType:    p.productType.trim(),
+    description:    p.description?.trim(),
+    retailer:       p.retailer?.trim() ?? '',
+    affiliateUrl:   p.affiliateUrl?.trim() || 'https://6feetabove.com/redirect',
     // Sanitize arrays
-    images:       (p.images ?? []).filter(Boolean),
-    occasions:    (p.occasions ?? []).filter(Boolean),
-    seasons:      (p.seasons ?? []).filter(Boolean),
-    colors:       (p.colors ?? []).filter(Boolean),
-    sizes:        (p.sizes ?? []).filter(Boolean),
+    images:         (p.images ?? []).filter(Boolean),
+    occasions:      (p.occasions ?? []).filter(Boolean),
+    seasons:        (p.seasons ?? []).filter(Boolean),
+    colors:         (p.colors ?? []).filter(Boolean),
+    sizes:          (p.sizes ?? []).filter(Boolean),
     // Computed
-    reviewsCount: p.customReviews?.length ?? 0,
+    reviewsCount:   p.customReviews?.length ?? 0,
     averageRating:
       p.customReviews && p.customReviews.length > 0
         ? Number(

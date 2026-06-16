@@ -57,6 +57,8 @@ function rowToProduct(row) {
     title: row.title,
     category: row.category,
     subCategory: row.sub_category,
+    productSegment: row.product_segment ?? "Upperwear",
+    productType: row.product_type ?? "T-Shirt",
     description: row.description,
     fitType: row.fit_type,
     retailer: row.retailer,
@@ -101,7 +103,7 @@ var productRepository = {
       params.push(filters.brand);
     }
     if (filters?.search) {
-      text += ` AND (LOWER(title) LIKE $${idx} OR LOWER(brand) LIKE $${idx} OR LOWER(category) LIKE $${idx})`;
+      text += ` AND (LOWER(title) LIKE $${idx} OR LOWER(brand) LIKE $${idx} OR LOWER(category) LIKE $${idx} OR LOWER(product_segment) LIKE $${idx} OR LOWER(product_type) LIKE $${idx})`;
       params.push(`%${filters.search.toLowerCase()}%`);
       idx++;
     }
@@ -123,16 +125,16 @@ var productRepository = {
   async create(p) {
     const text = `
       INSERT INTO products (
-        id, brand, title, category, sub_category, description, fit_type,
-        retailer, affiliate_url, price_at_retailer, images, occasions,
-        seasons, colors, sizes, verified_tier, out_of_stock,
+        id, brand, title, category, sub_category, product_segment, product_type,
+        description, fit_type, retailer, affiliate_url, price_at_retailer,
+        images, occasions, seasons, colors, sizes, verified_tier, out_of_stock,
         verification_badges, merchant_links, custom_reviews, reviews_count,
         average_rating, measurements, verdicts,
         material, care_instructions, weight_grams, country_of_origin,
         tags, discount_percent, is_featured, sku_code
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
-        $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
+        $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34
       )
       ON CONFLICT (id) DO UPDATE SET
         brand = EXCLUDED.brand, title = EXCLUDED.title,
@@ -145,6 +147,8 @@ var productRepository = {
       p.title,
       p.category,
       p.subCategory ?? null,
+      p.productSegment,
+      p.productType,
       p.description ?? null,
       p.fitType,
       p.retailer,
@@ -182,6 +186,8 @@ var productRepository = {
       title: "title",
       category: "category",
       subCategory: "sub_category",
+      productSegment: "product_segment",
+      productType: "product_type",
       description: "description",
       fitType: "fit_type",
       retailer: "retailer",
@@ -242,6 +248,8 @@ function validateProduct(p) {
   if (!p.brand?.trim()) return "Brand is required";
   if (!p.title?.trim()) return "Title is required";
   if (!p.category?.trim()) return "Category is required";
+  if (!p.productSegment?.trim()) return "Product Segment is required";
+  if (!p.productType?.trim()) return "Product Type is required";
   if (typeof p.priceAtRetailer !== "number" || p.priceAtRetailer < 0) {
     return "Price must be a non-negative number";
   }
@@ -263,6 +271,8 @@ function sanitizeProduct(p) {
     title: p.title.trim(),
     category: p.category.trim(),
     subCategory: p.subCategory?.trim(),
+    productSegment: p.productSegment.trim(),
+    productType: p.productType.trim(),
     description: p.description?.trim(),
     retailer: p.retailer?.trim() ?? "",
     affiliateUrl: p.affiliateUrl?.trim() || "https://6feetabove.com/redirect",

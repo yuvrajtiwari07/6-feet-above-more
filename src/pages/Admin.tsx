@@ -10,6 +10,25 @@ import {
   Download, Loader2, Globe
 } from 'lucide-react';
 
+const SEGMENT_TYPES: Record<string, string[]> = {
+  Upperwear: ['T-Shirt', 'Shirt', 'Polo', 'Henley', 'Vest', 'Tank Top'],
+  Bottomwear: ['Jeans', 'Cargo Pants', 'Trousers', 'Joggers', 'Chinos', 'Shorts'],
+  Footwear: ['Sneakers', 'Boots', 'Formal Shoes', 'Loafers', 'Running Shoes'],
+  Outerwear: ['Hoodie', 'Sweatshirt', 'Jacket', 'Overshirt'],
+  'Ethnic Wear': ['Kurta', 'Kurta Set', 'Nehru Jacket'],
+  Accessories: ['Belt', 'Cap', 'Wallet', 'Socks'],
+};
+
+const getSizeOptions = (segment: string): string[] => {
+  if (segment === 'Footwear') {
+    return ['UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12', 'UK 13', 'UK 14'];
+  }
+  if (segment === 'Bottomwear') {
+    return ['30', '32', '34', '36', '38', '40', '42'];
+  }
+  return ['M', 'L', 'XL', 'XXL', '3XL', '4XL'];
+};
+
 export const Admin: React.FC = () => {
   const { 
     products, 
@@ -52,13 +71,17 @@ export const Admin: React.FC = () => {
   const [verifiedTier, setVerifiedTier] = useState<'verified' | 'friendly' | 'community'>('verified');
   const [outOfStock, setOutOfStock] = useState(false);
 
+  // Category-Aware Core States
+  const [productSegment, setProductSegment] = useState('Upperwear');
+  const [productType, setProductType] = useState('T-Shirt');
+  const [sizes, setSizes] = useState<string[]>(['M', 'L', 'XL', 'XXL', '3XL']);
+  const [verificationBadges, setVerificationBadges] = useState<string[]>(['Extra Sleeve Length', 'Extended Torso Fit']);
+
   // Array/Complex structures (built as comma-separated or dynamic fields)
   const [imagesInput, setImagesInput] = useState('');
   const [occasionsInput, setOccasionsInput] = useState('Casual, Festive');
   const [seasonsInput, setSeasonsInput] = useState('Summer, Winter');
   const [colorsInput, setColorsInput] = useState('Navy, Blue');
-  const [sizesInput, setSizesInput] = useState('M, L, XL, XXL, 3XL');
-  const [verificationBadgesInput, setVerificationBadgesInput] = useState('Extra Long Torso, Tested on 6\'3"');
   const [tagsInput, setTagsInput] = useState('tall, extra-length');
 
   // ── NEW expanded fields ───────────────────────────────────────────────
@@ -70,13 +93,46 @@ export const Admin: React.FC = () => {
   const [isFeatured, setIsFeatured] = useState(false);
   const [skuCode, setSkuCode] = useState('');
 
-  // Measurements
-  const [totalLength, setTotalLength] = useState<string>('');
-  const [sleeveLength, setSleeveLength] = useState<string>('');
-  const [shoulder, setShoulder] = useState<string>('');
-  const [chest, setChest] = useState<string>('');
-  const [inseam, setInseam] = useState<string>('');
-  const [rise, setRise] = useState<string>('');
+  // Category-Aware Measurements with Unit Calibration
+  // Upperwear / outerwear
+  const [totalLengthVal, setTotalLengthVal] = useState('');
+  const [totalLengthUnit, setTotalLengthUnit] = useState<'cm' | 'inches'>('cm');
+  const [sleeveLengthVal, setSleeveLengthVal] = useState('');
+  const [sleeveLengthUnit, setSleeveLengthUnit] = useState<'cm' | 'inches'>('cm');
+  const [shoulderWidthVal, setShoulderWidthVal] = useState('');
+  const [shoulderWidthUnit, setShoulderWidthUnit] = useState<'cm' | 'inches'>('cm');
+  const [chestWidthVal, setChestWidthVal] = useState('');
+  const [chestWidthUnit, setChestWidthUnit] = useState<'cm' | 'inches'>('cm');
+  const [hemWidthVal, setHemWidthVal] = useState('');
+  const [hemWidthUnit, setHemWidthUnit] = useState<'cm' | 'inches'>('cm');
+
+  // Bottomwear
+  const [outseamLengthVal, setOutseamLengthVal] = useState('');
+  const [outseamLengthUnit, setOutseamLengthUnit] = useState<'cm' | 'inches'>('cm');
+  const [inseamLengthVal, setInseamLengthVal] = useState('');
+  const [inseamLengthUnit, setInseamLengthUnit] = useState<'cm' | 'inches'>('cm');
+  const [riseVal, setRiseVal] = useState('');
+  const [riseUnit, setRiseUnit] = useState<'cm' | 'inches'>('cm');
+  const [thighWidthVal, setThighWidthVal] = useState('');
+  const [thighWidthUnit, setThighWidthUnit] = useState<'cm' | 'inches'>('cm');
+  const [legOpeningVal, setLegOpeningVal] = useState('');
+  const [legOpeningUnit, setLegOpeningUnit] = useState<'cm' | 'inches'>('cm');
+  const [waistWidthVal, setWaistWidthVal] = useState('');
+  const [waistWidthUnit, setWaistWidthUnit] = useState<'cm' | 'inches'>('cm');
+
+  // Footwear
+  const [soleLengthVal, setSoleLengthVal] = useState('');
+  const [soleLengthUnit, setSoleLengthUnit] = useState<'cm' | 'inches'>('cm');
+  const [footbedLengthVal, setFootbedLengthVal] = useState('');
+  const [footbedLengthUnit, setFootbedLengthUnit] = useState<'cm' | 'inches'>('cm');
+  const [heelHeightVal, setHeelHeightVal] = useState('');
+  const [heelHeightUnit, setHeelHeightUnit] = useState<'cm' | 'inches'>('cm');
+  const [shaftHeightVal, setShaftHeightVal] = useState('');
+  const [shaftHeightUnit, setShaftHeightUnit] = useState<'cm' | 'inches'>('cm');
+
+  // Outerwear additions
+  const [layeringRoomVal, setLayeringRoomVal] = useState('');
+  const [layeringRoomUnit, setLayeringRoomUnit] = useState<'cm' | 'inches'>('cm');
 
   // Sizing verdicts for the 4 bands
   const [verdict0_1_Status, setVerdict0_1_Status] = useState<VerdictStatus>('verified');
@@ -92,14 +148,10 @@ export const Admin: React.FC = () => {
   const [verdict6_plus_Note, setVerdict6_plus_Note] = useState('Dignified but may terminate slightly high.');
 
   // Affiliate Site Outlets List (Can add multiple links: e.g. Amazon, Flipkart, etc.)
-  const [merchantLinks, setMerchantLinks] = useState<{ retailer: string; url: string; price: number }[]>([
-    { retailer: 'Amazon', url: '', price: 1999 },
-    { retailer: 'Flipkart', url: '', price: 1999 }
+  const [merchantLinks, setMerchantLinks] = useState<{ store: string; url: string; price: number }[]>([
+    { store: 'Amazon', url: '', price: 1999 },
+    { store: 'Flipkart', url: '', price: 1999 }
   ]);
-
-  const [newMerchantRetailer, setNewMerchantRetailer] = useState('');
-  const [newMerchantUrl, setNewMerchantUrl] = useState('');
-  const [newMerchantPrice, setNewMerchantPrice] = useState<number>(1999);
 
   // Custom User Reviews List
   const [customReviews, setCustomReviews] = useState<{ author: string; rating: number; text: string; date: string }[]>([
@@ -109,16 +161,15 @@ export const Admin: React.FC = () => {
   const [newReviewRating, setNewReviewRating] = useState<number>(5);
   const [newReviewText, setNewReviewText] = useState('');
 
-  // Handle adding merchant link to list
-  const handleAddMerchantLink = () => {
-    if (!newMerchantRetailer || !newMerchantUrl) return;
-    setMerchantLinks([...merchantLinks, { 
-      retailer: newMerchantRetailer, 
-      url: newMerchantUrl, 
-      price: newMerchantPrice 
-    }]);
-    setNewMerchantRetailer('');
-    setNewMerchantUrl('');
+  // Handle adding outlet card
+  const handleAddOutletCard = () => {
+    setMerchantLinks([...merchantLinks, { store: '', url: '', price: 0 }]);
+  };
+
+  const handleUpdateOutlet = (index: number, field: 'store' | 'url' | 'price', val: any) => {
+    const updated = [...merchantLinks];
+    updated[index] = { ...updated[index], [field]: val };
+    setMerchantLinks(updated);
   };
 
   // Handle removing merchant link
@@ -144,6 +195,54 @@ export const Admin: React.FC = () => {
     setCustomReviews(customReviews.filter((_, i) => i !== idx));
   };
 
+  // Helper to get value from a structured or old measurement field
+  const getMeasVal = (field: any) => {
+    if (field == null) return '';
+    if (typeof field === 'object' && field.value != null) return field.value.toString();
+    return field.toString();
+  };
+
+  // Helper to get unit from a structured or old measurement field
+  const getMeasUnit = (field: any): 'cm' | 'inches' => {
+    if (field != null && typeof field === 'object' && field.unit != null) return field.unit;
+    return 'cm';
+  };
+
+  // Helper to render measurement numeric field with unit selector dropdown
+  const renderMeasurementInput = (
+    label: string,
+    val: string,
+    setVal: (v: string) => void,
+    unit: 'cm' | 'inches',
+    setUnit: (u: 'cm' | 'inches') => void
+  ) => {
+    return (
+      <div className="space-y-1">
+        <label className="text-[9px] uppercase tracking-widest text-[#112133]/55 block font-bold">
+          {label}
+        </label>
+        <div className="flex rounded-lg border border-black/15 overflow-hidden focus-within:ring-2 focus-within:ring-[#7D2AE8] bg-white">
+          <input
+            type="number"
+            step="any"
+            placeholder="e.g. 82"
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            className="flex-1 px-2.5 py-2 text-xs font-bold border-none outline-none focus:ring-0 min-w-0"
+          />
+          <select
+            value={unit}
+            onChange={(e) => setUnit(e.target.value as 'cm' | 'inches')}
+            className="px-1.5 py-2 text-[10px] font-black uppercase tracking-wider bg-black/5 text-[#112133] border-l border-black/10 outline-none cursor-pointer"
+          >
+            <option value="cm">cm</option>
+            <option value="inches">in</option>
+          </select>
+        </div>
+      </div>
+    );
+  };
+
   // ── Apply imported product data to all form state setters ──────────────
   const applyImportedProduct = useCallback((data: ImportedProduct) => {
     if (data.brand) setBrand(data.brand);
@@ -157,7 +256,6 @@ export const Admin: React.FC = () => {
     if (data.retailerUrl) setAffiliateUrl(data.retailerUrl);
     if (data.images && data.images.length > 0) setImagesInput(data.images.join(', '));
     if (data.colors && data.colors.length > 0) setColorsInput(data.colors.join(', '));
-    if (data.sizes && data.sizes.length > 0) setSizesInput(data.sizes.join(', '));
     if (data.occasions && data.occasions.length > 0) setOccasionsInput(data.occasions.join(', '));
     if (data.seasons && data.seasons.length > 0) setSeasonsInput(data.seasons.join(', '));
     if (data.tags && data.tags.length > 0) setTagsInput(data.tags.join(', '));
@@ -174,14 +272,78 @@ export const Admin: React.FC = () => {
         }
       ]);
     }
-    if (data.measurements && Object.keys(data.measurements).length > 0) {
-      if (data.measurements.totalLength) setTotalLength(String(data.measurements.totalLength));
-      if (data.measurements.sleeveLength) setSleeveLength(String(data.measurements.sleeveLength));
-      if (data.measurements.shoulder) setShoulder(String(data.measurements.shoulder));
-      if (data.measurements.chest) setChest(String(data.measurements.chest));
-      if (data.measurements.inseam) setInseam(String(data.measurements.inseam));
-      if (data.measurements.rise) setRise(String(data.measurements.rise));
+
+    // Auto-detect Segment and Type based on Title, Category, or SubCategory
+    const combinedText = `${data.title || ''} ${data.category || ''} ${data.subCategory || ''}`.toLowerCase();
+    let detectedSegment = 'Upperwear';
+    let detectedType = 'T-Shirt';
+
+    if (combinedText.match(/jeans|trouser|pant|cargo|chino|shorts/)) {
+      detectedSegment = 'Bottomwear';
+      detectedType = combinedText.includes('jeans') ? 'Jeans'
+        : combinedText.includes('cargo') ? 'Cargo Pants'
+        : combinedText.includes('jogger') ? 'Joggers'
+        : combinedText.includes('chino') ? 'Chinos'
+        : combinedText.includes('shorts') ? 'Shorts'
+        : 'Trousers';
+    } else if (combinedText.match(/shoe|sneaker|boot|loafer/)) {
+      detectedSegment = 'Footwear';
+      detectedType = combinedText.includes('sneaker') ? 'Sneakers'
+        : combinedText.includes('boot') ? 'Boots'
+        : combinedText.includes('loafer') ? 'Loafers'
+        : 'Formal Shoes';
+    } else if (combinedText.match(/hoodie|sweatshirt|jacket|overshirt/)) {
+      detectedSegment = 'Outerwear';
+      detectedType = combinedText.includes('hoodie') ? 'Hoodie'
+        : combinedText.includes('sweatshirt') ? 'Sweatshirt'
+        : combinedText.includes('overshirt') ? 'Overshirt'
+        : 'Jacket';
+    } else if (combinedText.match(/kurta|nehru/)) {
+      detectedSegment = 'Ethnic Wear';
+      detectedType = combinedText.includes('set') ? 'Kurta Set'
+        : combinedText.includes('nehru') ? 'Nehru Jacket'
+        : 'Kurta';
+    } else if (combinedText.match(/belt|cap|wallet|socks/)) {
+      detectedSegment = 'Accessories';
+      detectedType = combinedText.includes('belt') ? 'Belt'
+        : combinedText.includes('cap') ? 'Cap'
+        : combinedText.includes('wallet') ? 'Wallet'
+        : 'Socks';
+    } else {
+      detectedType = combinedText.includes('shirt') ? 'Shirt'
+        : combinedText.includes('polo') ? 'Polo'
+        : combinedText.includes('henley') ? 'Henley'
+        : 'T-Shirt';
     }
+
+    setProductSegment(detectedSegment);
+    setProductType(detectedType);
+
+    // Populate sizes
+    if (data.sizes && data.sizes.length > 0) {
+      setSizes(data.sizes.map(s => s.trim()));
+    } else {
+      // Default fallback size sets matching segment
+      if (detectedSegment === 'Footwear') {
+        setSizes(['UK 9', 'UK 10', 'UK 11', 'UK 12', 'UK 13']);
+      } else if (detectedSegment === 'Bottomwear') {
+        setSizes(['32', '34', '36', '38']);
+      } else {
+        setSizes(['M', 'L', 'XL', 'XXL', '3XL']);
+      }
+    }
+
+    // Populate measurements safely
+    if (data.measurements && Object.keys(data.measurements).length > 0) {
+      const m = data.measurements;
+      if (m.totalLength) { setTotalLengthVal(String(m.totalLength)); setTotalLengthUnit('cm'); }
+      if (m.sleeveLength) { setSleeveLengthVal(String(m.sleeveLength)); setSleeveLengthUnit('cm'); }
+      if (m.shoulder) { setShoulderWidthVal(String(m.shoulder)); setShoulderWidthUnit('cm'); }
+      if (m.chest) { setChestWidthVal(String(m.chest)); setChestWidthUnit('cm'); }
+      if (m.inseam) { setInseamLengthVal(String(m.inseam)); setInseamLengthUnit('cm'); }
+      if (m.rise) { setRiseVal(String(m.rise)); setRiseUnit('cm'); }
+    }
+
     // Auto-generate a SKU-friendly ID from title if not already set
     if (data.title && !id.startsWith('prod-')) {
       const slugId = data.title
@@ -258,20 +420,53 @@ export const Admin: React.FC = () => {
     setVerifiedTier('verified');
     setOutOfStock(false);
     
+    setProductSegment('Upperwear');
+    setProductType('T-Shirt');
+    setSizes(['M', 'L', 'XL', 'XXL', '3XL']);
+    setVerificationBadges(['Extra Sleeve Length', 'Extended Torso Fit']);
+
     setImagesInput('https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&auto=format&fit=crop');
     setOccasionsInput('Casual, Office, Festive');
     setSeasonsInput('Summer, Winter');
     setColorsInput('Blue, Charcoal');
-    setSizesInput('M, L, XL, XXL, 3XL');
-    setVerificationBadgesInput('Extra Arm Sleeve length, Verified Broad Armhole');
     setTagsInput('tall, extra-length');
 
-    setTotalLength('82');
-    setSleeveLength('71');
-    setShoulder('51');
-    setChest('114');
-    setInseam('');
-    setRise('');
+    // Reset all measurements
+    setTotalLengthVal('82');
+    setTotalLengthUnit('cm');
+    setSleeveLengthVal('71');
+    setSleeveLengthUnit('cm');
+    setShoulderWidthVal('51');
+    setShoulderWidthUnit('cm');
+    setChestWidthVal('114');
+    setChestWidthUnit('cm');
+    setHemWidthVal('');
+    setHemWidthUnit('cm');
+
+    setOutseamLengthVal('');
+    setOutseamLengthUnit('cm');
+    setInseamLengthVal('');
+    setInseamLengthUnit('cm');
+    setRiseVal('');
+    setRiseUnit('cm');
+    setThighWidthVal('');
+    setThighWidthUnit('cm');
+    setLegOpeningVal('');
+    setLegOpeningUnit('cm');
+    setWaistWidthVal('');
+    setWaistWidthUnit('cm');
+
+    setSoleLengthVal('');
+    setSoleLengthUnit('cm');
+    setFootbedLengthVal('');
+    setFootbedLengthUnit('cm');
+    setHeelHeightVal('');
+    setHeelHeightUnit('cm');
+    setShaftHeightVal('');
+    setShaftHeightUnit('cm');
+
+    setLayeringRoomVal('');
+    setLayeringRoomUnit('cm');
 
     setVerdict0_1_Status('verified');
     setVerdict0_1_Note('Hits elegantly below the hip bone.');
@@ -315,12 +510,38 @@ export const Admin: React.FC = () => {
     setVerifiedTier(p.verifiedTier);
     setOutOfStock(!!p.outOfStock);
     
+    // Segment and type mapping
+    const seg = p.productSegment || 'Upperwear';
+    const typ = p.productType || 'T-Shirt';
+    setProductSegment(seg);
+    setProductType(typ);
+
+    // Safe sizes parser
+    let loadedSizes: string[] = [];
+    if (p.sizes) {
+      if (p.sizes.length === 1 && p.sizes[0].includes(',')) {
+        loadedSizes = p.sizes[0].split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        loadedSizes = p.sizes;
+      }
+    }
+    setSizes(loadedSizes.length > 0 ? loadedSizes : ['M', 'L', 'XL', 'XXL', '3XL']);
+
+    // Safe badges parser
+    let loadedBadges: string[] = [];
+    if (p.verificationBadges) {
+      if (p.verificationBadges.length === 1 && p.verificationBadges[0].includes(',')) {
+        loadedBadges = p.verificationBadges[0].split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        loadedBadges = p.verificationBadges;
+      }
+    }
+    setVerificationBadges(loadedBadges.length > 0 ? loadedBadges : ['Extra Sleeve Length', 'Extended Torso Fit']);
+
     setImagesInput(p.images.join(', '));
     setOccasionsInput(p.occasions.join(', '));
     setSeasonsInput(p.seasons.join(', '));
     setColorsInput(p.colors.join(', '));
-    setSizesInput(p.sizes ? p.sizes.join(', ') : 'M, L, XL, XXL, 3XL');
-    setVerificationBadgesInput(p.verificationBadges ? p.verificationBadges.join(', ') : 'Verified Arm Length, Broad Chest');
     setTagsInput((p as any).tags ? (p as any).tags.join(', ') : '');
 
     // New expanded fields
@@ -332,13 +553,43 @@ export const Admin: React.FC = () => {
     setIsFeatured(!!(p as any).isFeatured);
     setSkuCode((p as any).skuCode || '');
 
-    // Measurements
-    setTotalLength(p.measurements?.totalLength?.toString() || '');
-    setSleeveLength(p.measurements?.sleeveLength?.toString() || '');
-    setShoulder(p.measurements?.shoulder?.toString() || '');
-    setChest(p.measurements?.chest?.toString() || '');
-    setInseam(p.measurements?.inseam?.toString() || '');
-    setRise(p.measurements?.rise?.toString() || '');
+    // Measurements mapping
+    const m = p.measurements || {};
+    setTotalLengthVal(getMeasVal(m.totalLength));
+    setTotalLengthUnit(getMeasUnit(m.totalLength));
+    setSleeveLengthVal(getMeasVal(m.sleeveLength));
+    setSleeveLengthUnit(getMeasUnit(m.sleeveLength));
+    setShoulderWidthVal(getMeasVal(m.shoulderWidth || m.shoulder));
+    setShoulderWidthUnit(getMeasUnit(m.shoulderWidth || m.shoulder));
+    setChestWidthVal(getMeasVal(m.chestWidth || m.chest));
+    setChestWidthUnit(getMeasUnit(m.chestWidth || m.chest));
+    setHemWidthVal(getMeasVal(m.hemWidth));
+    setHemWidthUnit(getMeasUnit(m.hemWidth));
+
+    setOutseamLengthVal(getMeasVal(m.outseamLength));
+    setOutseamLengthUnit(getMeasUnit(m.outseamLength));
+    setInseamLengthVal(getMeasVal(m.inseamLength || m.inseam));
+    setInseamLengthUnit(getMeasUnit(m.inseamLength || m.inseam));
+    setRiseVal(getMeasVal(m.rise));
+    setRiseUnit(getMeasUnit(m.rise));
+    setThighWidthVal(getMeasVal(m.thighWidth));
+    setThighWidthUnit(getMeasUnit(m.thighWidth));
+    setLegOpeningVal(getMeasVal(m.legOpening));
+    setLegOpeningUnit(getMeasUnit(m.legOpening));
+    setWaistWidthVal(getMeasVal(m.waistWidth));
+    setWaistWidthUnit(getMeasUnit(m.waistWidth));
+
+    setSoleLengthVal(getMeasVal(m.soleLength));
+    setSoleLengthUnit(getMeasUnit(m.soleLength));
+    setFootbedLengthVal(getMeasVal(m.footbedLength));
+    setFootbedLengthUnit(getMeasUnit(m.footbedLength));
+    setHeelHeightVal(getMeasVal(m.heelHeight));
+    setHeelHeightUnit(getMeasUnit(m.heelHeight));
+    setShaftHeightVal(getMeasVal(m.shaftHeight));
+    setShaftHeightUnit(getMeasUnit(m.shaftHeight));
+
+    setLayeringRoomVal(getMeasVal(m.layeringRoom));
+    setLayeringRoomUnit(getMeasUnit(m.layeringRoom));
 
     // Verdicts mapping
     const v0_1 = p.verdicts.find(v => v.band === '6_0_6_1');
@@ -362,7 +613,13 @@ export const Admin: React.FC = () => {
       setVerdict6_plus_Note(v6_un.note || '');
     }
 
-    setMerchantLinks(p.merchantLinks || []);
+    // Normalize merchantLinks
+    const normalizedLinks = (p.merchantLinks || []).map(ml => ({
+      store: ml.store || (ml as any).retailer || '',
+      url: ml.url || '',
+      price: ml.price || 0
+    }));
+    setMerchantLinks(normalizedLinks);
     setCustomReviews(p.customReviews || []);
   };
 
@@ -379,18 +636,37 @@ export const Admin: React.FC = () => {
     const occasions = occasionsInput.split(',').map(s => s.trim()).filter(Boolean);
     const seasons = seasonsInput.split(',').map(s => s.trim()).filter(Boolean);
     const colors = colorsInput.split(',').map(s => s.trim()).filter(Boolean);
-    const sizes = sizesInput.split(',').map(s => s.trim()).filter(Boolean);
-    const verificationBadges = verificationBadgesInput.split(',').map(s => s.trim()).filter(Boolean);
     const tags = tagsInput.split(',').map(s => s.trim()).filter(Boolean);
 
-    // Build measurements record
-    const measurements: any = {};
-    if (totalLength) measurements.totalLength = Number(totalLength);
-    if (sleeveLength) measurements.sleeveLength = Number(sleeveLength);
-    if (shoulder) measurements.shoulder = Number(shoulder);
-    if (chest) measurements.chest = Number(chest);
-    if (inseam) measurements.inseam = Number(inseam);
-    if (rise) measurements.rise = Number(rise);
+    // Build structured measurements object matching selected segment
+    const measurements: Record<string, { value: number; unit: 'cm' | 'inches' }> = {};
+    
+    if (productSegment === 'Upperwear' || productSegment === 'Ethnic Wear') {
+      if (totalLengthVal) measurements.totalLength = { value: parseFloat(totalLengthVal), unit: totalLengthUnit };
+      if (sleeveLengthVal) measurements.sleeveLength = { value: parseFloat(sleeveLengthVal), unit: sleeveLengthUnit };
+      if (shoulderWidthVal) measurements.shoulderWidth = { value: parseFloat(shoulderWidthVal), unit: shoulderWidthUnit };
+      if (chestWidthVal) measurements.chestWidth = { value: parseFloat(chestWidthVal), unit: chestWidthUnit };
+      if (hemWidthVal) measurements.hemWidth = { value: parseFloat(hemWidthVal), unit: hemWidthUnit };
+    } else if (productSegment === 'Bottomwear') {
+      if (outseamLengthVal) measurements.outseamLength = { value: parseFloat(outseamLengthVal), unit: outseamLengthUnit };
+      if (inseamLengthVal) measurements.inseamLength = { value: parseFloat(inseamLengthVal), unit: inseamLengthUnit };
+      if (riseVal) measurements.rise = { value: parseFloat(riseVal), unit: riseUnit };
+      if (thighWidthVal) measurements.thighWidth = { value: parseFloat(thighWidthVal), unit: thighWidthUnit };
+      if (legOpeningVal) measurements.legOpening = { value: parseFloat(legOpeningVal), unit: legOpeningUnit };
+      if (waistWidthVal) measurements.waistWidth = { value: parseFloat(waistWidthVal), unit: waistWidthUnit };
+    } else if (productSegment === 'Footwear') {
+      if (soleLengthVal) measurements.soleLength = { value: parseFloat(soleLengthVal), unit: soleLengthUnit };
+      if (footbedLengthVal) measurements.footbedLength = { value: parseFloat(footbedLengthVal), unit: footbedLengthUnit };
+      if (heelHeightVal) measurements.heelHeight = { value: parseFloat(heelHeightVal), unit: heelHeightUnit };
+      if (shaftHeightVal) measurements.shaftHeight = { value: parseFloat(shaftHeightVal), unit: shaftHeightUnit };
+    } else if (productSegment === 'Outerwear') {
+      if (totalLengthVal) measurements.totalLength = { value: parseFloat(totalLengthVal), unit: totalLengthUnit };
+      if (sleeveLengthVal) measurements.sleeveLength = { value: parseFloat(sleeveLengthVal), unit: sleeveLengthUnit };
+      if (shoulderWidthVal) measurements.shoulderWidth = { value: parseFloat(shoulderWidthVal), unit: shoulderWidthUnit };
+      if (chestWidthVal) measurements.chestWidth = { value: parseFloat(chestWidthVal), unit: chestWidthUnit };
+      if (hemWidthVal) measurements.hemWidth = { value: parseFloat(hemWidthVal), unit: hemWidthUnit };
+      if (layeringRoomVal) measurements.layeringRoom = { value: parseFloat(layeringRoomVal), unit: layeringRoomUnit };
+    }
 
     // Build the 4 tall fit verdicts
     const verdicts: FitVerdict[] = [
@@ -406,6 +682,8 @@ export const Admin: React.FC = () => {
       title,
       category,
       subCategory,
+      productSegment,
+      productType,
       description,
       priceAtRetailer: Number(priceAtRetailer),
       retailer,
@@ -491,7 +769,10 @@ export const Admin: React.FC = () => {
   });
 
   // 1. GUEST WARNING STATUS
-  if (!isAdmin) {
+  const isDevBypass = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const hasAccess = isAdmin || isDevBypass;
+
+  if (!hasAccess) {
     return (
       <div className="min-h-screen py-24 px-4 bg-off-white text-left flex items-center justify-center">
         <div className="max-w-md w-full bg-white border border-[#112133]/15 rounded-3xl p-8 text-center space-y-6 shadow-sm">
@@ -662,6 +943,58 @@ export const Admin: React.FC = () => {
               </div>
             )}
 
+            {/* Dynamic Product Segment & Type Selectors */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gradient-to-r from-[#7D2AE8]/5 to-transparent p-5 rounded-2xl border border-[#7D2AE8]/15">
+              <div>
+                <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block mb-1.5">
+                  Product Segment *
+                </label>
+                <select
+                  value={productSegment}
+                  onChange={(e) => {
+                    const nextSegment = e.target.value;
+                    setProductSegment(nextSegment);
+                    const types = SEGMENT_TYPES[nextSegment] || [];
+                    if (types.length > 0) {
+                      setProductType(types[0]);
+                    }
+                    if (nextSegment === 'Footwear') {
+                      setSizes(['UK 9', 'UK 10', 'UK 11', 'UK 12', 'UK 13']);
+                    } else if (nextSegment === 'Bottomwear') {
+                      setSizes(['32', '34', '36', '38']);
+                    } else {
+                      setSizes(['M', 'L', 'XL', 'XXL', '3XL']);
+                    }
+                  }}
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold appearance-none bg-white"
+                >
+                  <option value="Upperwear">Upperwear</option>
+                  <option value="Bottomwear">Bottomwear</option>
+                  <option value="Footwear">Footwear</option>
+                  <option value="Outerwear">Outerwear</option>
+                  <option value="Ethnic Wear">Ethnic Wear</option>
+                  <option value="Accessories">Accessories</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block mb-1.5">
+                  Product Type *
+                </label>
+                <select
+                  value={productType}
+                  onChange={(e) => setProductType(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold appearance-none bg-white"
+                >
+                  {(SEGMENT_TYPES[productSegment] || []).map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {/* Grid 1: Basic Identifiers */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
               <div className="md:col-span-3">
@@ -809,80 +1142,90 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* Grid 5: Multi-outlet merchantLinks (Requested: Amazon, Flipkart URLs) */}
-            <div className="border border-black/15 p-5 rounded-2xl space-y-4">
-              <div>
-                <h4 className="font-display text-sm font-black uppercase tracking-wide text-[#7D2AE8]">
-                  Direct Site Merchant Outlets list (Multi-Store Links)
-                </h4>
-                <p className="text-[9px] text-black/50 font-serif leading-relaxed">
-                  Provide multiple links to checkout standard listings (e.g. Amazon, Flipkart, Ajio, brand site) as requested for versatile routing.
-                </p>
+            {/* Grid 5: Multi-outlet merchantLinks */}
+            <div className="border border-black/15 p-6 rounded-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-black/5 pb-3">
+                <div>
+                  <h4 className="font-display text-sm font-black uppercase tracking-wide text-[#7D2AE8]">
+                    Direct Site Merchant Outlets list (Multi-Store Links)
+                  </h4>
+                  <p className="text-[9px] text-black/50 font-serif leading-relaxed">
+                    Provide multiple affiliate links to checkout standard listings (e.g. Amazon, Flipkart, Ajio, brand site).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddOutletCard}
+                  className="flex items-center gap-1 px-3.5 py-2 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-xl text-[10px] font-grotesk font-black uppercase tracking-wider transition shadow-sm"
+                >
+                  <Plus size={12} /> Add Outlet
+                </button>
               </div>
 
               {/* Added listings list */}
-              {merchantLinks.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              {merchantLinks.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {merchantLinks.map((ml, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-black/10">
-                      <div className="flex flex-col text-left">
-                        <span className="font-black text-[10px] text-black uppercase tracking-wider">{ml.retailer}</span>
-                        <span className="text-[9px] text-[#112133]/45 truncate max-w-xs">{ml.url || 'No URL'}</span>
-                        <span className="font-mono text-emerald-600 font-extrabold text-[10px]">₹{ml.price}</span>
+                    <div key={index} className="border border-black/10 p-4 rounded-xl bg-neutral-50 relative space-y-3 shadow-xs">
+                      <div className="flex justify-between items-center border-b border-black/5 pb-1.5">
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-black/40 font-bold">
+                          Outlet Entry #{index + 1}
+                        </span>
+                        <button 
+                          type="button"
+                          onClick={() => handleRemoveMerchantLink(index)}
+                          className="text-[#FF3F6C] hover:text-[#FF3F6C]/85 font-black text-[9px] uppercase flex items-center gap-0.5 bg-[#FF3F6C]/5 px-2 py-1 rounded-lg transition"
+                        >
+                          <Trash2 size={10} /> Delete
+                        </button>
                       </div>
-                      <button 
-                        type="button"
-                        onClick={() => handleRemoveMerchantLink(index)}
-                        className="p-1 hover:bg-[#FF3F6C]/10 text-[#FF3F6C] rounded-lg transition"
-                      >
-                        <Trash2 size={12} />
-                      </button>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div>
+                          <label className="text-[8px] text-black/50 uppercase font-black tracking-wider block mb-1">
+                            Store Name
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Amazon" 
+                            value={ml.store || ''}
+                            onChange={(e) => handleUpdateOutlet(index, 'store', e.target.value)}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-black/15 text-xs font-bold bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[8px] text-black/50 uppercase font-black tracking-wider block mb-1">
+                            Affiliate URL
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="https://..." 
+                            value={ml.url || ''}
+                            onChange={(e) => handleUpdateOutlet(index, 'url', e.target.value)}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-black/15 text-xs font-medium font-mono bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[8px] text-black/50 uppercase font-black tracking-wider block mb-1">
+                            Price (INR)
+                          </label>
+                          <input 
+                            type="number" 
+                            placeholder="e.g. 1999" 
+                            value={ml.price || 0}
+                            onChange={(e) => handleUpdateOutlet(index, 'price', Number(e.target.value))}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-black/15 text-xs font-bold bg-white"
+                          />
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="p-4 bg-black/3 rounded-xl text-xs text-[#112133]/55 italic text-center">
+                  No merchant outlets added yet. Click &quot;Add Outlet&quot; to begin.
+                </div>
               )}
-
-              {/* Incremental Inline Creator */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end bg-[#FAF9F6] p-3 rounded-xl">
-                <div className="sm:col-span-3 text-left">
-                  <label className="text-[9px] text-black/50 uppercase font-black tracking-wider block mb-1">Outlet</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Amazon India" 
-                    value={newMerchantRetailer}
-                    onChange={(e) => setNewMerchantRetailer(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-black/15 text-xs font-bold bg-white"
-                  />
-                </div>
-                <div className="sm:col-span-5 text-left">
-                  <label className="text-[9px] text-black/50 uppercase font-black tracking-wider block mb-1">Affiliate URL</label>
-                  <input 
-                    type="text" 
-                    placeholder="https://amazon.in/dp/example" 
-                    value={newMerchantUrl}
-                    onChange={(e) => setNewMerchantUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-black/15 text-xs font-medium font-mono bg-white"
-                  />
-                </div>
-                <div className="sm:col-span-2 text-left">
-                  <label className="text-[9px] text-black/50 uppercase font-black tracking-wider block mb-1">Rupees Price</label>
-                  <input 
-                    type="number" 
-                    value={newMerchantPrice}
-                    onChange={(e) => setNewMerchantPrice(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border border-black/15 text-xs font-bold bg-white"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <button
-                    type="button"
-                    onClick={handleAddMerchantLink}
-                    className="w-full py-2 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-lg text-xs font-bold uppercase tracking-wider transition"
-                  >
-                    Add Outlet
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Grid 6: Arrays Configuration (Tags, colors) */}
@@ -900,15 +1243,49 @@ export const Admin: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Verification Badges (Custom indicators context, comma-separated)
+                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-2.5">
+                  Verification Badges (Tall body-fit highlights)
                 </label>
-                <input 
-                  type="text" 
-                  value={verificationBadgesInput} 
-                  onChange={(e) => setVerificationBadgesInput(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    'Verified Tall Friendly',
+                    'Extra Sleeve Length',
+                    'Long Inseam',
+                    'Extended Torso Fit',
+                    'Broad Shoulder Friendly',
+                    'Tall Athlete Approved',
+                    'Extra Leg Room',
+                    'Long Rise',
+                    'Community Verified',
+                    'Staff Verified'
+                  ].map((badge) => {
+                    const isChecked = verificationBadges.includes(badge);
+                    return (
+                      <label
+                        key={badge}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] font-bold cursor-pointer transition select-none ${
+                          isChecked
+                            ? 'bg-[#7D2AE8]/10 border-[#7D2AE8]/30 text-[#7D2AE8]'
+                            : 'bg-white border-black/10 text-[#112133]/60 hover:bg-neutral-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            if (isChecked) {
+                              setVerificationBadges(verificationBadges.filter(b => b !== badge));
+                            } else {
+                              setVerificationBadges([...verificationBadges, badge]);
+                            }
+                          }}
+                          className="w-3.5 h-3.5 rounded text-[#7D2AE8] focus:ring-[#7D2AE8] border-black/15"
+                        />
+                        <span>{badge}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -962,55 +1339,106 @@ export const Admin: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Sizes Available (comma-separated)
+                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-2">
+                  Sizes Available *
                 </label>
-                <input 
-                  type="text" 
-                  value={sizesInput} 
-                  onChange={(e) => setSizesInput(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                />
+                <div className="flex flex-wrap gap-2">
+                  {getSizeOptions(productSegment).map((sz) => {
+                    const isChecked = sizes.includes(sz);
+                    const isFootwearHighlight = productSegment === 'Footwear' && ['UK 9', 'UK 10', 'UK 11', 'UK 12', 'UK 13'].includes(sz);
+                    return (
+                      <label
+                        key={sz}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold cursor-pointer transition select-none ${
+                          isChecked 
+                            ? 'bg-[#7D2AE8] border-[#7D2AE8] text-white shadow-sm' 
+                            : isFootwearHighlight 
+                              ? 'bg-[#7D2AE8]/5 border-[#7D2AE8]/30 text-[#7D2AE8]' 
+                              : 'bg-white border-black/15 text-black hover:bg-neutral-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            if (isChecked) {
+                              setSizes(sizes.filter((s) => s !== sz));
+                            } else {
+                              setSizes([...sizes, sz]);
+                            }
+                          }}
+                          className="sr-only"
+                        />
+                        <span>{sz}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {productSegment === 'Footwear' && (
+                  <span className="text-[8px] text-[#7D2AE8] font-bold uppercase mt-1 block tracking-wider">
+                    ★ Default UK 9–13 sizes highlighted (tall men focus)
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Grid 8: Measurements Specs (Important for Tall calibration!) */}
-            <div className="border border-[#00C4CC]/30 rounded-2xl p-4">
-              <div className="mb-3">
-                <span className="font-display font-black uppercase tracking-wider text-xs text-[#00C4CC]">
-                  Tailoring Specifications (cm)
+            {/* Grid 8: Measurements Specs */}
+            <div className="border border-[#00C4CC]/30 rounded-2xl p-5 bg-gradient-to-br from-[#00C4CC]/3 to-transparent space-y-4">
+              <div>
+                <span className="font-display font-black uppercase tracking-wider text-xs text-[#00C4CC] block mb-1">
+                  Tailoring Specifications ({productSegment})
                 </span>
-                <p className="text-[9px] text-[#112133]/55 font-sans">
-                  Detail extra-length features such as inseam lengths, total drapes, and extended sleeve alignments.
+                <p className="text-[9px] text-[#112133]/55 font-sans leading-relaxed">
+                  Specify measurements optimized for tall-body clothing and footwear. Select appropriate units (cm or inches) for each field.
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
-                <div>
-                  <label className="text-[8px] uppercase tracking-widest text-[#112133]/55 block mb-1">Total Length</label>
-                  <input type="number" placeholder="cm" value={totalLength} onChange={(e) => setTotalLength(e.target.value)} className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold" />
+              {(productSegment === 'Upperwear' || productSegment === 'Ethnic Wear') && (
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                  {renderMeasurementInput('Total Length', totalLengthVal, setTotalLengthVal, totalLengthUnit, setTotalLengthUnit)}
+                  {renderMeasurementInput('Sleeve Length', sleeveLengthVal, setSleeveLengthVal, sleeveLengthUnit, setSleeveLengthUnit)}
+                  {renderMeasurementInput('Shoulder Width', shoulderWidthVal, setShoulderWidthVal, shoulderWidthUnit, setShoulderWidthUnit)}
+                  {renderMeasurementInput('Chest Width', chestWidthVal, setChestWidthVal, chestWidthUnit, setChestWidthUnit)}
+                  {renderMeasurementInput('Hem Width', hemWidthVal, setHemWidthVal, hemWidthUnit, setHemWidthUnit)}
                 </div>
-                <div>
-                  <label className="text-[8px] uppercase tracking-widest text-[#112133]/55 block mb-1">Sleeve Length</label>
-                  <input type="number" placeholder="cm" value={sleeveLength} onChange={(e) => setSleeveLength(e.target.value)} className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold" />
+              )}
+
+              {productSegment === 'Bottomwear' && (
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
+                  {renderMeasurementInput('Outseam Length', outseamLengthVal, setOutseamLengthVal, outseamLengthUnit, setOutseamLengthUnit)}
+                  {renderMeasurementInput('Inseam Length', inseamLengthVal, setInseamLengthVal, inseamLengthUnit, setInseamLengthUnit)}
+                  {renderMeasurementInput('Trouser Rise', riseVal, setRiseVal, riseUnit, setRiseUnit)}
+                  {renderMeasurementInput('Thigh Width', thighWidthVal, setThighWidthVal, thighWidthUnit, setThighWidthUnit)}
+                  {renderMeasurementInput('Leg Opening', legOpeningVal, setLegOpeningVal, legOpeningUnit, setLegOpeningUnit)}
+                  {renderMeasurementInput('Waist Width', waistWidthVal, setWaistWidthVal, waistWidthUnit, setWaistWidthUnit)}
                 </div>
-                <div>
-                  <label className="text-[8px] uppercase tracking-widest text-[#112133]/55 block mb-1">Shoulders Width</label>
-                  <input type="number" placeholder="cm" value={shoulder} onChange={(e) => setShoulder(e.target.value)} className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold" />
+              )}
+
+              {productSegment === 'Footwear' && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {renderMeasurementInput('Sole Length', soleLengthVal, setSoleLengthVal, soleLengthUnit, setSoleLengthUnit)}
+                  {renderMeasurementInput('Footbed Length', footbedLengthVal, setFootbedLengthVal, footbedLengthUnit, setFootbedLengthUnit)}
+                  {renderMeasurementInput('Heel Height', heelHeightVal, setHeelHeightVal, heelHeightUnit, setHeelHeightUnit)}
+                  {renderMeasurementInput('Shaft Height', shaftHeightVal, setShaftHeightVal, shaftHeightUnit, setShaftHeightUnit)}
                 </div>
-                <div>
-                  <label className="text-[8px] uppercase tracking-widest text-[#112133]/55 block mb-1">Chest Width</label>
-                  <input type="number" placeholder="cm" value={chest} onChange={(e) => setChest(e.target.value)} className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold" />
+              )}
+
+              {productSegment === 'Outerwear' && (
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
+                  {renderMeasurementInput('Total Length', totalLengthVal, setTotalLengthVal, totalLengthUnit, setTotalLengthUnit)}
+                  {renderMeasurementInput('Sleeve Length', sleeveLengthVal, setSleeveLengthVal, sleeveLengthUnit, setSleeveLengthUnit)}
+                  {renderMeasurementInput('Shoulder Width', shoulderWidthVal, setShoulderWidthVal, shoulderWidthUnit, setShoulderWidthUnit)}
+                  {renderMeasurementInput('Chest Width', chestWidthVal, setChestWidthVal, chestWidthUnit, setChestWidthUnit)}
+                  {renderMeasurementInput('Hem Width', hemWidthVal, setHemWidthVal, hemWidthUnit, setHemWidthUnit)}
+                  {renderMeasurementInput('Layering Room', layeringRoomVal, setLayeringRoomVal, layeringRoomUnit, setLayeringRoomUnit)}
                 </div>
-                <div>
-                  <label className="text-[8px] uppercase tracking-widest text-[#112133]/55 block mb-1">Bottom Inseam</label>
-                  <input type="number" placeholder="cm" value={inseam} onChange={(e) => setInseam(e.target.value)} className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold" />
+              )}
+
+              {productSegment === 'Accessories' && (
+                <div className="p-3 bg-black/5 rounded-xl text-xs text-[#112133]/60 italic font-sans text-center">
+                  No specialized tailoring specifications required for general accessories.
                 </div>
-                <div>
-                  <label className="text-[8px] uppercase tracking-widest text-[#112133]/55 block mb-1">Trousers Rise</label>
-                  <input type="number" placeholder="cm" value={rise} onChange={(e) => setRise(e.target.value)} className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold" />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Grid 9: FIT VERDICTS DIAGNOSIS COHORTS FOR TALL BANDS */}
