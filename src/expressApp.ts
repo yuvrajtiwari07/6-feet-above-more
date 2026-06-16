@@ -1,11 +1,12 @@
-// src/app.ts
-// Express App instance configuration — shared by local server and Vercel serverless functions
-
-import express from 'express';
+import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import productRouter from './controllers/productController';
 import userRouter from './controllers/userController';
+import { requireAuth } from './middleware/authMiddleware';
+import { requireAdmin } from './middleware/adminMiddleware';
+import { ImporterFactory } from './lib/importers/ImporterFactory';
+
 
 let __dirname = '';
 try {
@@ -66,4 +67,47 @@ app.post('/api/track', (_req, res) => {
 // User profile (authenticated)
 app.use('/api/users', userRouter);
 
+// ─── Admin: Import Product from URL ───────────────────────
+// POST /api/admin/import-product
+// Fetches product metadata from any supported retailer URL.
+// Does NOT create or save anything — returns data for the admin form to populate.
+app.post(
+  '/api/admin/import-product',
+  requireAuth,
+  requireAdmin,
+  async (req: Request, res: Response) => {
+    const { url } = req.body as { url?: string };
+
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ success: false, error: 'A product URL is required.' });
+    }
+
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      return res.status(400).json({ success: false, error: 'Invalid URL format.' });
+    }
+
+    try {
+      const importer = ImporterFactory.getImporter(parsedUrl.href);
+      const product = await importer.importProduct(parsedUrl.href);
+
+      return res.json({
+        success: true,
+        product,
+        retailerName: importer.retailerName,
+      });
+    } catch (err: any) {
+      console.error('[ImportProduct] Error importing from URL:', url, err?.message);
+      return res.status(502).json({
+        success: false,
+        error: 'Failed to fetch product data from the provided URL.',
+        detail: err?.message ?? 'Unknown error',
+      });
+    }
+  }
+);
+
 export default app;
+

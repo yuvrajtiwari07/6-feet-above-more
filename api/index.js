@@ -604,6 +604,895 @@ router2.put("/profile", requireAuth, async (req, res) => {
 });
 var userController_default = router2;
 
+// src/lib/importers/MyntraImporter.ts
+import * as cheerio2 from "cheerio";
+
+// src/lib/importers/BaseImporter.ts
+import * as cheerio from "cheerio";
+var BaseImporter = class {
+  // ─── Shared Fetch Utility ────────────────────────────────────────────────
+  /**
+   * Fetches the raw HTML of a page, mimicking a real browser request.
+   */
+  async fetchPage(url) {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache"
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(15e3)
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} fetching ${url}`);
+    }
+    return response.text();
+  }
+  // ─── JSON-LD Extraction ──────────────────────────────────────────────────
+  /**
+   * Extracts the first matching JSON-LD object from <script type="application/ld+json"> tags.
+   * Returns null if nothing useful is found.
+   */
+  extractJsonLd(html, type) {
+    const $ = cheerio.load(html);
+    const results = [];
+    $('script[type="application/ld+json"]').each((_, el) => {
+      try {
+        const data = JSON.parse($(el).html() || "{}");
+        const items = Array.isArray(data) ? data : [data];
+        results.push(...items);
+      } catch {
+      }
+    });
+    if (!results.length) return null;
+    if (type) {
+      return results.find(
+        (r) => r["@type"] === type || Array.isArray(r["@type"]) && r["@type"].includes(type)
+      ) ?? null;
+    }
+    return results.find((r) => r["@type"] === "Product") ?? results[0] ?? null;
+  }
+  // ─── Meta Tag Extraction ─────────────────────────────────────────────────
+  /**
+   * Extracts OpenGraph and standard meta tag values from the page.
+   */
+  extractMetaTags(html) {
+    const $ = cheerio.load(html);
+    const meta = {};
+    $("meta").each((_, el) => {
+      const property = $(el).attr("property") || $(el).attr("name");
+      const content = $(el).attr("content");
+      if (property && content) {
+        meta[property] = content;
+      }
+    });
+    return meta;
+  }
+  // ─── Embedded Window State Extraction ───────────────────────────────────
+  /**
+   * Extracts JSON data embedded in <script> tags as window variables.
+   * Many SPAs (Myntra, AJIO, Flipkart) embed full product state in the initial HTML.
+   *
+   * @param html - Raw HTML string
+   * @param patterns - Array of regex patterns to try; first successful match wins
+   */
+  extractEmbeddedState(html, patterns) {
+    for (const pattern of patterns) {
+      try {
+        const match = html.match(pattern);
+        if (match && match[1]) {
+          return JSON.parse(match[1]);
+        }
+      } catch {
+      }
+    }
+    return null;
+  }
+  // ─── Shared Parsing Helpers ──────────────────────────────────────────────
+  /**
+   * Cleans a price string like "₹1,299" → 1299
+   */
+  parsePrice(raw) {
+    if (!raw) return void 0;
+    const clean = raw.replace(/[^\d.]/g, "");
+    const num = parseFloat(clean);
+    return isNaN(num) ? void 0 : num;
+  }
+  /**
+   * Parses a comma or pipe separated string into a clean string array.
+   */
+  splitList(raw, sep = /[,|]/) {
+    if (!raw) return [];
+    return raw.split(sep).map((s) => s.trim()).filter(Boolean);
+  }
+  /**
+   * Strips HTML tags from a string.
+   */
+  stripHtml(raw) {
+    if (!raw) return "";
+    return raw.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  }
+  /**
+   * Normalizes a JSON-LD offer block into price + discount.
+   */
+  parseJsonLdOffer(offer) {
+    if (!offer) return {};
+    const offers = Array.isArray(offer) ? offer[0] : offer;
+    const price = this.parsePrice(String(offers.price ?? ""));
+    const highPrice = this.parsePrice(String(offers.highPrice ?? ""));
+    let discountPercent;
+    if (price && highPrice && highPrice > price) {
+      discountPercent = Math.round((highPrice - price) / highPrice * 100);
+    }
+    return { price, originalPrice: highPrice, discountPercent };
+  }
+};
+
+// src/lib/importers/MyntraImporter.ts
+var MyntraImporter = class extends BaseImporter {
+  constructor() {
+    super(...arguments);
+    this.retailerName = "Myntra";
+  }
+  canHandle(url) {
+    return url.includes("myntra.com");
+  }
+  async importProduct(url) {
+    const html = await this.fetchPage(url);
+    const embedded = this.extractEmbeddedState(html, [
+      /window\.__DATA__\s*=\s*(\{.+?\});?\s*<\/script>/s,
+      /window\.__PRELOADED_STATE__\s*=\s*(\{.+?\});?\s*<\/script>/s,
+      /"pdpData"\s*:\s*(\{.+?\})\s*,\s*"seoData"/s
+    ]);
+    if (embedded) {
+      return this.parseEmbeddedData(embedded, url);
+    }
+    const jsonLd = this.extractJsonLd(html, "Product");
+    if (jsonLd) {
+      return this.parseJsonLd(jsonLd, url);
+    }
+    return this.parseDom(html, url);
+  }
+  parseEmbeddedData(data, url) {
+    const pdp = data?.pdpData ?? data?.product ?? data;
+    const media = pdp?.media ?? pdp?.images ?? {};
+    const pricing = pdp?.price ?? pdp?.priceInfo ?? {};
+    const sizes = pdp?.sizes ?? pdp?.sizeChartDetail ?? [];
+    const images = [];
+    const rawImages = media?.images ?? media?.albumMedia ?? [];
+    for (const img of rawImages) {
+      const src = img?.src ?? img?.imageURL ?? img?.url;
+      if (src && typeof src === "string") images.push(src);
+    }
+    const sizeList = sizes.map((s) => s?.label ?? s?.size ?? s?.displayValue).filter(Boolean);
+    const name = pdp?.name ?? pdp?.productDisplayName ?? "";
+    const brandName = pdp?.brand?.name ?? pdp?.brandName ?? "";
+    return {
+      brand: brandName || void 0,
+      title: name || void 0,
+      description: this.stripHtml(pdp?.description ?? pdp?.productDescriptors?.description?.value),
+      price: this.parsePrice(String(pricing?.discounted ?? pricing?.salePrice ?? pricing?.mrp ?? "")),
+      originalPrice: this.parsePrice(String(pricing?.mrp ?? "")),
+      discountPercent: pricing?.discountPercent ?? void 0,
+      images: images.length > 0 ? images : void 0,
+      sizes: sizeList.length > 0 ? sizeList : void 0,
+      colors: pdp?.colours ? [pdp.colours] : void 0,
+      material: pdp?.fabric ?? pdp?.material ?? void 0,
+      careInstructions: pdp?.careInfo ?? void 0,
+      averageRating: pdp?.ratings?.averageRating ?? void 0,
+      reviewsCount: pdp?.ratings?.totalCount ?? void 0,
+      retailer: "Myntra",
+      retailerUrl: url
+    };
+  }
+  parseJsonLd(data, url) {
+    const offers = this.parseJsonLdOffer(data.offers);
+    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    return {
+      brand: data.brand?.name ?? data.brand ?? void 0,
+      title: data.name ?? void 0,
+      description: this.stripHtml(data.description),
+      ...offers,
+      images,
+      colors: data.color ? [data.color] : void 0,
+      material: data.material ?? void 0,
+      averageRating: data.aggregateRating?.ratingValue ?? void 0,
+      reviewsCount: data.aggregateRating?.reviewCount ?? void 0,
+      retailer: "Myntra",
+      retailerUrl: url
+    };
+  }
+  parseDom(html, url) {
+    const $ = cheerio2.load(html);
+    const meta = this.extractMetaTags(html);
+    return {
+      title: (meta["og:title"] ?? $("h1").first().text().trim()) || void 0,
+      description: meta["og:description"] ?? void 0,
+      images: meta["og:image"] ? [meta["og:image"]] : void 0,
+      retailer: "Myntra",
+      retailerUrl: url
+    };
+  }
+};
+
+// src/lib/importers/AjioImporter.ts
+import * as cheerio3 from "cheerio";
+var AjioImporter = class extends BaseImporter {
+  constructor() {
+    super(...arguments);
+    this.retailerName = "AJIO";
+  }
+  canHandle(url) {
+    return url.includes("ajio.com");
+  }
+  async importProduct(url) {
+    const html = await this.fetchPage(url);
+    const jsonLd = this.extractJsonLd(html, "Product");
+    if (jsonLd?.name) {
+      return this.parseJsonLd(jsonLd, url);
+    }
+    const embedded = this.extractEmbeddedState(html, [
+      /window\.__INITIAL_STATE__\s*=\s*(\{.+?\});?\s*<\/script>/s,
+      /window\.__APP_STATE__\s*=\s*(\{.+?\});?\s*<\/script>/s,
+      /__NEXT_DATA__['"]\s*type="application\/json"\s*>\s*(\{.+?\})\s*<\/script>/s
+    ]);
+    if (embedded) {
+      return this.parseEmbeddedData(embedded, url);
+    }
+    return this.parseDom(html, url);
+  }
+  parseJsonLd(data, url) {
+    const offers = this.parseJsonLdOffer(data.offers);
+    const images = Array.isArray(data.image) ? data.image.filter((i) => typeof i === "string") : data.image ? [data.image] : [];
+    const sizes = [];
+    if (Array.isArray(data.offers)) {
+      data.offers.forEach((offer) => {
+        if (offer.itemOffered?.size) sizes.push(offer.itemOffered.size);
+      });
+    }
+    return {
+      brand: data.brand?.name ?? data.brand ?? void 0,
+      title: data.name ?? void 0,
+      description: this.stripHtml(data.description),
+      ...offers,
+      images: images.length > 0 ? images : void 0,
+      sizes: sizes.length > 0 ? [...new Set(sizes)] : void 0,
+      colors: data.color ? [data.color] : void 0,
+      material: data.material ?? void 0,
+      averageRating: data.aggregateRating?.ratingValue ? Number(data.aggregateRating.ratingValue) : void 0,
+      reviewsCount: data.aggregateRating?.reviewCount ? Number(data.aggregateRating.reviewCount) : void 0,
+      retailer: "AJIO",
+      retailerUrl: url
+    };
+  }
+  parseEmbeddedData(data, url) {
+    const productData = data?.props?.pageProps?.product ?? data?.product ?? data?.pageData?.product ?? data;
+    const images = (productData?.images ?? productData?.media ?? []).map((img) => img?.url ?? img?.src ?? img).filter((src) => typeof src === "string" && src.startsWith("http"));
+    return {
+      brand: productData?.brandName ?? productData?.brand ?? void 0,
+      title: productData?.name ?? productData?.productName ?? void 0,
+      description: this.stripHtml(productData?.description),
+      price: this.parsePrice(String(productData?.price ?? productData?.salePrice ?? "")),
+      originalPrice: this.parsePrice(String(productData?.mrp ?? "")),
+      images: images.length > 0 ? images : void 0,
+      colors: productData?.colour ? [productData.colour] : void 0,
+      material: productData?.fabric ?? productData?.material ?? void 0,
+      retailer: "AJIO",
+      retailerUrl: url
+    };
+  }
+  parseDom(html, url) {
+    const $ = cheerio3.load(html);
+    const meta = this.extractMetaTags(html);
+    const title = $(".prod-name").first().text().trim() || meta["og:title"] || $("h1").first().text().trim() || void 0;
+    const priceText = $(".prod-sp").first().text() || meta["product:price:amount"];
+    const images = meta["og:image"] ? [meta["og:image"]] : [];
+    return {
+      title,
+      price: this.parsePrice(priceText),
+      description: meta["og:description"] ?? void 0,
+      images: images.length > 0 ? images : void 0,
+      retailer: "AJIO",
+      retailerUrl: url
+    };
+  }
+};
+
+// src/lib/importers/AmazonImporter.ts
+import * as cheerio4 from "cheerio";
+var AmazonImporter = class extends BaseImporter {
+  constructor() {
+    super(...arguments);
+    this.retailerName = "Amazon";
+  }
+  canHandle(url) {
+    return /amazon\.(in|com|co\.uk|de|fr|ca|com\.au)/.test(url);
+  }
+  async importProduct(url) {
+    const html = await this.fetchPage(url);
+    const $ = cheerio4.load(html);
+    const jsonLd = this.extractJsonLd(html, "Product");
+    if (jsonLd?.name) {
+      const base = this.parseJsonLd(jsonLd, url);
+      return this.augmentWithDom($, base, url);
+    }
+    return this.parseDom($, html, url);
+  }
+  parseJsonLd(data, url) {
+    const offers = this.parseJsonLdOffer(data.offers);
+    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    return {
+      brand: data.brand?.name ?? data.brand ?? void 0,
+      title: data.name ?? void 0,
+      description: this.stripHtml(data.description),
+      ...offers,
+      images,
+      material: data.material ?? void 0,
+      averageRating: data.aggregateRating?.ratingValue ? Number(data.aggregateRating.ratingValue) : void 0,
+      reviewsCount: data.aggregateRating?.reviewCount ? Number(data.aggregateRating.reviewCount) : void 0,
+      retailer: "Amazon",
+      retailerUrl: url
+    };
+  }
+  augmentWithDom($, base, url) {
+    if (!base.images || base.images.length === 0) {
+      const imgData = this.extractAmazonImages($);
+      if (imgData.length > 0) base.images = imgData;
+    }
+    if (!base.brand) {
+      base.brand = $("#bylineInfo").text().replace("Brand: ", "").trim() || void 0;
+    }
+    if (!base.price) {
+      base.price = this.parsePrice($(".a-price .a-offscreen").first().text());
+    }
+    return base;
+  }
+  parseDom($, html, url) {
+    const meta = this.extractMetaTags(html);
+    const title = $("#productTitle").text().trim() || meta["og:title"] || void 0;
+    const brand = $("#bylineInfo").text().replace(/^(Brand:|Visit the|Store)[\s]+/i, "").trim() || meta["og:brand"] || void 0;
+    const priceRaw = $(".a-price .a-offscreen").first().text() || meta["product:price:amount"] || "";
+    const price = this.parsePrice(priceRaw);
+    const description = $("#feature-bullets").text().replace(/\n+/g, " ").trim() || meta["og:description"] || void 0;
+    const ratingText = $("#acrPopover").attr("title") ?? "";
+    const averageRating = parseFloat(ratingText) || void 0;
+    const reviewsText = $("#acrCustomerReviewText").text();
+    const reviewsCount = parseInt(reviewsText.replace(/[^\d]/g, "")) || void 0;
+    const images = this.extractAmazonImages($);
+    const ogImage = meta["og:image"];
+    if (ogImage && !images.includes(ogImage)) images.unshift(ogImage);
+    const sizes = [];
+    $('[id*="size_name"] .selection').each((_, el) => {
+      const size = $(el).text().trim();
+      if (size) sizes.push(size);
+    });
+    const colors = [];
+    $('[id*="color_name"] .selection, [id*="colour_name"] .selection').each((_, el) => {
+      const color = $(el).text().trim();
+      if (color) colors.push(color);
+    });
+    let material;
+    $("table.a-keyvalue tr").each((_, row) => {
+      const label = $("td.a-span3, th", row).text().toLowerCase();
+      const value = $("td.a-span9, td:last-child", row).text().trim();
+      if (label.includes("fabric") || label.includes("material")) {
+        material = value;
+      }
+    });
+    return {
+      brand,
+      title,
+      description,
+      price,
+      images: images.length > 0 ? images : void 0,
+      sizes: sizes.length > 0 ? sizes : void 0,
+      colors: colors.length > 0 ? colors : void 0,
+      material,
+      averageRating,
+      reviewsCount,
+      retailer: "Amazon",
+      retailerUrl: url
+    };
+  }
+  /** Extracts the large image URLs from Amazon's embedded image JSON */
+  extractAmazonImages($) {
+    const images = [];
+    $("script").each((_, el) => {
+      const content = $(el).html() ?? "";
+      if (content.includes("'colorImages'") || content.includes('"colorImages"')) {
+        const match = content.match(/"hiRes"\s*:\s*"(https:[^"]+)"/g);
+        if (match) {
+          match.forEach((m) => {
+            const url = m.match(/"hiRes"\s*:\s*"(https:[^"]+)"/)?.[1];
+            if (url && !images.includes(url)) images.push(url);
+          });
+        }
+      }
+    });
+    return images;
+  }
+};
+
+// src/lib/importers/FlipkartImporter.ts
+import * as cheerio5 from "cheerio";
+var FlipkartImporter = class extends BaseImporter {
+  constructor() {
+    super(...arguments);
+    this.retailerName = "Flipkart";
+  }
+  canHandle(url) {
+    return url.includes("flipkart.com");
+  }
+  async importProduct(url) {
+    const html = await this.fetchPage(url);
+    const embedded = this.extractEmbeddedState(html, [
+      /window\.__INITIAL_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s,
+      /window\.__PRELOADED_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s
+    ]);
+    if (embedded) {
+      return this.parseEmbeddedData(embedded, url);
+    }
+    const jsonLd = this.extractJsonLd(html, "Product");
+    if (jsonLd?.name) {
+      return this.parseJsonLd(jsonLd, url);
+    }
+    return this.parseDom(html, url);
+  }
+  parseEmbeddedData(data, url) {
+    const pdp = this.deepFind(
+      data,
+      (node) => node && typeof node === "object" && (node.productName || node.title)
+    );
+    if (!pdp) return { retailer: "Flipkart", retailerUrl: url };
+    const images = (pdp?.images ?? []).map((img) => img?.url ?? img?.src ?? (typeof img === "string" ? img : null)).filter((s) => typeof s === "string" && s.startsWith("http"));
+    const sizes = (pdp?.sizes ?? []).map((s) => s?.displayId ?? s?.id ?? s).filter(Boolean);
+    return {
+      brand: pdp?.brandName ?? pdp?.brand ?? void 0,
+      title: pdp?.productName ?? pdp?.title ?? void 0,
+      description: this.stripHtml(pdp?.description ?? pdp?.productDescription),
+      price: this.parsePrice(String(pdp?.price?.finalPrice ?? pdp?.finalPrice ?? "")),
+      originalPrice: this.parsePrice(String(pdp?.price?.mrp ?? pdp?.mrp ?? "")),
+      discountPercent: pdp?.price?.discountPercentage ?? void 0,
+      images: images.length > 0 ? images : void 0,
+      sizes: sizes.length > 0 ? sizes : void 0,
+      colors: pdp?.colour ? [pdp.colour] : void 0,
+      material: pdp?.fabric ?? void 0,
+      averageRating: pdp?.overallRating ? Number(pdp.overallRating) : void 0,
+      reviewsCount: pdp?.totalReviewCount ?? void 0,
+      retailer: "Flipkart",
+      retailerUrl: url
+    };
+  }
+  parseJsonLd(data, url) {
+    const offers = this.parseJsonLdOffer(data.offers);
+    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    return {
+      brand: data.brand?.name ?? data.brand ?? void 0,
+      title: data.name ?? void 0,
+      description: this.stripHtml(data.description),
+      ...offers,
+      images,
+      material: data.material ?? void 0,
+      averageRating: data.aggregateRating?.ratingValue ? Number(data.aggregateRating.ratingValue) : void 0,
+      reviewsCount: data.aggregateRating?.reviewCount ? Number(data.aggregateRating.reviewCount) : void 0,
+      retailer: "Flipkart",
+      retailerUrl: url
+    };
+  }
+  parseDom(html, url) {
+    const $ = cheerio5.load(html);
+    const meta = this.extractMetaTags(html);
+    const title = $("span.B_NuCI").text().trim() || meta["og:title"] || void 0;
+    const price = this.parsePrice($("div._30jeq3._16Jk6d").first().text() || meta["product:price:amount"]);
+    const brand = $("span.G6XhRU").text().trim() || void 0;
+    const images = meta["og:image"] ? [meta["og:image"]] : [];
+    return {
+      brand,
+      title,
+      price,
+      description: meta["og:description"] ?? void 0,
+      images: images.length > 0 ? images : void 0,
+      retailer: "Flipkart",
+      retailerUrl: url
+    };
+  }
+  /** Deep searches an object tree for the first node matching a predicate */
+  deepFind(obj, predicate, depth = 0) {
+    if (depth > 8 || !obj || typeof obj !== "object") return null;
+    if (predicate(obj)) return obj;
+    for (const val of Object.values(obj)) {
+      const found = this.deepFind(val, predicate, depth + 1);
+      if (found) return found;
+    }
+    return null;
+  }
+};
+
+// src/lib/importers/HmImporter.ts
+import * as cheerio6 from "cheerio";
+var HmImporter = class extends BaseImporter {
+  constructor() {
+    super(...arguments);
+    this.retailerName = "H&M";
+  }
+  canHandle(url) {
+    return url.includes("hm.com") || url.includes("h2.com") || url.includes("h&m.com");
+  }
+  async importProduct(url) {
+    const html = await this.fetchPage(url);
+    const jsonLd = this.extractJsonLd(html, "Product");
+    if (jsonLd?.name) {
+      return this.parseJsonLd(jsonLd, url);
+    }
+    const nextData = this.extractEmbeddedState(html, [
+      /<script id="__NEXT_DATA__"[^>]*>\s*(\{.+?\})\s*<\/script>/s
+    ]);
+    if (nextData) {
+      return this.parseNextData(nextData, url);
+    }
+    return this.parseDom(html, url);
+  }
+  parseJsonLd(data, url) {
+    const offers = this.parseJsonLdOffer(data.offers);
+    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    const sizes = [];
+    if (Array.isArray(data.offers)) {
+      data.offers.forEach((offer) => {
+        const size = offer.itemOffered?.size ?? offer.size;
+        if (size) sizes.push(size);
+      });
+    }
+    const colors = [];
+    if (data.color) colors.push(data.color);
+    if (Array.isArray(data.offers)) {
+      data.offers.forEach((offer) => {
+        const color = offer.itemOffered?.color ?? offer.color;
+        if (color && !colors.includes(color)) colors.push(color);
+      });
+    }
+    return {
+      brand: "H&M",
+      title: data.name ?? void 0,
+      description: this.stripHtml(data.description),
+      ...offers,
+      images,
+      sizes: sizes.length > 0 ? [...new Set(sizes)] : void 0,
+      colors: colors.length > 0 ? [...new Set(colors)] : void 0,
+      material: data.material ?? void 0,
+      averageRating: data.aggregateRating?.ratingValue ? Number(data.aggregateRating.ratingValue) : void 0,
+      reviewsCount: data.aggregateRating?.reviewCount ? Number(data.aggregateRating.reviewCount) : void 0,
+      retailer: "H&M",
+      retailerUrl: url
+    };
+  }
+  parseNextData(data, url) {
+    const product = data?.props?.pageProps?.product ?? data?.props?.pageProps?.initialData?.product ?? data;
+    const images = (product?.images ?? product?.galleryImages ?? []).map((img) => {
+      const src = img?.url ?? img?.src ?? img?.baseUrl;
+      return src?.startsWith("http") ? src : src ? `https:${src}` : null;
+    }).filter(Boolean);
+    const sizes = (product?.variants ?? product?.sizes ?? []).map((v) => v?.size ?? v?.value ?? v?.label).filter(Boolean);
+    return {
+      brand: "H&M",
+      title: product?.name ?? product?.title ?? void 0,
+      description: this.stripHtml(product?.description ?? product?.longDescription),
+      price: this.parsePrice(String(product?.price?.value ?? product?.salePrice ?? "")),
+      originalPrice: this.parsePrice(String(product?.price?.originalValue ?? "")),
+      images: images.length > 0 ? images : void 0,
+      sizes: sizes.length > 0 ? sizes : void 0,
+      colors: product?.color ? [product.color] : void 0,
+      material: product?.material ?? product?.fabric ?? void 0,
+      retailer: "H&M",
+      retailerUrl: url
+    };
+  }
+  parseDom(html, url) {
+    const $ = cheerio6.load(html);
+    const meta = this.extractMetaTags(html);
+    const title = (meta["og:title"] ?? $("h1").first().text().trim()) || void 0;
+    const price = this.parsePrice(meta["product:price:amount"] || $(".price-value").first().text());
+    const images = meta["og:image"] ? [meta["og:image"]] : [];
+    return {
+      brand: "H&M",
+      title,
+      price,
+      description: meta["og:description"] ?? void 0,
+      images: images.length > 0 ? images : void 0,
+      retailer: "H&M",
+      retailerUrl: url
+    };
+  }
+};
+
+// src/lib/importers/ZaraImporter.ts
+import * as cheerio7 from "cheerio";
+var ZaraImporter = class extends BaseImporter {
+  constructor() {
+    super(...arguments);
+    this.retailerName = "Zara";
+  }
+  canHandle(url) {
+    return url.includes("zara.com");
+  }
+  async importProduct(url) {
+    const html = await this.fetchPage(url);
+    const jsonLd = this.extractJsonLd(html, "Product");
+    if (jsonLd?.name) {
+      return this.parseJsonLd(jsonLd, url);
+    }
+    const embedded = this.extractEmbeddedState(html, [
+      /<script id="__NEXT_DATA__"[^>]*>\s*(\{.+?\})\s*<\/script>/s,
+      /window\.Zara\.cfg\s*=\s*(\{.+?\});\s*<\/script>/s
+    ]);
+    if (embedded) {
+      return this.parseEmbeddedData(embedded, url);
+    }
+    const apiProduct = await this.tryZaraApi(url);
+    if (apiProduct) return apiProduct;
+    return this.parseDom(html, url);
+  }
+  parseJsonLd(data, url) {
+    const offers = this.parseJsonLdOffer(data.offers);
+    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    const colors = [];
+    if (data.color) colors.push(data.color);
+    const sizes = [];
+    if (Array.isArray(data.offers)) {
+      data.offers.forEach((o) => {
+        const size = o.itemOffered?.size ?? o.size;
+        if (size) sizes.push(size);
+      });
+    }
+    return {
+      brand: "Zara",
+      title: data.name ?? void 0,
+      description: this.stripHtml(data.description),
+      ...offers,
+      images,
+      colors: colors.length > 0 ? colors : void 0,
+      sizes: sizes.length > 0 ? [...new Set(sizes)] : void 0,
+      material: data.material ?? void 0,
+      retailer: "Zara",
+      retailerUrl: url
+    };
+  }
+  parseEmbeddedData(data, url) {
+    const product = data?.props?.pageProps?.product ?? data?.props?.pageProps?.initialProduct ?? data?.product ?? data;
+    const detail = product?.detail ?? product;
+    const colors = (detail?.colors ?? []).map((c) => c?.name ?? c?.label).filter(Boolean);
+    const sizes = (detail?.sizes ?? detail?.variants ?? []).map((s) => s?.name ?? s?.displaySize ?? s?.label).filter(Boolean);
+    const images = [];
+    (detail?.media ?? detail?.xmedia ?? []).forEach((media) => {
+      (media?.xmedia ?? [media]).forEach((img) => {
+        if (img?.url) {
+          const src = img.url.startsWith("http") ? img.url : `https:${img.url}`;
+          images.push(src);
+        }
+      });
+    });
+    const price = detail?.price != null ? typeof detail.price === "number" ? detail.price / 100 : this.parsePrice(String(detail.price)) : void 0;
+    return {
+      brand: "Zara",
+      title: detail?.name ?? product?.name ?? void 0,
+      description: this.stripHtml(detail?.description ?? product?.description),
+      price,
+      images: images.length > 0 ? images : void 0,
+      colors: colors.length > 0 ? colors : void 0,
+      sizes: sizes.length > 0 ? [...new Set(sizes)] : void 0,
+      retailer: "Zara",
+      retailerUrl: url
+    };
+  }
+  /** Zara has a public API — try fetching structured JSON directly */
+  async tryZaraApi(pageUrl) {
+    try {
+      const match = pageUrl.match(/\b(\d{7,10})\.html/);
+      if (!match) return null;
+      const productId = match[1];
+      const locale = pageUrl.includes("/en-in/") ? "en_IN" : "en_US";
+      const apiUrl = `https://www.zara.com/itxrest/3/catalog/store/25009456/product/category/0/detail?productId=${productId}&locale=${locale}`;
+      const response = await fetch(apiUrl, {
+        headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json" },
+        signal: AbortSignal.timeout(8e3)
+      });
+      if (!response.ok) return null;
+      const data = await response.json();
+      return this.parseEmbeddedData(data, pageUrl);
+    } catch {
+      return null;
+    }
+  }
+  parseDom(html, url) {
+    const $ = cheerio7.load(html);
+    const meta = this.extractMetaTags(html);
+    const title = (meta["og:title"] ?? $("h1").first().text().trim()) || void 0;
+    const price = this.parsePrice(meta["product:price:amount"] || $(".price__amount-current").first().text());
+    const images = meta["og:image"] ? [meta["og:image"]] : [];
+    return {
+      brand: "Zara",
+      title,
+      price,
+      description: meta["og:description"] ?? void 0,
+      images: images.length > 0 ? images : void 0,
+      retailer: "Zara",
+      retailerUrl: url
+    };
+  }
+};
+
+// src/lib/importers/GenericImporter.ts
+import * as cheerio8 from "cheerio";
+var GenericImporter = class extends BaseImporter {
+  constructor() {
+    super(...arguments);
+    this.retailerName = "Retailer";
+  }
+  // Handles everything — always returns true (last resort)
+  canHandle(_url) {
+    return true;
+  }
+  async importProduct(url) {
+    const html = await this.fetchPage(url);
+    const meta = this.extractMetaTags(html);
+    const retailerName = this.detectRetailerName(url, meta);
+    const jsonLd = this.extractJsonLd(html, "Product");
+    if (jsonLd?.name) {
+      return {
+        ...this.parseJsonLd(jsonLd, url),
+        retailer: retailerName,
+        retailerUrl: url
+      };
+    }
+    const nextData = this.extractEmbeddedState(html, [
+      /<script id="__NEXT_DATA__"[^>]*>\s*(\{.+?\})\s*<\/script>/s
+    ]);
+    if (nextData) {
+      const parsed = this.parseNextData(nextData, url, retailerName);
+      if (parsed.title || parsed.price || (parsed.images?.length ?? 0) > 0) {
+        return parsed;
+      }
+    }
+    return this.parseFromMeta(meta, html, url, retailerName);
+  }
+  parseJsonLd(data, url) {
+    const offers = this.parseJsonLdOffer(data.offers);
+    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    const sizes = [];
+    const colors = [];
+    if (Array.isArray(data.offers)) {
+      data.offers.forEach((o) => {
+        const size = o.itemOffered?.size ?? o.size;
+        const color = o.itemOffered?.color ?? o.color;
+        if (size) sizes.push(size);
+        if (color && !colors.includes(color)) colors.push(color);
+      });
+    }
+    if (data.color && !colors.includes(data.color)) colors.push(data.color);
+    return {
+      brand: data.brand?.name ?? data.brand ?? void 0,
+      title: data.name ?? void 0,
+      description: this.stripHtml(data.description),
+      ...offers,
+      images,
+      sizes: sizes.length > 0 ? [...new Set(sizes)] : void 0,
+      colors: colors.length > 0 ? [...new Set(colors)] : void 0,
+      material: data.material ?? void 0,
+      averageRating: data.aggregateRating?.ratingValue ? Number(data.aggregateRating.ratingValue) : void 0,
+      reviewsCount: data.aggregateRating?.reviewCount ? Number(data.aggregateRating.reviewCount) : void 0
+    };
+  }
+  parseNextData(data, url, retailerName) {
+    const product = data?.props?.pageProps?.product ?? data?.props?.pageProps?.data?.product ?? data?.props?.pageProps?.productDetails ?? data?.props?.pageProps?.initialData?.product;
+    if (!product) return { retailer: retailerName, retailerUrl: url };
+    const images = (product?.images ?? product?.media ?? product?.gallery ?? []).map((img) => {
+      const src = img?.url ?? img?.src ?? img?.imageURL ?? (typeof img === "string" ? img : null);
+      if (!src) return null;
+      return src.startsWith("http") ? src : src.startsWith("//") ? `https:${src}` : null;
+    }).filter(Boolean);
+    return {
+      brand: product?.brand?.name ?? product?.brandName ?? product?.brand ?? void 0,
+      title: product?.name ?? product?.title ?? product?.productName ?? void 0,
+      description: this.stripHtml(product?.description ?? product?.shortDescription),
+      price: this.parsePrice(String(product?.price?.value ?? product?.salePrice ?? product?.price ?? "")),
+      originalPrice: this.parsePrice(String(product?.originalPrice ?? product?.mrp ?? product?.price?.originalValue ?? "")),
+      images: images.length > 0 ? images : void 0,
+      colors: product?.color ? [product.color] : product?.colours ? [product.colours] : void 0,
+      material: product?.material ?? product?.fabric ?? void 0,
+      retailer: retailerName,
+      retailerUrl: url
+    };
+  }
+  parseFromMeta(meta, html, url, retailerName) {
+    const $ = cheerio8.load(html);
+    const title = (meta["og:title"] ?? $("h1").first().text().trim()) || void 0;
+    const description = meta["og:description"] ?? $('meta[name="description"]').attr("content") ?? void 0;
+    const images = [];
+    if (meta["og:image:secure_url"]) images.push(meta["og:image:secure_url"]);
+    else if (meta["og:image"]) images.push(meta["og:image"]);
+    const priceRaw = meta["product:price:amount"] ?? meta["og:price:amount"] ?? "";
+    const price = this.parsePrice(priceRaw) || void 0;
+    const brand = meta["og:brand"] ?? meta["product:brand"] ?? void 0;
+    return {
+      brand,
+      title,
+      description,
+      price,
+      images: images.length > 0 ? images : void 0,
+      retailer: retailerName,
+      retailerUrl: url
+    };
+  }
+  /** Detects a human-readable retailer name from the domain or site meta. */
+  detectRetailerName(url, meta) {
+    if (meta["og:site_name"]) return meta["og:site_name"];
+    const known = {
+      "urbanic.com": "Urbanic",
+      "bewakoof.com": "Bewakoof",
+      "snitchofficial.com": "Snitch",
+      "snitch.co.in": "Snitch",
+      "rarerabbit.in": "Rare Rabbit",
+      "tatacliq.com": "Tata CLiQ",
+      "nykaa.com": "Nykaa Fashion",
+      "nykaafashion.com": "Nykaa Fashion",
+      "meesho.com": "Meesho",
+      "limeroad.com": "LimeRoad",
+      "craftsvilla.com": "Craftsvilla",
+      "manyavar.com": "Manyavar",
+      "fabindia.com": "FabIndia",
+      "westside.com": "Westside",
+      "wrogn.com": "Wrogn",
+      "uniqlo.com": "Uniqlo"
+    };
+    try {
+      const hostname = new URL(url).hostname.replace("www.", "");
+      for (const [pattern, name] of Object.entries(known)) {
+        if (hostname.includes(pattern)) return name;
+      }
+      return hostname.split(".")[0].charAt(0).toUpperCase() + hostname.split(".")[0].slice(1);
+    } catch {
+      return "Retailer";
+    }
+  }
+};
+
+// src/lib/importers/ImporterFactory.ts
+var REGISTRY = [
+  new MyntraImporter(),
+  new AjioImporter(),
+  new AmazonImporter(),
+  new FlipkartImporter(),
+  new HmImporter(),
+  new ZaraImporter()
+];
+var GENERIC = new GenericImporter();
+var ImporterFactory = class _ImporterFactory {
+  /**
+   * Returns the most appropriate importer for the given URL.
+   * Falls back to GenericImporter if no specific importer matches.
+   */
+  static getImporter(url) {
+    for (const importer of REGISTRY) {
+      if (importer.canHandle(url)) {
+        return importer;
+      }
+    }
+    return GENERIC;
+  }
+  /**
+   * Detects the retailer name for a URL without running the full import.
+   * Used by the UI to display "Detected Retailer: Myntra" immediately.
+   */
+  static detectRetailerName(url) {
+    const importer = _ImporterFactory.getImporter(url);
+    if (importer !== GENERIC) return importer.retailerName;
+    return GENERIC.retailerName;
+  }
+};
+
 // src/expressApp.ts
 var __dirname = "";
 try {
@@ -646,6 +1535,39 @@ app.post("/api/track", (_req, res) => {
   res.redirect(307, "/api/products/track");
 });
 app.use("/api/users", userController_default);
+app.post(
+  "/api/admin/import-product",
+  requireAuth,
+  requireAdmin,
+  async (req, res) => {
+    const { url } = req.body;
+    if (!url || typeof url !== "string") {
+      return res.status(400).json({ success: false, error: "A product URL is required." });
+    }
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(url);
+    } catch {
+      return res.status(400).json({ success: false, error: "Invalid URL format." });
+    }
+    try {
+      const importer = ImporterFactory.getImporter(parsedUrl.href);
+      const product = await importer.importProduct(parsedUrl.href);
+      return res.json({
+        success: true,
+        product,
+        retailerName: importer.retailerName
+      });
+    } catch (err) {
+      console.error("[ImportProduct] Error importing from URL:", url, err?.message);
+      return res.status(502).json({
+        success: false,
+        error: "Failed to fetch product data from the provided URL.",
+        detail: err?.message ?? "Unknown error"
+      });
+    }
+  }
+);
 var expressApp_default = app;
 
 // api/_index.ts

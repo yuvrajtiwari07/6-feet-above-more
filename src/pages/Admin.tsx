@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { Product, FitVerdict, HeightBand, VerdictStatus } from '../types';
+import type { ImportedProduct } from '../lib/importers/types';
+import { getAccessToken } from '../supabase';
 import { 
   Plus, Edit2, Check, AlertTriangle, ShieldCheck, Trash2, 
   Eye, Archive, RotateCcw, Link2, MessageSquare, BadgeAlert, 
-  Sparkles, CheckCircle, Ruler, CreditCard, ChevronRight, Search, Star
+  Sparkles, CheckCircle, Ruler, CreditCard, ChevronRight, Search, Star,
+  Download, Loader2, Globe
 } from 'lucide-react';
 
 export const Admin: React.FC = () => {
@@ -28,6 +31,12 @@ export const Admin: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
+
+  // ── Import from URL states ───────────────────────────────────────────────
+  const [importUrl, setImportUrl] = useState('');
+  const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [importMessage, setImportMessage] = useState('');
+  const [detectedRetailer, setDetectedRetailer] = useState('');
 
   // Primary fields
   const [id, setId] = useState('');
@@ -133,6 +142,99 @@ export const Admin: React.FC = () => {
   // Remove review from list
   const handleRemoveReview = (idx: number) => {
     setCustomReviews(customReviews.filter((_, i) => i !== idx));
+  };
+
+  // ── Apply imported product data to all form state setters ──────────────
+  const applyImportedProduct = useCallback((data: ImportedProduct) => {
+    if (data.brand) setBrand(data.brand);
+    if (data.title) setTitle(data.title);
+    if (data.category) setCategory(data.category);
+    if (data.subCategory) setSubCategory(data.subCategory);
+    if (data.description) setDescription(data.description);
+    if (data.price) setPriceAtRetailer(data.price);
+    if (data.discountPercent !== undefined) setDiscountPercent(String(data.discountPercent));
+    if (data.retailer) setRetailer(data.retailer);
+    if (data.retailerUrl) setAffiliateUrl(data.retailerUrl);
+    if (data.images && data.images.length > 0) setImagesInput(data.images.join(', '));
+    if (data.colors && data.colors.length > 0) setColorsInput(data.colors.join(', '));
+    if (data.sizes && data.sizes.length > 0) setSizesInput(data.sizes.join(', '));
+    if (data.occasions && data.occasions.length > 0) setOccasionsInput(data.occasions.join(', '));
+    if (data.seasons && data.seasons.length > 0) setSeasonsInput(data.seasons.join(', '));
+    if (data.tags && data.tags.length > 0) setTagsInput(data.tags.join(', '));
+    if (data.material) setMaterial(data.material);
+    if (data.careInstructions) setCareInstructions(data.careInstructions);
+    if (data.averageRating) {
+      // Pre-populate a single community review with the aggregated rating
+      setCustomReviews([
+        {
+          author: `${data.retailer ?? 'Retailer'} Avg`,
+          rating: Math.round(data.averageRating),
+          text: `Aggregated rating from ${data.retailer ?? 'retailer'} (${data.reviewsCount ?? 0} reviews).`,
+          date: new Date().toLocaleDateString('en-IN'),
+        }
+      ]);
+    }
+    if (data.measurements && Object.keys(data.measurements).length > 0) {
+      if (data.measurements.totalLength) setTotalLength(String(data.measurements.totalLength));
+      if (data.measurements.sleeveLength) setSleeveLength(String(data.measurements.sleeveLength));
+      if (data.measurements.shoulder) setShoulder(String(data.measurements.shoulder));
+      if (data.measurements.chest) setChest(String(data.measurements.chest));
+      if (data.measurements.inseam) setInseam(String(data.measurements.inseam));
+      if (data.measurements.rise) setRise(String(data.measurements.rise));
+    }
+    // Auto-generate a SKU-friendly ID from title if not already set
+    if (data.title && !id.startsWith('prod-')) {
+      const slugId = data.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 60);
+      setId(slugId);
+    }
+  }, [id]);
+
+  // ── Handle Import Button Click ───────────────────────────────────────────
+  const handleImportFromUrl = async () => {
+    if (!importUrl.trim()) return;
+    setImportStatus('loading');
+    setImportMessage('');
+    setDetectedRetailer('');
+
+    try {
+      const token = await getAccessToken();
+      const res = await fetch('/api/admin/import-product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ url: importUrl.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error ?? 'Import failed');
+      }
+
+      setDetectedRetailer(data.retailerName ?? '');
+      applyImportedProduct(data.product);
+      setImportStatus('success');
+      setImportMessage('Product imported successfully. Review all fields before saving.');
+
+      // Clear status after 6 seconds
+      setTimeout(() => {
+        setImportStatus('idle');
+        setImportMessage('');
+      }, 6000);
+    } catch (err: any) {
+      setImportStatus('error');
+      setImportMessage(err.message ?? 'Unable to import product data. Try another URL.');
+      setTimeout(() => {
+        setImportStatus('idle');
+        setImportMessage('');
+      }, 6000);
+    }
   };
 
   // Trigger form opening for adding a brand new product
@@ -478,6 +580,75 @@ export const Admin: React.FC = () => {
               Discard Changes
             </button>
           </div>
+
+          {/* ── IMPORT FROM URL SECTION (create mode only) ── */}
+          {!editMode && (
+            <div className="mb-8 border-2 border-dashed border-[#7D2AE8]/30 rounded-2xl p-5 bg-gradient-to-br from-[#7D2AE8]/3 to-transparent">
+              <div className="flex items-center gap-2 mb-3">
+                <Download size={16} className="text-[#7D2AE8]" />
+                <span className="font-display font-black uppercase text-sm tracking-wider text-[#7D2AE8]">
+                  Import Product From URL
+                </span>
+                <span className="text-[9px] bg-[#7D2AE8]/10 text-[#7D2AE8] px-2 py-0.5 rounded-full font-black uppercase tracking-widest">
+                  Auto-fills Form
+                </span>
+              </div>
+              <p className="text-[10px] text-black/45 font-sans mb-4">
+                Paste a product URL from Myntra, AJIO, Amazon, Flipkart, H&amp;M, Zara, Urbanic, Bewakoof, Snitch, Rare Rabbit, or any retailer. The form will be auto-populated for you to review before saving.
+              </p>
+
+              <div className="flex gap-3 items-stretch">
+                <div className="relative flex-1">
+                  <Globe size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-black/30" />
+                  <input
+                    type="url"
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleImportFromUrl()}
+                    placeholder="https://www.myntra.com/shirts/brand/product-id"
+                    disabled={importStatus === 'loading'}
+                    className="w-full pl-9 pr-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-mono disabled:opacity-60"
+                    id="import-url-input"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleImportFromUrl}
+                  disabled={importStatus === 'loading' || !importUrl.trim()}
+                  id="import-url-btn"
+                  className="flex items-center gap-2 px-5 py-3 bg-[#7D2AE8] hover:bg-[#6820C4] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shrink-0"
+                >
+                  {importStatus === 'loading' ? (
+                    <><Loader2 size={14} className="animate-spin" /> Importing...</>
+                  ) : (
+                    <><Download size={14} /> Import</>
+                  )}
+                </button>
+              </div>
+
+              {/* Detected retailer badge */}
+              {detectedRetailer && importStatus !== 'error' && (
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-[10px] text-black/40 font-sans">Detected Retailer:</span>
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-black uppercase tracking-widest">
+                    ✓ {detectedRetailer}
+                  </span>
+                </div>
+              )}
+
+              {/* Status toast */}
+              {importMessage && (
+                <div className={`mt-3 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
+                  importStatus === 'success'
+                    ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
+                    : 'bg-[#FF3F6C]/10 text-[#FF3F6C] border-[#FF3F6C]/20'
+                }`}>
+                  {importStatus === 'success' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
+                  {importMessage}
+                </div>
+              )}
+            </div>
+          )}
 
           <form onSubmit={handleSubmitForm} className="space-y-8">
             {formError && (

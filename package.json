@@ -17,6 +17,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.20.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "cheerio": "^1.2.0",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
