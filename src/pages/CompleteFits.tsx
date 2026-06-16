@@ -16,7 +16,7 @@ export const CompleteFits: React.FC = () => {
           <div className="flex items-center gap-1.5 mb-2">
             <Sparkles size={16} className="text-[#7D2AE8]" />
             <span className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-[0.2em] font-sans">
-              6feetabove&more Lookbooks
+              6FeetnAbove Lookbooks
             </span>
           </div>
           <h1 className="text-5xl md:text-6xl font-black font-display uppercase tracking-tight text-[#112133] leading-none mb-3 text-left">

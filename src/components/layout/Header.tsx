@@ -31,7 +31,7 @@ export const Header: React.FC = () => {
           
           <div className="flex flex-col text-left">
             <span className="font-extrabold tracking-tighter text-md md:text-xl leading-none select-none font-display text-black">
-              6FEETABOVE<span className="text-[#FF3F6C] font-extrabold">&</span><span className="text-[#FFCC00] italic font-serif lowercase font-extrabold">more</span>
+              6Feet<span className="text-[#FF3F6C] font-extrabold">n</span>Above
             </span>
             <span className="text-[8px] uppercase tracking-[0.2em] text-black/40 font-black font-grotesk mt-0.5 leading-none">
               Clothes that finally fit
