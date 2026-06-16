@@ -2,7 +2,7 @@
 // Boots the Express listener + Vite middle-ware dev runner
 
 import express from 'express';
-import app from './src/app';
+import app from './src/expressApp';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
