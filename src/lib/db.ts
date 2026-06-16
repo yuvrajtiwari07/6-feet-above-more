@@ -1,52 +1,43 @@
 // src/lib/db.ts
 // PostgreSQL connection pool pointing to Supabase
-// Uses the session-mode pooler for IPv4 compatibility
+// Configured to be serverless-friendly (safe for Vercel)
 
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL;
+let poolInstance: Pool | null = null;
 
-if (!connectionString) {
-  throw new Error('[DB] DATABASE_URL environment variable is required');
-}
+function getPool(): Pool {
+  if (!poolInstance) {
+    const connectionString = process.env.DATABASE_URL;
 
-export const pool = new Pool({
-  connectionString,
-  ssl: {
-    rejectUnauthorized: false, // Required for Supabase hosted Postgres
-  },
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+    if (!connectionString) {
+      throw new Error('[DB] DATABASE_URL environment variable is required but was not found.');
+    }
 
-pool.on('error', (err) => {
-  console.error('[DB] Unexpected pool error:', err.message);
-});
-
-// Test connection on startup (non-fatal)
-pool.connect()
-  .then(client => {
-    client.query('SELECT 1').then(() => {
-      console.log('[DB] ✅ Connected to Supabase PostgreSQL');
-      client.release();
-    }).catch(err => {
-      console.error('[DB] ⚠️  DB connected but query failed:', err.message);
-      client.release();
+    poolInstance = new Pool({
+      connectionString,
+      ssl: {
+        rejectUnauthorized: false, // Required for Supabase hosted Postgres
+      },
+      max: 4, // Reduced for serverless to prevent connection exhaustion
+      idleTimeoutMillis: 15000,
+      connectionTimeoutMillis: 5000,
     });
-  })
-  .catch(err => {
-    console.error('[DB] ⚠️  Could not connect to database:', err.message);
-    console.error('[DB]    Run the migration SQL in Supabase Dashboard first.');
-    console.error('[DB]    URL: https://supabase.com/dashboard/project/vhbyngwstjszztlmwyma/sql/new');
-  });
+
+    poolInstance.on('error', (err) => {
+      console.error('[DB] Unexpected pool error:', err.message);
+    });
+  }
+  return poolInstance;
+}
 
 export async function query<T = any>(
   text: string,
   params?: any[]
 ): Promise<T[]> {
+  const pool = getPool();
   const client = await pool.connect();
   try {
     const result = await client.query(text, params);
