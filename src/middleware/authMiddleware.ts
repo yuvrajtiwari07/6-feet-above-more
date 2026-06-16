@@ -28,10 +28,19 @@ declare global {
   }
 }
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseAdmin() {
+  if (!_supabaseAdmin) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error('[AuthMiddleware] SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables are required.');
+    }
+    _supabaseAdmin = createClient(url, key);
+  }
+  return _supabaseAdmin;
+}
 
 /**
  * Optional auth middleware — attaches user if token present but doesn't block.
@@ -48,6 +57,7 @@ export async function optionalAuth(
   }
   const token = authHeader.slice(7);
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin.auth.getUser(token);
     if (!error && data.user) {
       req.user = {
@@ -76,6 +86,7 @@ export async function requireAuth(
   }
   const token = authHeader.slice(7);
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin.auth.getUser(token);
     if (error || !data.user) {
       return res.status(401).json({ error: 'Invalid or expired token' });
