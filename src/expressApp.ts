@@ -142,6 +142,27 @@ app.post(
       console.warn('[AICuration] Scraper failed or returned empty. Attempting basic URL parse fallback.', err?.message);
     }
 
+    // Detect block page or empty page
+    const isBlocked = !scraped.title || 
+      scraped.title.toLowerCase().includes('something went wrong') || 
+      scraped.title.toLowerCase().includes('oops') || 
+      scraped.title.toLowerCase().includes('access denied') || 
+      scraped.title.toLowerCase().includes('cloudflare') || 
+      scraped.title.toLowerCase().includes('attention required') || 
+      scraped.title.toLowerCase().includes('robot check');
+
+    if (isBlocked) {
+      console.log('[AICuration] Scraping blocked or returned error page. Extracting from URL path...');
+      const urlMetadata = parseMetadataFromUrl(parsedUrl.href);
+      scraped = {
+        ...scraped,
+        title: urlMetadata.title || scraped.title || 'Curated Tall Garment',
+        brand: urlMetadata.brand || scraped.brand || 'Brand',
+        retailer: retailerName,
+        isScrapeBlocked: true
+      };
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
       try {
@@ -277,6 +298,87 @@ function runFallbackParser(scraped: any, url: string, detectedRetailer: string):
       highlights
     }
   };
+}
+
+function parseMetadataFromUrl(urlStr: string): { brand?: string; title?: string; category?: string } {
+  try {
+    const url = new URL(urlStr);
+    const pathname = decodeURIComponent(url.pathname).toLowerCase();
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length === 0) return {};
+
+    let titleRaw = '';
+    let brandRaw = '';
+    let categoryRaw = '';
+
+    const domain = url.hostname.replace('www.', '').split('.')[0];
+    const detectedRetailer = domain.charAt(0).toUpperCase() + domain.slice(1);
+
+    if (url.hostname.includes('myntra.com')) {
+      const buyIdx = segments.indexOf('buy');
+      if (buyIdx > 1) {
+        titleRaw = segments[buyIdx - 2];
+        brandRaw = segments[buyIdx - 3] || '';
+      } else if (segments.length >= 2) {
+        titleRaw = segments[1];
+        brandRaw = segments[0];
+      }
+    } else if (url.hostname.includes('ajio.com')) {
+      const pIdx = segments.indexOf('p');
+      if (pIdx > 0) {
+        const productSegment = segments[pIdx - 1];
+        const parts = productSegment.split('-');
+        brandRaw = parts[0] || '';
+        titleRaw = parts.slice(1).join(' ');
+      }
+    } else if (url.hostname.includes('snitch.co.in') || url.hostname.includes('snitch.co')) {
+      const prodIdx = segments.indexOf('products');
+      if (prodIdx >= 0 && segments[prodIdx + 1]) {
+        titleRaw = segments[prodIdx + 1];
+        brandRaw = 'Snitch';
+      }
+    } else if (url.hostname.includes('zara.com')) {
+      const last = segments[segments.length - 1] || '';
+      if (last.includes('-p')) {
+        titleRaw = last.split('-p')[0];
+        brandRaw = 'Zara';
+      }
+    } else if (url.hostname.includes('hm.com')) {
+      if (segments.length >= 2) {
+        titleRaw = segments[segments.length - 2] || '';
+        brandRaw = 'H&M';
+      }
+    }
+
+    if (!titleRaw) {
+      const candidates = segments.filter(s => {
+        return !s.match(/^\d+$/) && !['p', 'buy', 'product', 'products', 'in', 'en', 'item', 'items', 'detail', 'details'].includes(s);
+      });
+      if (candidates.length > 0) {
+        titleRaw = candidates[candidates.length - 1];
+      }
+    }
+
+    const cleanBrand = brandRaw
+      ? brandRaw.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      : detectedRetailer;
+
+    let cleanTitle = titleRaw
+      ? titleRaw.split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      : '';
+
+    if (!cleanTitle || cleanTitle.toLowerCase() === 'en in' || cleanTitle.length <= 5) {
+      cleanTitle = `${cleanBrand} Curated Garment`;
+    }
+
+    return {
+      brand: cleanBrand || undefined,
+      title: cleanTitle || undefined,
+      category: categoryRaw || undefined
+    };
+  } catch {
+    return {};
+  }
 }
 
 export default app;
