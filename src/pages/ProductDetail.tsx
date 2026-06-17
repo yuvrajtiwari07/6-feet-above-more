@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ProductCard } from '../components/product/ProductCard';
 import { 
-  Heart, ExternalLink, Ruler, CheckCircle2, ChevronRight, 
+  Heart, ExternalLink, Ruler, CheckCircle2, ChevronRight, ChevronLeft,
   HelpCircle, ShieldCheck, AlertCircle, MessageSquare, Star, 
-  PlusCircle, Loader2, LogIn 
+  PlusCircle, Loader2, LogIn, Eye
 } from 'lucide-react';
 import { getAccessToken } from '../supabase';
 import type { UserReview } from '../types';
@@ -28,6 +28,41 @@ export const ProductDetail: React.FC = () => {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [avgRating, setAvgRating] = useState<number>(5.0);
   const [reviewsCount, setReviewsCount] = useState<number>(0);
+  
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(true);
+  const touchStartRef = React.useRef<number | null>(null);
+  const hasSwipedRef = React.useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = e.targetTouches[0].clientX;
+    hasSwipedRef.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+    const currentX = e.targetTouches[0].clientX;
+    const diffX = touchStartRef.current - currentX;
+    if (Math.abs(diffX) > 10) {
+      hasSwipedRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+    const endX = e.changedTouches[0].clientX;
+    const diffX = touchStartRef.current - endX;
+    
+    if (Math.abs(diffX) > 40 && product && product.images) {
+      setIsAutoPlayEnabled(false);
+      if (diffX > 0) {
+        setActiveImageIndex((prev) => (prev + 1) % product.images.length);
+      } else {
+        setActiveImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+      }
+    }
+    touchStartRef.current = null;
+  };
 
   // Review submission state
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -66,7 +101,17 @@ export const ProductDetail: React.FC = () => {
 
   useEffect(() => {
     fetchReviews();
+    setActiveImageIndex(0);
+    setIsAutoPlayEnabled(true);
   }, [productId]);
+
+  useEffect(() => {
+    if (!isAutoPlayEnabled || !product || !product.images || product.images.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % product.images.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isAutoPlayEnabled, product?.images]);
 
   if (!product) {
     return (
@@ -179,26 +224,110 @@ export const ProductDetail: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
         
         {/* Left Aspect: Zoomable Image Showcase */}
-        <div className="lg:col-span-6">
+        <div className="lg:col-span-6 space-y-4">
           <div 
-            onClick={() => setZoomImg(!zoomImg)}
-            className="aspect-[3/4] rounded-3xl overflow-hidden bg-white border border-[#112133]/15 shadow-md relative group cursor-zoom-in"
+            onClick={(e) => {
+              // If the click is on the zoom button, don't trigger prev/next
+              const target = e.target as HTMLElement;
+              if (target.closest('.zoom-btn-overlay')) {
+                return;
+              }
+
+              setIsAutoPlayEnabled(false);
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const width = rect.width;
+
+              if (product.images && product.images.length > 1) {
+                if (x < width / 2) {
+                  // Left side click -> Previous image
+                  setActiveImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+                } else {
+                  // Right side click -> Next image
+                  setActiveImageIndex((prev) => (prev + 1) % product.images.length);
+                }
+              }
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="aspect-[3/4] rounded-3xl overflow-hidden bg-white border border-[#112133]/15 shadow-md relative group cursor-pointer"
           >
-            <img
-              src={product.images[0]}
-              alt={product.title}
-              referrerPolicy="no-referrer"
-              className={`w-full h-full object-cover transition-transform duration-500 scale-100 ${zoomImg ? 'scale-125' : 'group-hover:scale-105'}`}
-            />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 p-6 flex items-center justify-between pointer-events-none">
-              <span className="text-white/70 text-[10px] font-bold uppercase tracking-wider">
-                {zoomImg ? 'Click to reset lens look' : 'Click frame to engage deep macro zoom'}
-              </span>
+            {/* Left and Right navigation regions indicator overlay */}
+            {product.images && product.images.length > 1 && (
+              <>
+                <div className="absolute inset-y-0 left-0 w-12 flex items-center justify-start pl-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  <div className="bg-black/30 text-white p-1.5 rounded-full backdrop-blur-sm">
+                    <ChevronLeft size={16} />
+                  </div>
+                </div>
+                <div className="absolute inset-y-0 right-0 w-12 flex items-center justify-end pr-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  <div className="bg-black/30 text-white p-1.5 rounded-full backdrop-blur-sm">
+                    <ChevronRight size={16} />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Sliding Container */}
+            <div 
+              className="flex transition-transform duration-500 ease-out h-full w-full"
+              style={{ transform: `translateX(-${activeImageIndex * 100}%)` }}
+            >
+              {product.images && product.images.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img}
+                  alt={`${product.title} ${idx + 1}`}
+                  referrerPolicy="no-referrer"
+                  className={`w-full h-full object-cover shrink-0 transition-transform duration-500 scale-100 ${
+                    zoomImg && idx === activeImageIndex ? 'scale-125' : 'group-hover:scale-105'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 p-6 flex items-center justify-between z-10">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setZoomImg(!zoomImg);
+                }}
+                className="zoom-btn-overlay flex items-center gap-1.5 text-white/95 text-[10px] font-black uppercase tracking-wider bg-black/40 hover:bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-sm transition-all border border-white/10"
+              >
+                <Eye size={12} />
+                <span>{zoomImg ? 'Normal View' : 'Macro Zoom'}</span>
+              </button>
+
               <span className="text-[#7D2AE8] font-bold text-xs uppercase tracking-widest bg-white/95 px-2.5 py-1 rounded-md shadow-sm">
                 SPEC CURATED
               </span>
             </div>
           </div>
+
+          {/* Thumbnails Row */}
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-2.5 overflow-x-auto py-1 scrollbar-none">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setIsAutoPlayEnabled(false);
+                    setActiveImageIndex(idx);
+                  }}
+                  className={`relative w-16 h-20 rounded-2xl overflow-hidden border-2 bg-white transition-all shrink-0 ${
+                    idx === activeImageIndex 
+                      ? 'border-[#7D2AE8] scale-105 shadow-sm' 
+                      : 'border-black/10 hover:border-black/35 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Aspect: Specs & Projections Sheet */}

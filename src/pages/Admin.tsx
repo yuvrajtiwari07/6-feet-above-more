@@ -342,9 +342,10 @@ export const Admin: React.FC = () => {
     // Occasions mapping
     if (data.occasions && Array.isArray(data.occasions)) {
       const matchedOccs = data.occasions
+        .filter((o: any) => o && typeof o === 'string')
         .map((o: string) => {
           const matched = OCCASIONS.find(opt => opt.toLowerCase().includes(o.toLowerCase()));
-          return matched || null;
+          return matched || o.trim();
         })
         .filter(Boolean) as string[];
       setOccasions(matchedOccs.length > 0 ? matchedOccs : ['Daily Wear']);
@@ -355,9 +356,10 @@ export const Admin: React.FC = () => {
     // Seasons mapping
     if (data.seasons && Array.isArray(data.seasons)) {
       const matchedSeas = data.seasons
+        .filter((s: any) => s && typeof s === 'string')
         .map((s: string) => {
           const matched = SEASONS.find(opt => opt.toLowerCase().includes(s.toLowerCase()));
-          return matched || null;
+          return matched || s.trim();
         })
         .filter(Boolean) as string[];
       setSeasons(matchedSeas.length > 0 ? matchedSeas : ['All Season']);
@@ -366,8 +368,8 @@ export const Admin: React.FC = () => {
     // Colors mapping
     if (data.colors && Array.isArray(data.colors)) {
       const matchedColors = data.colors
+        .filter((c: any) => c && typeof c === 'string')
         .map((c: string) => {
-          if (!c) return null;
           const clean = c.trim();
           const matched = COLORS.find(opt => 
             opt.name.toLowerCase() === clean.toLowerCase() || 
@@ -764,7 +766,7 @@ export const Admin: React.FC = () => {
     return matchesSearch && matchesCategory && matchesStock;
   });
 
-  const hasAccess = isAdmin || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
+  const hasAccess = isAdmin;
 
   if (!hasAccess) {
     return (
@@ -1134,7 +1136,7 @@ export const Admin: React.FC = () => {
                     );
                   })}
                   {colors
-                    .filter(c => !COLORS.some(opt => opt.name.toLowerCase() === c.toLowerCase()))
+                    .filter(c => c && typeof c === 'string' && !COLORS.some(opt => opt.name.toLowerCase() === c.toLowerCase()))
                     .map(customColor => (
                       <button
                         type="button"

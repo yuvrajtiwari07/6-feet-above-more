@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Product } from '../../types';
 import { useApp } from '../../context/AppContext';
-import { Heart, ExternalLink, Ruler, CheckCircle2, HelpCircle } from 'lucide-react';
+import { Heart, ExternalLink, Ruler, CheckCircle2, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface ProductCardProps {
@@ -12,6 +12,57 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { height, heightBand, toggleSaveProduct, savedProductIds, navigate, trackAffiliateClick, cardSize } = useApp();
 
   const isSaved = savedProductIds.includes(product.id);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const touchStartRef = useRef<number | null>(null);
+  const hasSwipedRef = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = e.targetTouches[0].clientX;
+    hasSwipedRef.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+    const currentX = e.targetTouches[0].clientX;
+    const diffX = touchStartRef.current - currentX;
+    if (Math.abs(diffX) > 10) {
+      hasSwipedRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+    const endX = e.changedTouches[0].clientX;
+    const diffX = touchStartRef.current - endX;
+    
+    if (Math.abs(diffX) > 40 && product.images && product.images.length > 1) {
+      if (diffX > 0) {
+        // Swipe left -> Next image
+        setActiveImageIndex((prev) => (prev + 1) % product.images.length);
+      } else {
+        // Swipe right -> Prev image
+        setActiveImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+      }
+    }
+    touchStartRef.current = null;
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (hasSwipedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      hasSwipedRef.current = false;
+      return;
+    }
+
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) {
+      return;
+    }
+
+    navigate('product', { productId: product.id });
+  };
 
   // Safely find the verdict configured for the user's current height band
   const verdict = product.verdicts.find(v => v.band === heightBand) || {
@@ -90,22 +141,62 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           ? 'rounded-2xl hover:pop-shadow-sm hover:-translate-y-0.5 p-0' 
           : 'rounded-[28px] hover:pop-shadow hover:-translate-y-1'
       }`}
-      onClick={() => navigate('product', { productId: product.id })}
+      onClick={handleCardClick}
       style={{ cursor: 'pointer' }}
       id={`product-card-${product.id}`}
     >
       {/* 1. Interactive Image Wrapper */}
-      <div className="aspect-[3/4] relative overflow-hidden bg-black/5 border-b border-black/10">
-        <img
-          src={product.images[0]}
-          alt={product.title}
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover transform transition-transform duration-500 scale-100 group-hover:scale-105"
-          loading="lazy"
-        />
+      <div 
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="aspect-[3/4] relative overflow-hidden bg-black/5 border-b border-black/10 group/img"
+      >
+        {/* Sliding Images Container */}
+        <div 
+          className="flex transition-transform duration-500 ease-out h-full w-full"
+          style={{ transform: `translateX(-${activeImageIndex * 100}%)` }}
+        >
+          {product.images && product.images.map((img, idx) => (
+            <img
+              key={idx}
+              src={img}
+              alt={`${product.title} ${idx + 1}`}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover shrink-0 transform transition-transform duration-500 scale-100 group-hover:scale-105"
+              loading="lazy"
+            />
+          ))}
+        </div>
+
+        {/* Hover Arrow Controllers for PC/Desktop view */}
+        {product.images && product.images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+              }}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-white/85 text-black hover:bg-[#FF3F6C] hover:text-white p-1 rounded-full border border-black/10 shadow-sm z-30 transition opacity-0 group-hover/img:opacity-100 hidden md:flex"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImageIndex((prev) => (prev + 1) % product.images.length);
+              }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-white/85 text-black hover:bg-[#FF3F6C] hover:text-white p-1 rounded-full border border-black/10 shadow-sm z-30 transition opacity-0 group-hover/img:opacity-100 hidden md:flex"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </>
+        )}
         
         {/* Absolute Gradients (Sleek vignette shadow overlay) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/15 opacity-70 z-10 transition-all" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/15 opacity-70 z-10 transition-all pointer-events-none" />
  
         {/* Dynamic Trust Badge Layer */}
         <div className={`absolute ${isSm ? 'top-2 left-2 z-25' : 'top-3.5 left-3.5 z-25'} flex flex-col gap-1`}>
@@ -129,7 +220,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </button>
  
         {/* Retailer sticker corner */}
-        <div className={`absolute ${isSm ? 'bottom-2 left-2 right-2' : 'bottom-3.5 left-3.5 right-3.5'} flex items-center justify-between z-20`}>
+        <div className={`absolute ${isSm ? 'bottom-2 left-2 right-2' : 'bottom-3.5 left-3.5 right-3.5'} flex items-center justify-between z-20 pointer-events-none`}>
           <span className={`${isSm ? 'text-[8px] px-2 py-0.5 rounded' : 'text-[10px] px-3 py-1 rounded-md'} font-black font-display tracking-widest text-black bg-[#FFCC00] border border-black/15 shadow-sm uppercase`}>
             {product.retailer}
           </span>
