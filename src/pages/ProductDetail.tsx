@@ -1,15 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ProductCard } from '../components/product/ProductCard';
-import { Heart, ExternalLink, Ruler, CheckCircle2, ChevronRight, HelpCircle, ShieldCheck, AlertCircle } from 'lucide-react';
-import { motion } from 'motion/react';
+import { 
+  Heart, ExternalLink, Ruler, CheckCircle2, ChevronRight, 
+  HelpCircle, ShieldCheck, AlertCircle, MessageSquare, Star, 
+  PlusCircle, Loader2, LogIn 
+} from 'lucide-react';
+import { getAccessToken } from '../supabase';
+import type { UserReview } from '../types';
 
 export const ProductDetail: React.FC = () => {
-  const { route, height, heightBand, toggleSaveProduct, savedProductIds, trackAffiliateClick, navigate, products } = useApp();
+  const { 
+    route, 
+    height, 
+    heightBand, 
+    toggleSaveProduct, 
+    savedProductIds, 
+    trackAffiliateClick, 
+    navigate, 
+    products,
+    user,
+    loginWithGoogle
+  } = useApp();
+
   const [zoomImg, setZoomImg] = useState(false);
+  const [reviews, setReviews] = useState<UserReview[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [avgRating, setAvgRating] = useState<number>(5.0);
+  const [reviewsCount, setReviewsCount] = useState<number>(0);
+
+  // Review submission state
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewHeight, setReviewHeight] = useState<string>(height || "6'3\"");
+  const [reviewWeight, setReviewWeight] = useState<string>('');
+  const [reviewBodyType, setReviewBodyType] = useState<string>('Athletic');
+  const [reviewText, setReviewText] = useState<string>('');
+  const [reviewError, setReviewError] = useState<string>('');
+  const [reviewSuccess, setReviewSuccess] = useState<string>('');
 
   const productId = route.params?.productId;
   const product = products.find(p => p.id === productId);
+
+  // Fetch reviews from API
+  const fetchReviews = async () => {
+    if (!productId) return;
+    setLoadingReviews(true);
+    try {
+      const res = await fetch(`/api/products/${productId}/reviews`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setReviews(data.reviews || []);
+          setAvgRating(data.average ?? 5.0);
+          setReviewsCount(data.count ?? 0);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [productId]);
 
   if (!product) {
     return (
@@ -39,8 +96,7 @@ export const ProductDetail: React.FC = () => {
 
   // Convert height selections to estimate human proportions to contrast against
   const estimateAnatomy = (hStr: string) => {
-    // Basic heuristics for tall stature proportions in cm
-    const feet = parseFloat(hStr.replace(/[^\d.]/g, ''));
+    const feet = parseFloat(hStr.replace(/[^\d.]/g, '')) || 6.2;
     if (hStr.includes("6'0") || hStr.includes("6'1")) {
       return { idealInseam: 81, idealTorso: 74, idealSleeve: 65 };
     }
@@ -58,6 +114,53 @@ export const ProductDetail: React.FC = () => {
   const handleShopNow = () => {
     trackAffiliateClick(product.id, product.retailer, product.affiliateUrl);
     window.open(product.affiliateUrl, '_blank', 'referrerPolicy');
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setReviewError('');
+    setReviewSuccess('');
+
+    if (!reviewText.trim()) {
+      setReviewError('Please write your fit review text.');
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const token = await getAccessToken();
+      const res = await fetch(`/api/products/${product.id}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          rating: reviewRating,
+          height: reviewHeight,
+          weight: reviewWeight,
+          bodyType: reviewBodyType,
+          reviewText: reviewText
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error ?? 'Failed to submit review');
+      }
+
+      setReviewSuccess('Thank you! Your fit review has been published.');
+      setReviewText('');
+      setReviewWeight('');
+      setShowReviewForm(false);
+      
+      // Refresh reviews list
+      fetchReviews();
+    } catch (err: any) {
+      setReviewError(err.message || 'An error occurred during submission.');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   return (
@@ -119,6 +222,11 @@ export const ProductDetail: React.FC = () => {
               <span className="text-3xl font-black font-grotesk text-[#7D2AE8]">
                 ₹{product.priceAtRetailer.toLocaleString('en-IN')}
               </span>
+              {product.discountPercent ? (
+                <span className="text-emerald-600 text-sm font-bold bg-emerald-50 px-2 py-0.5 rounded">
+                  {product.discountPercent}% OFF
+                </span>
+              ) : null}
               <span className="text-[#112133]/40 text-xs font-sans">
                 (Est. affiliate pricing portal)
               </span>
@@ -158,7 +266,7 @@ export const ProductDetail: React.FC = () => {
                 "{userVerdict.note || 'No compromises. Designed with a longer drop that perfectly sits around tall frames without standard riding.'}"
               </p>
 
-              {/* Full height multi-band matrix (requested feature!) */}
+              {/* Full height multi-band matrix */}
               <div className="bg-[#FAF9F6] rounded-xl p-3 border border-[#112133]/5">
                 <p className="text-[#112133]/50 text-[9px] font-bold uppercase tracking-wider mb-2 text-center">
                   Fits Verdict Across Tall Statures
@@ -186,66 +294,59 @@ export const ProductDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* Measurement analyzer vs selected height */}
-            <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm">
-              <h3 className="font-grotesk font-black text-xs uppercase tracking-wide text-[#7D2AE8] mb-4 flex items-center gap-1.5 text-left">
-                <Ruler size={14} />
-                <span>PHYSICAL SPECIFICATIONS VS YOUR {height}" ANATOMY</span>
-              </h3>
+            {/* Measurement analyzer vs selected height (Only if measurements present) */}
+            {product.measurements && Object.keys(product.measurements).length > 0 && (
+              <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm">
+                <h3 className="font-grotesk font-black text-xs uppercase tracking-wide text-[#7D2AE8] mb-4 flex items-center gap-1.5 text-left">
+                  <Ruler size={14} />
+                  <span>PHYSICAL SPECIFICATIONS VS YOUR {height}" ANATOMY</span>
+                </h3>
 
-              <div className="flex flex-col gap-4 text-left">
-                {/* Trouser Inseam */}
-                {product.measurements.inseam && (
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-[#112133]/60">Garment Leg Inseam:</span>
-                      <span className="font-bold text-[#112133]">{product.measurements.inseam} cm (36L Inches)</span>
+                <div className="flex flex-col gap-4 text-left">
+                  {/* Trouser Inseam */}
+                  {product.measurements.inseam && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-[#112133]/60">Garment Leg Inseam:</span>
+                        <span className="font-bold text-[#112133]">{(product.measurements.inseam as any).value ?? product.measurements.inseam} cm (36L Inches)</span>
+                      </div>
+                      <div className="h-2 bg-[#FAF9F6] rounded-full overflow-hidden relative border border-[#112133]/10">
+                        <div className="absolute top-0 bottom-0 left-0 bg-[#00C4CC]" style={{ width: `${(Number((product.measurements.inseam as any).value ?? product.measurements.inseam) / 100) * 100}%` }} />
+                        <div className="absolute top-0 bottom-0 w-0.5 bg-[#7D2AE8]" style={{ left: `${(currentAnatomy.idealInseam / 100) * 100}%` }} title={`Ideal for ${height}`} />
+                      </div>
                     </div>
-                    <div className="h-2 bg-[#FAF9F6] rounded-full overflow-hidden relative border border-[#112133]/10">
-                      <div className="absolute top-0 bottom-0 left-0 bg-[#00C4CC]" style={{ width: `${(product.measurements.inseam / 100) * 100}%` }} />
-                      <div className="absolute top-0 bottom-0 w-0.5 bg-[#7D2AE8]" style={{ left: `${(currentAnatomy.idealInseam / 100) * 100}%` }} title={`Ideal for ${height}`} />
-                    </div>
-                    <span className="text-[10px] text-[#112133]/60 leading-relaxed block mt-1.5">
-                      Average {height} stride needs {currentAnatomy.idealInseam}cm. Garment yields <strong className="text-[#7D2AE8]">+{product.measurements.inseam - currentAnatomy.idealInseam}cm</strong> drape break.
-                    </span>
-                  </div>
-                )}
+                  )}
 
-                {/* Torso Total Length */}
-                {product.measurements.totalLength && (
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-[#112133]/60">Garment Torso Length:</span>
-                      <span className="font-bold text-[#112133]">{product.measurements.totalLength} cm</span>
+                  {/* Torso Total Length */}
+                  {product.measurements.totalLength && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-[#112133]/60">Garment Torso Length:</span>
+                        <span className="font-bold text-[#112133]">{(product.measurements.totalLength as any).value ?? product.measurements.totalLength} cm</span>
+                      </div>
+                      <div className="h-2 bg-[#FAF9F6] rounded-full overflow-hidden relative border border-[#112133]/10">
+                        <div className="absolute top-0 bottom-0 left-0 bg-[#00C4CC]" style={{ width: `${(Number((product.measurements.totalLength as any).value ?? product.measurements.totalLength) / 130) * 100}%` }} />
+                        <div className="absolute top-0 bottom-0 w-0.5 bg-[#7D2AE8]" style={{ left: `${(currentAnatomy.idealTorso / 130) * 100}%` }} />
+                      </div>
                     </div>
-                    <div className="h-2 bg-[#FAF9F6] rounded-full overflow-hidden relative border border-[#112133]/10">
-                      <div className="absolute top-0 bottom-0 left-0 bg-[#00C4CC]" style={{ width: `${(product.measurements.totalLength / 130) * 100}%` }} />
-                      <div className="absolute top-0 bottom-0 w-0.5 bg-[#7D2AE8]" style={{ left: `${(currentAnatomy.idealTorso / 130) * 100}%` }} />
-                    </div>
-                    <span className="text-[10px] text-[#112133]/60 leading-relaxed block mt-1.5">
-                      Your torso needs {currentAnatomy.idealTorso}cm. Garment yields <strong className="text-[#7D2AE8]">+{product.measurements.totalLength - currentAnatomy.idealTorso}cm</strong> extra tuck space. No riding up.
-                    </span>
-                  </div>
-                )}
+                  )}
 
-                {/* Sleeve Length */}
-                {product.measurements.sleeveLength && (
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-[#112133]/60">Garment Arm Sleeve Length:</span>
-                      <span className="font-bold text-[#112133]">{product.measurements.sleeveLength} cm</span>
+                  {/* Sleeve Length */}
+                  {product.measurements.sleeveLength && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-[#112133]/60">Garment Arm Sleeve Length:</span>
+                        <span className="font-bold text-[#112133]">{(product.measurements.sleeveLength as any).value ?? product.measurements.sleeveLength} cm</span>
+                      </div>
+                      <div className="h-2 bg-[#FAF9F6] rounded-full overflow-hidden relative border border-[#112133]/10">
+                        <div className="absolute top-0 bottom-0 left-0 bg-[#00C4CC]" style={{ width: `${(Number((product.measurements.sleeveLength as any).value ?? product.measurements.sleeveLength) / 80) * 100}%` }} />
+                        <div className="absolute top-0 bottom-0 w-0.5 bg-[#7D2AE8]" style={{ left: `${(currentAnatomy.idealSleeve / 80) * 100}%` }} />
+                      </div>
                     </div>
-                    <div className="h-2 bg-[#FAF9F6] rounded-full overflow-hidden relative border border-[#112133]/10">
-                      <div className="absolute top-0 bottom-0 left-0 bg-[#00C4CC]" style={{ width: `${(product.measurements.sleeveLength / 80) * 100}%` }} />
-                      <div className="absolute top-0 bottom-0 w-0.5 bg-[#7D2AE8]" style={{ left: `${(currentAnatomy.idealSleeve / 80) * 100}%` }} />
-                    </div>
-                    <span className="text-[10px] text-[#112133]/60 leading-relaxed block mt-1.5">
-                      Your long arms need {currentAnatomy.idealSleeve}cm. Garment provides <strong className="text-[#7D2AE8]">+{product.measurements.sleeveLength - currentAnatomy.idealSleeve}cm</strong> wrist coverage.
-                    </span>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* 3. TRANSITION ACTION BLOCK */}
@@ -275,6 +376,188 @@ export const ProductDetail: React.FC = () => {
         </div>
       </div>
 
+      {/* USER REVIEWS SYSTEM (NEW) */}
+      <section className="mt-16 bg-white border border-[#112133]/15 rounded-[32px] p-6 md:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/10 pb-5 mb-8 gap-4">
+          <div>
+            <h2 className="font-display text-2xl uppercase font-black text-[#112133] flex items-center gap-2">
+              <MessageSquare size={20} className="text-[#7D2AE8]" />
+              <span>CITIZEN FIT REVIEWS ({reviewsCount})</span>
+            </h2>
+            <div className="flex items-center gap-1.5 mt-1.5 text-xs text-black/55 font-bold">
+              <div className="flex text-amber-500">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Star 
+                    key={star} 
+                    size={14} 
+                    className={star <= Math.round(avgRating) ? 'fill-amber-500' : 'text-black/15'} 
+                  />
+                ))}
+              </div>
+              <span>{avgRating.toFixed(1)} / 5.0 rating based on real citizen fits</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              if (!user) {
+                loginWithGoogle();
+              } else {
+                setShowReviewForm(!showReviewForm);
+              }
+            }}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-[#7D2AE8] hover:bg-[#6820C4] text-white text-xs font-grotesk font-black uppercase tracking-wider rounded-xl transition"
+          >
+            {user ? (
+              <><PlusCircle size={14} /> Write A Review</>
+            ) : (
+              <><LogIn size={14} /> Log In to Review</>
+            )}
+          </button>
+        </div>
+
+        {/* Review Form */}
+        {showReviewForm && user && (
+          <form onSubmit={handleSubmitReview} className="mb-8 p-5 bg-[#FAF9F6] rounded-2xl border border-black/5 space-y-4">
+            <h3 className="text-xs font-black uppercase tracking-wider text-[#7D2AE8]">Submit Fit Report</h3>
+            
+            {reviewError && <div className="p-3 bg-red-100 text-red-700 text-xs font-bold rounded-lg">{reviewError}</div>}
+            {reviewSuccess && <div className="p-3 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg">{reviewSuccess}</div>}
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-black/45 font-bold block mb-1">Rating</label>
+                <select
+                  value={reviewRating}
+                  onChange={(e) => setReviewRating(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
+                >
+                  <option value={5}>5 Stars (Flawless Tall Fit)</option>
+                  <option value={4}>4 Stars (Good Length)</option>
+                  <option value={3}>3 Stars (Acceptable)</option>
+                  <option value={2}>2 Stars (Runs slightly short)</option>
+                  <option value={1}>1 Star (Too short / Boxy)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-black/45 font-bold block mb-1">Your Height</label>
+                <select
+                  value={reviewHeight}
+                  onChange={(e) => setReviewHeight(e.target.value)}
+                  className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
+                >
+                  {["6'0", "6'1", "6'2", "6'3", "6'4", "6'5", "6'6", "6'7", "6'8+"].map(hOpt => (
+                    <option key={hOpt} value={hOpt}>{hOpt}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-black/45 font-bold block mb-1">Body Build</label>
+                <select
+                  value={reviewBodyType}
+                  onChange={(e) => setReviewBodyType(e.target.value)}
+                  className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
+                >
+                  <option value="Slim">Slim Build</option>
+                  <option value="Athletic">Athletic Build</option>
+                  <option value="Broad">Broad Shoulders</option>
+                  <option value="Heavy Build">Heavy Build</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-black/45 font-bold block mb-1">Weight (optional)</label>
+                <input
+                  type="text"
+                  value={reviewWeight}
+                  onChange={(e) => setReviewWeight(e.target.value)}
+                  placeholder="e.g. 85 kg"
+                  className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-black/45 font-bold block mb-1">Fit Comments</label>
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="How does the length feel on you? Sleeves, inseam, torso riding etc..."
+                rows={3}
+                className="w-full px-3.5 py-2.5 border border-black/15 rounded-lg text-xs font-sans"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={submittingReview}
+                className="px-4 py-2 bg-[#7D2AE8] hover:bg-[#6820C4] text-white text-xs font-grotesk font-black uppercase tracking-wider rounded-lg disabled:opacity-50"
+              >
+                {submittingReview ? 'Submitting...' : 'Post Fit Report'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReviewForm(false)}
+                className="px-4 py-2 bg-black/5 text-black/75 text-xs font-grotesk font-black uppercase tracking-wider rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Reviews List */}
+        {loadingReviews ? (
+          <div className="py-6 text-center text-xs text-black/45 flex justify-center items-center gap-1.5 font-bold">
+            <Loader2 size={16} className="animate-spin text-[#7D2AE8]" />
+            <span>Retrieving citizen reports...</span>
+          </div>
+        ) : reviews.length > 0 ? (
+          <div className="space-y-4">
+            {reviews.map((rev) => (
+              <div key={rev.id} className="p-5 border border-black/10 rounded-2xl bg-white text-xs text-left">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/5 pb-2.5 mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-[#7D2AE8] bg-[#7D2AE8]/10 border border-[#7D2AE8]/20 px-2 py-0.5 rounded-md text-[10px]">
+                      {rev.height || '6\'3"'}
+                    </span>
+                    <span className="text-black/55 font-bold">
+                      {rev.bodyType || 'Athletic'} Build {rev.weight ? `(${rev.weight})` : ''}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <div className="flex text-amber-500">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star 
+                          key={star} 
+                          size={12} 
+                          className={star <= rev.rating ? 'fill-amber-500' : 'text-black/15'} 
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-black/45 font-mono ml-1">
+                      {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : ''}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-black/90 font-sans leading-relaxed">
+                  "{rev.reviewText}"
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-10 text-center text-xs text-black/40 italic">
+            No citizen reports submitted for this garment yet. Be the first to verify its fit.
+          </div>
+        )}
+      </section>
+
       {/* 4. SIMILAR RECOMMENDATIONS */}
       {similarProducts.length > 0 && (
         <section className="mt-16 text-left">
@@ -298,4 +581,5 @@ export const ProductDetail: React.FC = () => {
     </div>
   );
 };
+
 export default ProductDetail;

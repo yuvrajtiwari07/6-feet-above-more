@@ -56,6 +56,7 @@ function rowToProduct(row) {
     brand: row.brand,
     title: row.title,
     category: row.category,
+    categories: row.categories ?? [],
     subCategory: row.sub_category,
     productSegment: row.product_segment ?? "Upperwear",
     productType: row.product_type ?? "T-Shirt",
@@ -73,20 +74,19 @@ function rowToProduct(row) {
     outOfStock: row.out_of_stock,
     verificationBadges: row.verification_badges ?? [],
     merchantLinks: row.merchant_links ?? [],
-    customReviews: row.custom_reviews ?? [],
     reviewsCount: row.reviews_count,
     averageRating: Number(row.average_rating),
     measurements: row.measurements ?? {},
     verdicts: row.verdicts ?? [],
-    // New expanded fields
     material: row.material,
-    careInstructions: row.care_instructions,
-    weightGrams: row.weight_grams,
-    countryOfOrigin: row.country_of_origin,
     tags: row.tags ?? [],
     discountPercent: Number(row.discount_percent ?? 0),
     isFeatured: row.is_featured,
-    skuCode: row.sku_code
+    // Tall-fit curation fields
+    tallFriendly: row.tall_friendly ?? true,
+    heightRanges: row.height_ranges ?? [],
+    bodyTypes: row.body_types ?? [],
+    fitHighlights: row.fit_highlights ?? []
   };
 }
 var productRepository = {
@@ -95,8 +95,9 @@ var productRepository = {
     const params = [];
     let idx = 1;
     if (filters?.category) {
-      text += ` AND LOWER(category) = LOWER($${idx++})`;
+      text += ` AND (LOWER(category) = LOWER($${idx}) OR $${idx} = ANY(SELECT LOWER(unnest(categories))))`;
       params.push(filters.category);
+      idx++;
     }
     if (filters?.brand) {
       text += ` AND LOWER(brand) = LOWER($${idx++})`;
@@ -125,13 +126,13 @@ var productRepository = {
   async create(p) {
     const text = `
       INSERT INTO products (
-        id, brand, title, category, sub_category, product_segment, product_type,
+        id, brand, title, category, categories, sub_category, product_segment, product_type,
         description, fit_type, retailer, affiliate_url, price_at_retailer,
         images, occasions, seasons, colors, sizes, verified_tier, out_of_stock,
-        verification_badges, merchant_links, custom_reviews, reviews_count,
+        verification_badges, merchant_links, reviews_count,
         average_rating, measurements, verdicts,
-        material, care_instructions, weight_grams, country_of_origin,
-        tags, discount_percent, is_featured, sku_code
+        material, tags, discount_percent, is_featured,
+        tall_friendly, height_ranges, body_types, fit_highlights
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
         $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34
@@ -146,6 +147,7 @@ var productRepository = {
       p.brand,
       p.title,
       p.category,
+      p.categories ?? [],
       p.subCategory ?? null,
       p.productSegment,
       p.productType,
@@ -163,19 +165,18 @@ var productRepository = {
       p.outOfStock ?? false,
       p.verificationBadges ?? [],
       JSON.stringify(p.merchantLinks ?? []),
-      JSON.stringify(p.customReviews ?? []),
       p.reviewsCount ?? 0,
-      p.averageRating ?? 5,
+      p.averageRating ?? 0,
       JSON.stringify(p.measurements ?? {}),
       JSON.stringify(p.verdicts ?? []),
       p.material ?? null,
-      p.careInstructions ?? null,
-      p.weightGrams ?? null,
-      p.countryOfOrigin ?? "India",
       p.tags ?? [],
       p.discountPercent ?? 0,
       p.isFeatured ?? false,
-      p.skuCode ?? null
+      p.tallFriendly ?? true,
+      p.heightRanges ?? [],
+      p.bodyTypes ?? [],
+      p.fitHighlights ?? []
     ];
     const rows = await query(text, params);
     return rowToProduct(rows[0]);
@@ -185,6 +186,7 @@ var productRepository = {
       brand: "brand",
       title: "title",
       category: "category",
+      categories: "categories",
       subCategory: "sub_category",
       productSegment: "product_segment",
       productType: "product_type",
@@ -202,21 +204,20 @@ var productRepository = {
       outOfStock: "out_of_stock",
       verificationBadges: "verification_badges",
       merchantLinks: "merchant_links",
-      customReviews: "custom_reviews",
       reviewsCount: "reviews_count",
       averageRating: "average_rating",
       measurements: "measurements",
       verdicts: "verdicts",
       material: "material",
-      careInstructions: "care_instructions",
-      weightGrams: "weight_grams",
-      countryOfOrigin: "country_of_origin",
       tags: "tags",
       discountPercent: "discount_percent",
       isFeatured: "is_featured",
-      skuCode: "sku_code"
+      tallFriendly: "tall_friendly",
+      heightRanges: "height_ranges",
+      bodyTypes: "body_types",
+      fitHighlights: "fit_highlights"
     };
-    const jsonbFields = /* @__PURE__ */ new Set(["merchantLinks", "customReviews", "measurements", "verdicts"]);
+    const jsonbFields = /* @__PURE__ */ new Set(["merchantLinks", "measurements", "verdicts"]);
     const setClauses = [];
     const params = [];
     let idx = 1;
@@ -270,6 +271,7 @@ function sanitizeProduct(p) {
     brand: p.brand.trim(),
     title: p.title.trim(),
     category: p.category.trim(),
+    categories: (p.categories ?? []).filter(Boolean),
     subCategory: p.subCategory?.trim(),
     productSegment: p.productSegment.trim(),
     productType: p.productType.trim(),
@@ -282,11 +284,10 @@ function sanitizeProduct(p) {
     seasons: (p.seasons ?? []).filter(Boolean),
     colors: (p.colors ?? []).filter(Boolean),
     sizes: (p.sizes ?? []).filter(Boolean),
-    // Computed
-    reviewsCount: p.customReviews?.length ?? 0,
-    averageRating: p.customReviews && p.customReviews.length > 0 ? Number(
-      (p.customReviews.reduce((acc, r) => acc + r.rating, 0) / p.customReviews.length).toFixed(1)
-    ) : 5
+    tags: (p.tags ?? []).filter(Boolean),
+    heightRanges: (p.heightRanges ?? []).filter(Boolean),
+    bodyTypes: (p.bodyTypes ?? []).filter(Boolean),
+    fitHighlights: (p.fitHighlights ?? []).filter(Boolean)
   };
 }
 var productService = {
@@ -326,6 +327,92 @@ var productService = {
     }
     const deleted = await productRepository.delete(id);
     return { success: deleted };
+  }
+};
+
+// src/repositories/reviewRepository.ts
+function rowToReview(row) {
+  return {
+    id: row.id,
+    productId: row.product_id,
+    userId: row.user_id,
+    userEmail: row.user_email,
+    rating: Number(row.rating),
+    height: row.height,
+    weight: row.weight,
+    bodyType: row.body_type,
+    reviewText: row.review_text,
+    createdAt: row.created_at?.toISOString?.() ?? row.created_at
+  };
+}
+var reviewRepository = {
+  async findByProductId(productId) {
+    const rows = await query(
+      "SELECT * FROM reviews WHERE product_id = $1 ORDER BY created_at DESC",
+      [productId]
+    );
+    return rows.map(rowToReview);
+  },
+  async create(review) {
+    const text = `
+      INSERT INTO reviews (product_id, user_id, user_email, rating, height, weight, body_type, review_text)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `;
+    const params = [
+      review.productId,
+      review.userId ?? null,
+      review.userEmail ?? null,
+      review.rating,
+      review.height ?? null,
+      review.weight ?? null,
+      review.bodyType ?? null,
+      review.reviewText ?? null
+    ];
+    const rows = await query(text, params);
+    return rowToReview(rows[0]);
+  },
+  async getAggregateRating(productId) {
+    const row = await queryOne(
+      "SELECT COUNT(*)::int as count, COALESCE(ROUND(AVG(rating)::numeric, 1), 0) as average FROM reviews WHERE product_id = $1",
+      [productId]
+    );
+    return {
+      count: row?.count ?? 0,
+      average: Number(row?.average ?? 0)
+    };
+  },
+  async hasUserReviewed(productId, userId) {
+    const row = await queryOne(
+      "SELECT 1 FROM reviews WHERE product_id = $1 AND user_id = $2 LIMIT 1",
+      [productId, userId]
+    );
+    return !!row;
+  }
+};
+
+// src/services/reviewService.ts
+var reviewService = {
+  async getByProductId(productId) {
+    if (!productId) return [];
+    return reviewRepository.findByProductId(productId);
+  },
+  async create(data) {
+    if (!data.productId?.trim()) return { error: "Product ID is required" };
+    if (!data.rating || data.rating < 1 || data.rating > 5) return { error: "Rating must be between 1 and 5" };
+    if (data.reviewText && data.reviewText.length > 1e3) return { error: "Review text must be under 1000 characters" };
+    if (data.userId) {
+      const alreadyReviewed = await reviewRepository.hasUserReviewed(data.productId, data.userId);
+      if (alreadyReviewed) {
+        return { error: "You have already reviewed this product" };
+      }
+    }
+    const review = await reviewRepository.create(data);
+    await query("SELECT refresh_product_rating($1)", [data.productId]);
+    return { review };
+  },
+  async getAggregateRating(productId) {
+    return reviewRepository.getAggregateRating(productId);
   }
 };
 
@@ -402,6 +489,38 @@ router.get("/", async (req, res) => {
   } catch (err) {
     console.error("[ProductController] GET /products error:", err);
     res.status(500).json({ error: "Failed to fetch products" });
+  }
+});
+router.get("/:id/reviews", async (req, res) => {
+  try {
+    const reviews = await reviewService.getByProductId(req.params.id);
+    const aggregate = await reviewService.getAggregateRating(req.params.id);
+    res.json({ success: true, reviews, ...aggregate });
+  } catch (err) {
+    console.error("[ProductController] GET /reviews error:", err);
+    res.status(500).json({ error: "Failed to fetch reviews" });
+  }
+});
+router.post("/:id/reviews", requireAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const { review, error } = await reviewService.create({
+      productId: req.params.id,
+      userId: user?.uid,
+      userEmail: user?.email,
+      rating: req.body.rating,
+      height: req.body.height,
+      weight: req.body.weight,
+      bodyType: req.body.bodyType,
+      reviewText: req.body.reviewText
+    });
+    if (error) {
+      return res.status(400).json({ error });
+    }
+    res.status(201).json({ success: true, review });
+  } catch (err) {
+    console.error("[ProductController] POST /reviews error:", err);
+    res.status(500).json({ error: "Failed to submit review" });
   }
 });
 router.get("/:id", async (req, res) => {

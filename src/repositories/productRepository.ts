@@ -11,6 +11,7 @@ function rowToProduct(row: any): Product {
     brand:               row.brand,
     title:               row.title,
     category:            row.category,
+    categories:          row.categories ?? [],
     subCategory:         row.sub_category,
     productSegment:      row.product_segment ?? 'Upperwear',
     productType:         row.product_type ?? 'T-Shirt',
@@ -28,20 +29,19 @@ function rowToProduct(row: any): Product {
     outOfStock:          row.out_of_stock,
     verificationBadges:  row.verification_badges ?? [],
     merchantLinks:       row.merchant_links ?? [],
-    customReviews:       row.custom_reviews ?? [],
     reviewsCount:        row.reviews_count,
     averageRating:       Number(row.average_rating),
     measurements:        row.measurements ?? {},
     verdicts:            row.verdicts ?? [],
-    // New expanded fields
     material:            row.material,
-    careInstructions:    row.care_instructions,
-    weightGrams:         row.weight_grams,
-    countryOfOrigin:     row.country_of_origin,
     tags:                row.tags ?? [],
     discountPercent:     Number(row.discount_percent ?? 0),
     isFeatured:          row.is_featured,
-    skuCode:             row.sku_code,
+    // Tall-fit curation fields
+    tallFriendly:        row.tall_friendly ?? true,
+    heightRanges:        row.height_ranges ?? [],
+    bodyTypes:           row.body_types ?? [],
+    fitHighlights:       row.fit_highlights ?? [],
   };
 }
 
@@ -57,8 +57,9 @@ export const productRepository = {
     let idx = 1;
 
     if (filters?.category) {
-      text += ` AND LOWER(category) = LOWER($${idx++})`;
+      text += ` AND (LOWER(category) = LOWER($${idx}) OR $${idx} = ANY(SELECT LOWER(unnest(categories))))`;
       params.push(filters.category);
+      idx++;
     }
     if (filters?.brand) {
       text += ` AND LOWER(brand) = LOWER($${idx++})`;
@@ -90,13 +91,13 @@ export const productRepository = {
   async create(p: Product): Promise<Product> {
     const text = `
       INSERT INTO products (
-        id, brand, title, category, sub_category, product_segment, product_type,
+        id, brand, title, category, categories, sub_category, product_segment, product_type,
         description, fit_type, retailer, affiliate_url, price_at_retailer,
         images, occasions, seasons, colors, sizes, verified_tier, out_of_stock,
-        verification_badges, merchant_links, custom_reviews, reviews_count,
+        verification_badges, merchant_links, reviews_count,
         average_rating, measurements, verdicts,
-        material, care_instructions, weight_grams, country_of_origin,
-        tags, discount_percent, is_featured, sku_code
+        material, tags, discount_percent, is_featured,
+        tall_friendly, height_ranges, body_types, fit_highlights
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
         $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34
@@ -107,28 +108,27 @@ export const productRepository = {
       RETURNING *
     `;
     const params = [
-      p.id, p.brand, p.title, p.category, p.subCategory ?? null,
-      p.productSegment, p.productType,
+      p.id, p.brand, p.title, p.category, p.categories ?? [],
+      p.subCategory ?? null, p.productSegment, p.productType,
       p.description ?? null, p.fitType, p.retailer, p.affiliateUrl,
       p.priceAtRetailer, p.images, p.occasions, p.seasons, p.colors,
       p.sizes ?? [], p.verifiedTier, p.outOfStock ?? false,
       p.verificationBadges ?? [], JSON.stringify(p.merchantLinks ?? []),
-      JSON.stringify(p.customReviews ?? []), p.reviewsCount ?? 0,
-      p.averageRating ?? 5.0, JSON.stringify(p.measurements ?? {}),
-      JSON.stringify(p.verdicts ?? []),
-      p.material ?? null, p.careInstructions ?? null,
-      p.weightGrams ?? null, p.countryOfOrigin ?? 'India',
-      p.tags ?? [], p.discountPercent ?? 0,
-      p.isFeatured ?? false, p.skuCode ?? null,
+      p.reviewsCount ?? 0, p.averageRating ?? 0,
+      JSON.stringify(p.measurements ?? {}), JSON.stringify(p.verdicts ?? []),
+      p.material ?? null, p.tags ?? [], p.discountPercent ?? 0,
+      p.isFeatured ?? false,
+      p.tallFriendly ?? true, p.heightRanges ?? [], p.bodyTypes ?? [],
+      p.fitHighlights ?? [],
     ];
     const rows = await query(text, params);
     return rowToProduct(rows[0]);
   },
 
   async update(id: string, partial: Partial<Product>): Promise<Product | null> {
-    // Build SET clause dynamically
     const fieldMap: Record<string, string> = {
       brand: 'brand', title: 'title', category: 'category',
+      categories: 'categories',
       subCategory: 'sub_category', productSegment: 'product_segment',
       productType: 'product_type', description: 'description',
       fitType: 'fit_type', retailer: 'retailer', affiliateUrl: 'affiliate_url',
@@ -136,16 +136,16 @@ export const productRepository = {
       occasions: 'occasions', seasons: 'seasons', colors: 'colors',
       sizes: 'sizes', verifiedTier: 'verified_tier', outOfStock: 'out_of_stock',
       verificationBadges: 'verification_badges', merchantLinks: 'merchant_links',
-      customReviews: 'custom_reviews', reviewsCount: 'reviews_count',
+      reviewsCount: 'reviews_count',
       averageRating: 'average_rating', measurements: 'measurements',
       verdicts: 'verdicts', material: 'material',
-      careInstructions: 'care_instructions', weightGrams: 'weight_grams',
-      countryOfOrigin: 'country_of_origin', tags: 'tags',
-      discountPercent: 'discount_percent', isFeatured: 'is_featured',
-      skuCode: 'sku_code',
+      tags: 'tags', discountPercent: 'discount_percent',
+      isFeatured: 'is_featured',
+      tallFriendly: 'tall_friendly', heightRanges: 'height_ranges',
+      bodyTypes: 'body_types', fitHighlights: 'fit_highlights',
     };
 
-    const jsonbFields = new Set(['merchantLinks', 'customReviews', 'measurements', 'verdicts']);
+    const jsonbFields = new Set(['merchantLinks', 'measurements', 'verdicts']);
     const setClauses: string[] = [];
     const params: any[] = [];
     let idx = 1;

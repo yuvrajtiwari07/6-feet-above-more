@@ -12,7 +12,7 @@ import CompleteFits from './pages/CompleteFits';
 import SearchFilters from './pages/SearchFilters';
 import Saved from './pages/Saved';
 import Profile from './pages/Profile';
-import Admin from './pages/Admin';
+import { Admin } from './pages/Admin';
 
 import { AnimatePresence, motion } from 'motion/react';
 

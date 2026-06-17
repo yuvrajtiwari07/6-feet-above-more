@@ -3,6 +3,7 @@
 
 import { Router, Request, Response } from 'express';
 import { productService } from '../services/productService';
+import { reviewService } from '../services/reviewService';
 import { requireAuth } from '../middleware/authMiddleware';
 import { requireAdmin } from '../middleware/adminMiddleware';
 import { query } from '../lib/db';
@@ -26,6 +27,48 @@ router.get('/', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[ProductController] GET /products error:', err);
     res.status(500).json({ error: 'Failed to fetch products' });
+  }
+});
+
+// ───────────────────────────────────────────────
+//  GET /api/products/:id/reviews
+//  Public — get all reviews for a product
+// ───────────────────────────────────────────────
+router.get('/:id/reviews', async (req: Request, res: Response) => {
+  try {
+    const reviews = await reviewService.getByProductId(req.params.id);
+    const aggregate = await reviewService.getAggregateRating(req.params.id);
+    res.json({ success: true, reviews, ...aggregate });
+  } catch (err: any) {
+    console.error('[ProductController] GET /reviews error:', err);
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+// ───────────────────────────────────────────────
+//  POST /api/products/:id/reviews
+//  Authenticated — submit a review
+// ───────────────────────────────────────────────
+router.post('/:id/reviews', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const { review, error } = await reviewService.create({
+      productId: req.params.id,
+      userId:    user?.uid,
+      userEmail: user?.email,
+      rating:    req.body.rating,
+      height:    req.body.height,
+      weight:    req.body.weight,
+      bodyType:  req.body.bodyType,
+      reviewText: req.body.reviewText,
+    });
+    if (error) {
+      return res.status(400).json({ error });
+    }
+    res.status(201).json({ success: true, review });
+  } catch (err: any) {
+    console.error('[ProductController] POST /reviews error:', err);
+    res.status(500).json({ error: 'Failed to submit review' });
   }
 });
 

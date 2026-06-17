@@ -23,19 +23,20 @@ export interface Product {
   id: string;
   brand: string;
   title: string;
-  category: string;
-  subCategory?: string;      // e.g. T-Shirt, Shirt, Kurta (kept for backward compatibility)
-  productSegment: string;    // e.g. Upperwear, Bottomwear, Footwear
-  productType: string;       // e.g. T-Shirt, Shirt, Sneakers
+  category: string;              // primary category (backward compat)
+  categories?: string[];          // multi-select categories
+  subCategory?: string;
+  productSegment: string;         // Upperwear, Bottomwear, Footwear, etc.
+  productType: string;            // T-Shirt, Jeans, Sneakers, etc.
   images: string[];
   occasions: string[];
   seasons: string[];
   colors: string[];
-  fitType: string;           // e.g. Regular, Slim, Oversized
-  retailer: string;          // Zara, H&M, Ajio, Myntra, etc.
+  fitType: string;
+  retailer: string;
   affiliateUrl: string;
   priceAtRetailer: number;
-  measurements: Record<string, MeasurementValue>;
+  measurements?: Record<string, MeasurementValue | number>;
   verdicts: FitVerdict[];
   verifiedTier: 'verified' | 'friendly' | 'community';
 
@@ -46,24 +47,36 @@ export interface Product {
   merchantLinks?: MerchantOutlet[];
   reviewsCount?: number;
   averageRating?: number;
-  customReviews?: { author: string; rating: number; text: string; date: string }[];
   verificationBadges?: string[];
-
-  // ── NEW expanded product fields ──────────────────────────
   material?: string;
-  careInstructions?: string;
-  weightGrams?: number;
-  countryOfOrigin?: string;
   tags?: string[];
   discountPercent?: number;
   isFeatured?: boolean;
-  skuCode?: string;
+
+  // Tall-fit curation fields
+  tallFriendly?: boolean;
+  heightRanges?: string[];
+  bodyTypes?: string[];
+  fitHighlights?: string[];
+}
+
+export interface UserReview {
+  id: string;
+  productId: string;
+  userId?: string;
+  userEmail?: string;
+  rating: number;
+  height?: string;
+  weight?: string;
+  bodyType?: string;
+  reviewText?: string;
+  createdAt: string;
 }
 
 export interface CompleteFit {
   id: string;
   title: string;
-  theme: string; // e.g. 'streetwear', 'ethnic'
+  theme: string;
   items: {
     role: 'shirt' | 'pant' | 'shoes' | 'watch' | 'accessory';
     productId: string;
@@ -72,7 +85,7 @@ export interface CompleteFit {
 }
 
 export interface UserPreferences {
-  height: string;    // e.g. '6\'2"', '6\'4"'
+  height: string;
   bodyType: 'Lean' | 'Athletic' | 'Broad' | 'Heavy';
   preferredBrands: string[];
   occasions: string[];

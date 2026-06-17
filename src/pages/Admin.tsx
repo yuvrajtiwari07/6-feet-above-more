@@ -7,7 +7,7 @@ import {
   Plus, Edit2, Check, AlertTriangle, ShieldCheck, Trash2, 
   Eye, Archive, RotateCcw, Link2, MessageSquare, BadgeAlert, 
   Sparkles, CheckCircle, Ruler, CreditCard, ChevronRight, Search, Star,
-  Download, Loader2, Globe
+  Download, Loader2, Globe, X, Upload, ArrowUp, ArrowDown
 } from 'lucide-react';
 
 const SEGMENT_TYPES: Record<string, string[]> = {
@@ -29,6 +29,40 @@ const getSizeOptions = (segment: string): string[] => {
   return ['M', 'L', 'XL', 'XXL', '3XL', '4XL'];
 };
 
+const BROAD_CATEGORIES = [
+  'Casual Wear', 'Formal Wear', 'Athleisure', 'Streetwear', 
+  'Business Casual', 'Ethnic Wear', 'Winter Wear', 'Summer Wear', 
+  'Travel Wear', 'Gym Wear', 'Outdoor Wear'
+];
+
+const OCCASIONS = [
+  'Daily Wear', 'Office', 'Gym', 'Travel', 'Date Night', 'Party', 
+  'Wedding', 'Festive', 'Outdoor', 'Business Casual', 'Work From Home', 'Vacation'
+];
+
+const SEASONS = ['Summer', 'Winter', 'Monsoon', 'Spring', 'Autumn', 'All Season'];
+
+const COLORS = [
+  { name: 'Black', hex: '#000000' },
+  { name: 'White', hex: '#FFFFFF', border: true },
+  { name: 'Grey', hex: '#808080' },
+  { name: 'Navy', hex: '#000080' },
+  { name: 'Blue', hex: '#0000FF' },
+  { name: 'Brown', hex: '#A52A2A' },
+  { name: 'Olive', hex: '#808000' },
+  { name: 'Beige', hex: '#F5F5DC', border: true },
+  { name: 'Khaki', hex: '#F0E68C' },
+  { name: 'Green', hex: '#008000' },
+  { name: 'Red', hex: '#FF0000' }
+];
+
+const HEIGHT_RANGES = ["6'0–6'2", "6'2–6'4", "6'4–6'6", "6'6+"];
+const BODY_TYPES = ['Slim', 'Athletic', 'Broad', 'Heavy Build'];
+const FIT_HIGHLIGHTS = [
+  'Long Sleeves', 'Long Inseam', 'Broad Shoulder Friendly', 
+  'Extended Torso Fit', 'Extra Leg Room', 'Long Rise'
+];
+
 export const Admin: React.FC = () => {
   const { 
     products, 
@@ -43,15 +77,15 @@ export const Admin: React.FC = () => {
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
-  const [stockFilter, setStockFilter] = useState('All'); // 'All', 'In Stock', 'Out of Stock'
+  const [stockFilter, setStockFilter] = useState('All');
 
-  // Edited/Added Product form states
+  // Form states
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
 
-  // ── Import from URL states ───────────────────────────────────────────────
+  // Import from URL states
   const [importUrl, setImportUrl] = useState('');
   const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [importMessage, setImportMessage] = useState('');
@@ -61,8 +95,6 @@ export const Admin: React.FC = () => {
   const [id, setId] = useState('');
   const [brand, setBrand] = useState('');
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('Ethnic Wear');
-  const [subCategory, setSubCategory] = useState('');
   const [description, setDescription] = useState('');
   const [priceAtRetailer, setPriceAtRetailer] = useState<number>(1999);
   const [retailer, setRetailer] = useState('');
@@ -70,210 +102,120 @@ export const Admin: React.FC = () => {
   const [fitType, setFitType] = useState('Regular Tall');
   const [verifiedTier, setVerifiedTier] = useState<'verified' | 'friendly' | 'community'>('verified');
   const [outOfStock, setOutOfStock] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [discountPercent, setDiscountPercent] = useState<string>('0');
 
-  // Category-Aware Core States
+  // Classification & Taxonomy
   const [productSegment, setProductSegment] = useState('Upperwear');
   const [productType, setProductType] = useState('T-Shirt');
-  const [sizes, setSizes] = useState<string[]>(['M', 'L', 'XL', 'XXL', '3XL']);
-  const [verificationBadges, setVerificationBadges] = useState<string[]>(['Extra Sleeve Length', 'Extended Torso Fit']);
-
-  // Array/Complex structures (built as comma-separated or dynamic fields)
-  const [imagesInput, setImagesInput] = useState('');
-  const [occasionsInput, setOccasionsInput] = useState('Casual, Festive');
-  const [seasonsInput, setSeasonsInput] = useState('Summer, Winter');
-  const [colorsInput, setColorsInput] = useState('Navy, Blue');
-  const [tagsInput, setTagsInput] = useState('tall, extra-length');
-
-  // ── NEW expanded fields ───────────────────────────────────────────────
+  const [categories, setCategories] = useState<string[]>(['Casual Wear']);
+  const [occasions, setOccasions] = useState<string[]>(['Daily Wear']);
+  const [seasons, setSeasons] = useState<string[]>(['All Season']);
+  const [colors, setColors] = useState<string[]>(['Black']);
+  const [tags, setTags] = useState<string[]>(['tall-friendly']);
+  const [newTagInput, setNewTagInput] = useState('');
   const [material, setMaterial] = useState('');
-  const [careInstructions, setCareInstructions] = useState('');
-  const [weightGrams, setWeightGrams] = useState<string>('');
-  const [countryOfOrigin, setCountryOfOrigin] = useState('India');
-  const [discountPercent, setDiscountPercent] = useState<string>('0');
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [skuCode, setSkuCode] = useState('');
 
-  // Category-Aware Measurements with Unit Calibration
-  // Upperwear / outerwear
-  const [totalLengthVal, setTotalLengthVal] = useState('');
-  const [totalLengthUnit, setTotalLengthUnit] = useState<'cm' | 'inches'>('cm');
-  const [sleeveLengthVal, setSleeveLengthVal] = useState('');
-  const [sleeveLengthUnit, setSleeveLengthUnit] = useState<'cm' | 'inches'>('cm');
-  const [shoulderWidthVal, setShoulderWidthVal] = useState('');
-  const [shoulderWidthUnit, setShoulderWidthUnit] = useState<'cm' | 'inches'>('cm');
-  const [chestWidthVal, setChestWidthVal] = useState('');
-  const [chestWidthUnit, setChestWidthUnit] = useState<'cm' | 'inches'>('cm');
-  const [hemWidthVal, setHemWidthVal] = useState('');
-  const [hemWidthUnit, setHemWidthUnit] = useState<'cm' | 'inches'>('cm');
+  // Image Management
+  const [imageSource, setImageSource] = useState<'imported' | 'upload'>('imported');
+  const [images, setImages] = useState<string[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
-  // Bottomwear
-  const [outseamLengthVal, setOutseamLengthVal] = useState('');
-  const [outseamLengthUnit, setOutseamLengthUnit] = useState<'cm' | 'inches'>('cm');
-  const [inseamLengthVal, setInseamLengthVal] = useState('');
-  const [inseamLengthUnit, setInseamLengthUnit] = useState<'cm' | 'inches'>('cm');
-  const [riseVal, setRiseVal] = useState('');
-  const [riseUnit, setRiseUnit] = useState<'cm' | 'inches'>('cm');
-  const [thighWidthVal, setThighWidthVal] = useState('');
-  const [thighWidthUnit, setThighWidthUnit] = useState<'cm' | 'inches'>('cm');
-  const [legOpeningVal, setLegOpeningVal] = useState('');
-  const [legOpeningUnit, setLegOpeningUnit] = useState<'cm' | 'inches'>('cm');
-  const [waistWidthVal, setWaistWidthVal] = useState('');
-  const [waistWidthUnit, setWaistWidthUnit] = useState<'cm' | 'inches'>('cm');
+  // Tall Fit Curation (Hero Section)
+  const [tallFriendly, setTallFriendly] = useState(true);
+  const [selectedHeightRanges, setSelectedHeightRanges] = useState<string[]>(["6'2–6'4"]);
+  const [selectedBodyTypes, setSelectedBodyTypes] = useState<string[]>(['Athletic']);
+  const [selectedFitHighlights, setSelectedFitHighlights] = useState<string[]>(['Extended Torso Fit']);
+  const [sizes, setSizes] = useState<string[]>(['L', 'XL', 'XXL']);
 
-  // Footwear
-  const [soleLengthVal, setSoleLengthVal] = useState('');
-  const [soleLengthUnit, setSoleLengthUnit] = useState<'cm' | 'inches'>('cm');
-  const [footbedLengthVal, setFootbedLengthVal] = useState('');
-  const [footbedLengthUnit, setFootbedLengthUnit] = useState<'cm' | 'inches'>('cm');
-  const [heelHeightVal, setHeelHeightVal] = useState('');
-  const [heelHeightUnit, setHeelHeightUnit] = useState<'cm' | 'inches'>('cm');
-  const [shaftHeightVal, setShaftHeightVal] = useState('');
-  const [shaftHeightUnit, setShaftHeightUnit] = useState<'cm' | 'inches'>('cm');
-
-  // Outerwear additions
-  const [layeringRoomVal, setLayeringRoomVal] = useState('');
-  const [layeringRoomUnit, setLayeringRoomUnit] = useState<'cm' | 'inches'>('cm');
-
-  // Sizing verdicts for the 4 bands
-  const [verdict0_1_Status, setVerdict0_1_Status] = useState<VerdictStatus>('verified');
-  const [verdict0_1_Note, setVerdict0_1_Note] = useState('Hits exactly right at waistboro.');
-  
-  const [verdict2_3_Status, setVerdict2_3_Status] = useState<VerdictStatus>('verified');
+  // Verdicts (kept for compatibility, generated based on selection or simple inputs)
+  const [verdict0_1_Note, setVerdict0_1_Note] = useState('Hits exactly right at waistline.');
   const [verdict2_3_Note, setVerdict2_3_Note] = useState('Tested and perfect for 6\'3" limbs.');
-
-  const [verdict4_5_Status, setVerdict4_5_Status] = useState<VerdictStatus>('friendly');
   const [verdict4_5_Note, setVerdict4_5_Note] = useState('Adequate tuck-in height.');
-
-  const [verdict6_plus_Status, setVerdict6_plus_Status] = useState<VerdictStatus>('community');
   const [verdict6_plus_Note, setVerdict6_plus_Note] = useState('Dignified but may terminate slightly high.');
 
-  // Affiliate Site Outlets List (Can add multiple links: e.g. Amazon, Flipkart, etc.)
-  const [merchantLinks, setMerchantLinks] = useState<{ store: string; url: string; price: number }[]>([
-    { store: 'Amazon', url: '', price: 1999 },
-    { store: 'Flipkart', url: '', price: 1999 }
-  ]);
+  // Affiliate Outlets
+  const [merchantLinks, setMerchantLinks] = useState<{ store: string; url: string; price: number }[]>([]);
 
-  // Custom User Reviews List
-  const [customReviews, setCustomReviews] = useState<{ author: string; rating: number; text: string; date: string }[]>([
-    { author: 'Pranav T.', rating: 5, text: 'Amazing drop. Fits my shoulders perfectly.', date: 'Yesterday' }
-  ]);
-  const [newReviewAuthor, setNewReviewAuthor] = useState('');
-  const [newReviewRating, setNewReviewRating] = useState<number>(5);
-  const [newReviewText, setNewReviewText] = useState('');
-
-  // Handle adding outlet card
-  const handleAddOutletCard = () => {
-    setMerchantLinks([...merchantLinks, { store: '', url: '', price: 0 }]);
+  // Toggle helpers for multi-select chips/checkboxes
+  const toggleSelection = (item: string, list: string[], setList: (val: string[]) => void) => {
+    if (list.includes(item)) {
+      setList(list.filter(i => i !== item));
+    } else {
+      setList([...list, item]);
+    }
   };
 
-  const handleUpdateOutlet = (index: number, field: 'store' | 'url' | 'price', val: any) => {
-    const updated = [...merchantLinks];
-    updated[index] = { ...updated[index], [field]: val };
-    setMerchantLinks(updated);
+  // Image management helpers
+  const handleAddImageUrl = () => {
+    if (imageUrlInput.trim() && !images.includes(imageUrlInput.trim())) {
+      setImages([...images, imageUrlInput.trim()]);
+      setImageUrlInput('');
+    }
   };
 
-  // Handle removing merchant link
-  const handleRemoveMerchantLink = (idx: number) => {
-    setMerchantLinks(merchantLinks.filter((_, i) => i !== idx));
+  const handleRemoveImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
   };
 
-  // Add review to list
-  const handleAddReview = () => {
-    if (!newReviewAuthor || !newReviewText) return;
-    setCustomReviews([...customReviews, {
-      author: newReviewAuthor,
-      rating: newReviewRating,
-      text: newReviewText,
-      date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-    }]);
-    setNewReviewAuthor('');
-    setNewReviewText('');
+  const handleMarkPrimaryImage = (index: number) => {
+    if (index === 0) return;
+    const newImages = [...images];
+    const [selected] = newImages.splice(index, 1);
+    newImages.unshift(selected);
+    setImages(newImages);
   };
 
-  // Remove review from list
-  const handleRemoveReview = (idx: number) => {
-    setCustomReviews(customReviews.filter((_, i) => i !== idx));
+  const handleMoveImage = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === images.length - 1) return;
+    const nextIndex = direction === 'up' ? index - 1 : index + 1;
+    const newImages = [...images];
+    const temp = newImages[index];
+    newImages[index] = newImages[nextIndex];
+    newImages[nextIndex] = temp;
+    setImages(newImages);
   };
 
-  // Helper to get value from a structured or old measurement field
-  const getMeasVal = (field: any) => {
-    if (field == null) return '';
-    if (typeof field === 'object' && field.value != null) return field.value.toString();
-    return field.toString();
+  const handleDeviceUploadSimulated = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const localUrl = URL.createObjectURL(file);
+        // In real app, upload to Supabase Storage, here we use ObjectURL for preview
+        setImages(prev => [...prev, localUrl]);
+      }
+    }
   };
 
-  // Helper to get unit from a structured or old measurement field
-  const getMeasUnit = (field: any): 'cm' | 'inches' => {
-    if (field != null && typeof field === 'object' && field.unit != null) return field.unit;
-    return 'cm';
+  // Tag helpers
+  const handleAddTag = () => {
+    const cleaned = newTagInput.trim().toLowerCase();
+    if (cleaned && !tags.includes(cleaned)) {
+      setTags([...tags, cleaned]);
+      setNewTagInput('');
+    }
   };
 
-  // Helper to render measurement numeric field with unit selector dropdown
-  const renderMeasurementInput = (
-    label: string,
-    val: string,
-    setVal: (v: string) => void,
-    unit: 'cm' | 'inches',
-    setUnit: (u: 'cm' | 'inches') => void
-  ) => {
-    return (
-      <div className="space-y-1">
-        <label className="text-[9px] uppercase tracking-widest text-[#112133]/55 block font-bold">
-          {label}
-        </label>
-        <div className="flex rounded-lg border border-black/15 overflow-hidden focus-within:ring-2 focus-within:ring-[#7D2AE8] bg-white">
-          <input
-            type="number"
-            step="any"
-            placeholder="e.g. 82"
-            value={val}
-            onChange={(e) => setVal(e.target.value)}
-            className="flex-1 px-2.5 py-2 text-xs font-bold border-none outline-none focus:ring-0 min-w-0"
-          />
-          <select
-            value={unit}
-            onChange={(e) => setUnit(e.target.value as 'cm' | 'inches')}
-            className="px-1.5 py-2 text-[10px] font-black uppercase tracking-wider bg-black/5 text-[#112133] border-l border-black/10 outline-none cursor-pointer"
-          >
-            <option value="cm">cm</option>
-            <option value="inches">in</option>
-          </select>
-        </div>
-      </div>
-    );
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag));
   };
 
-  // ── Apply imported product data to all form state setters ──────────────
+  // Apply imported data
   const applyImportedProduct = useCallback((data: ImportedProduct) => {
     if (data.brand) setBrand(data.brand);
     if (data.title) setTitle(data.title);
-    if (data.category) setCategory(data.category);
-    if (data.subCategory) setSubCategory(data.subCategory);
     if (data.description) setDescription(data.description);
     if (data.price) setPriceAtRetailer(data.price);
     if (data.discountPercent !== undefined) setDiscountPercent(String(data.discountPercent));
     if (data.retailer) setRetailer(data.retailer);
     if (data.retailerUrl) setAffiliateUrl(data.retailerUrl);
-    if (data.images && data.images.length > 0) setImagesInput(data.images.join(', '));
-    if (data.colors && data.colors.length > 0) setColorsInput(data.colors.join(', '));
-    if (data.occasions && data.occasions.length > 0) setOccasionsInput(data.occasions.join(', '));
-    if (data.seasons && data.seasons.length > 0) setSeasonsInput(data.seasons.join(', '));
-    if (data.tags && data.tags.length > 0) setTagsInput(data.tags.join(', '));
+    if (data.images && data.images.length > 0) setImages(data.images);
+    if (data.colors && data.colors.length > 0) setColors(data.colors);
     if (data.material) setMaterial(data.material);
-    if (data.careInstructions) setCareInstructions(data.careInstructions);
-    if (data.averageRating) {
-      // Pre-populate a single community review with the aggregated rating
-      setCustomReviews([
-        {
-          author: `${data.retailer ?? 'Retailer'} Avg`,
-          rating: Math.round(data.averageRating),
-          text: `Aggregated rating from ${data.retailer ?? 'retailer'} (${data.reviewsCount ?? 0} reviews).`,
-          date: new Date().toLocaleDateString('en-IN'),
-        }
-      ]);
-    }
 
-    // Auto-detect Segment and Type based on Title, Category, or SubCategory
+    // AI Classification Simulation
     const combinedText = `${data.title || ''} ${data.category || ''} ${data.subCategory || ''}`.toLowerCase();
     let detectedSegment = 'Upperwear';
     let detectedType = 'T-Shirt';
@@ -319,32 +261,52 @@ export const Admin: React.FC = () => {
     setProductSegment(detectedSegment);
     setProductType(detectedType);
 
+    // Categories array AI suggestion
+    const suggestedCats: string[] = [];
+    if (detectedSegment === 'Ethnic Wear') suggestedCats.push('Ethnic Wear');
+    if (detectedSegment === 'Footwear') suggestedCats.push('Casual Wear');
+    if (combinedText.match(/formal|office|business/)) suggestedCats.push('Formal Wear', 'Business Casual');
+    if (combinedText.match(/gym|active|sport|run/)) suggestedCats.push('Athleisure', 'Gym Wear');
+    if (combinedText.match(/street|hype|cargo/)) suggestedCats.push('Streetwear', 'Casual Wear');
+    if (suggestedCats.length === 0) suggestedCats.push('Casual Wear');
+    setCategories(suggestedCats);
+
+    // Occasions AI suggestion
+    const suggestedOccs: string[] = ['Daily Wear'];
+    if (combinedText.match(/office|work|business/)) suggestedOccs.push('Office', 'Business Casual');
+    if (combinedText.match(/party|club/)) suggestedOccs.push('Party');
+    if (combinedText.match(/wedding|festive|marry/)) suggestedOccs.push('Wedding', 'Festive');
+    if (combinedText.match(/travel|trip|vacation/)) suggestedOccs.push('Travel', 'Vacation');
+    setOccasions(suggestedOccs);
+
+    // Seasons suggestion
+    setSeasons(combinedText.match(/winter|jacket|wool|hood/ ) ? ['Winter'] : ['All Season']);
+
+    // Height & Body suggestions for tall-fit curation
+    if (detectedSegment === 'Upperwear' || detectedSegment === 'Outerwear') {
+      setSelectedFitHighlights(['Long Sleeves', 'Extended Torso Fit']);
+    } else if (detectedSegment === 'Bottomwear') {
+      setSelectedFitHighlights(['Long Inseam', 'Long Rise']);
+    } else {
+      setSelectedFitHighlights(['Extra Leg Room']);
+    }
+
+    // Default height ranges
+    setSelectedHeightRanges(["6'2–6'4", "6'4–6'6"]);
+    setSelectedBodyTypes(['Slim', 'Athletic']);
+
     // Populate sizes
     if (data.sizes && data.sizes.length > 0) {
       setSizes(data.sizes.map(s => s.trim()));
     } else {
-      // Default fallback size sets matching segment
-      if (detectedSegment === 'Footwear') {
-        setSizes(['UK 9', 'UK 10', 'UK 11', 'UK 12', 'UK 13']);
-      } else if (detectedSegment === 'Bottomwear') {
-        setSizes(['32', '34', '36', '38']);
-      } else {
-        setSizes(['M', 'L', 'XL', 'XXL', '3XL']);
-      }
+      setSizes(getSizeOptions(detectedSegment).slice(1, 5));
     }
 
-    // Populate measurements safely
-    if (data.measurements && Object.keys(data.measurements).length > 0) {
-      const m = data.measurements;
-      if (m.totalLength) { setTotalLengthVal(String(m.totalLength)); setTotalLengthUnit('cm'); }
-      if (m.sleeveLength) { setSleeveLengthVal(String(m.sleeveLength)); setSleeveLengthUnit('cm'); }
-      if (m.shoulder) { setShoulderWidthVal(String(m.shoulder)); setShoulderWidthUnit('cm'); }
-      if (m.chest) { setChestWidthVal(String(m.chest)); setChestWidthUnit('cm'); }
-      if (m.inseam) { setInseamLengthVal(String(m.inseam)); setInseamLengthUnit('cm'); }
-      if (m.rise) { setRiseVal(String(m.rise)); setRiseUnit('cm'); }
-    }
+    // Tags list
+    const suggestedTags = ['tall-friendly', detectedSegment.toLowerCase(), detectedType.toLowerCase()];
+    if (data.brand) suggestedTags.push(data.brand.toLowerCase());
+    setTags(suggestedTags);
 
-    // Auto-generate a SKU-friendly ID from title if not already set
     if (data.title && !id.startsWith('prod-')) {
       const slugId = data.title
         .toLowerCase()
@@ -355,7 +317,6 @@ export const Admin: React.FC = () => {
     }
   }, [id]);
 
-  // ── Handle Import Button Click ───────────────────────────────────────────
   const handleImportFromUrl = async () => {
     if (!importUrl.trim()) return;
     setImportStatus('loading');
@@ -374,7 +335,6 @@ export const Admin: React.FC = () => {
       });
 
       const data = await res.json();
-
       if (!res.ok || !data.success) {
         throw new Error(data.error ?? 'Import failed');
       }
@@ -382,9 +342,8 @@ export const Admin: React.FC = () => {
       setDetectedRetailer(data.retailerName ?? '');
       applyImportedProduct(data.product);
       setImportStatus('success');
-      setImportMessage('Product imported successfully. Review all fields before saving.');
+      setImportMessage('Imported successfully! AI auto-categorization complete. Review tall curation settings.');
 
-      // Clear status after 6 seconds
       setTimeout(() => {
         setImportStatus('idle');
         setImportMessage('');
@@ -392,14 +351,9 @@ export const Admin: React.FC = () => {
     } catch (err: any) {
       setImportStatus('error');
       setImportMessage(err.message ?? 'Unable to import product data. Try another URL.');
-      setTimeout(() => {
-        setImportStatus('idle');
-        setImportMessage('');
-      }, 6000);
     }
   };
 
-  // Trigger form opening for adding a brand new product
   const handleOpenAddForm = () => {
     setEditMode(false);
     setShowForm(true);
@@ -410,8 +364,6 @@ export const Admin: React.FC = () => {
     setId('prod-' + Date.now().toString().slice(-4));
     setBrand('');
     setTitle('');
-    setCategory('Ethnic Wear');
-    setSubCategory('');
     setDescription('');
     setPriceAtRetailer(1999);
     setRetailer('Ajio');
@@ -419,78 +371,29 @@ export const Admin: React.FC = () => {
     setFitType('Regular Tall');
     setVerifiedTier('verified');
     setOutOfStock(false);
-    
+    setIsFeatured(false);
+    setDiscountPercent('0');
     setProductSegment('Upperwear');
     setProductType('T-Shirt');
-    setSizes(['M', 'L', 'XL', 'XXL', '3XL']);
-    setVerificationBadges(['Extra Sleeve Length', 'Extended Torso Fit']);
-
-    setImagesInput('https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&auto=format&fit=crop');
-    setOccasionsInput('Casual, Office, Festive');
-    setSeasonsInput('Summer, Winter');
-    setColorsInput('Blue, Charcoal');
-    setTagsInput('tall, extra-length');
-
-    // Reset all measurements
-    setTotalLengthVal('82');
-    setTotalLengthUnit('cm');
-    setSleeveLengthVal('71');
-    setSleeveLengthUnit('cm');
-    setShoulderWidthVal('51');
-    setShoulderWidthUnit('cm');
-    setChestWidthVal('114');
-    setChestWidthUnit('cm');
-    setHemWidthVal('');
-    setHemWidthUnit('cm');
-
-    setOutseamLengthVal('');
-    setOutseamLengthUnit('cm');
-    setInseamLengthVal('');
-    setInseamLengthUnit('cm');
-    setRiseVal('');
-    setRiseUnit('cm');
-    setThighWidthVal('');
-    setThighWidthUnit('cm');
-    setLegOpeningVal('');
-    setLegOpeningUnit('cm');
-    setWaistWidthVal('');
-    setWaistWidthUnit('cm');
-
-    setSoleLengthVal('');
-    setSoleLengthUnit('cm');
-    setFootbedLengthVal('');
-    setFootbedLengthUnit('cm');
-    setHeelHeightVal('');
-    setHeelHeightUnit('cm');
-    setShaftHeightVal('');
-    setShaftHeightUnit('cm');
-
-    setLayeringRoomVal('');
-    setLayeringRoomUnit('cm');
-
-    setVerdict0_1_Status('verified');
-    setVerdict0_1_Note('Hits elegantly below the hip bone.');
-    setVerdict2_3_Status('verified');
-    setVerdict2_3_Note('Sleeves stay locked down during full motion.');
-    setVerdict4_5_Status('friendly');
-    setVerdict4_5_Note('Generous shoulders accommodate high reach.');
-    setVerdict6_plus_Status('community');
-    setVerdict6_plus_Note('Tail ends might look a tad tailored but fits decently.');
-
-    // New expanded defaults
+    setCategories(['Casual Wear']);
+    setOccasions(['Daily Wear']);
+    setSeasons(['All Season']);
+    setColors(['Black']);
+    setTags(['tall-friendly']);
     setMaterial('');
-    setCareInstructions('');
-    setWeightGrams('');
-    setCountryOfOrigin('India');
-    setDiscountPercent('0');
-    setIsFeatured(false);
-    setSkuCode('');
-
+    setImages([]);
+    setTallFriendly(true);
+    setSelectedHeightRanges(["6'2–6'4"]);
+    setSelectedBodyTypes(['Athletic']);
+    setSelectedFitHighlights(['Extended Torso Fit']);
+    setSizes(['L', 'XL', 'XXL']);
+    setVerdict0_1_Note('Hits exactly right at waistline.');
+    setVerdict2_3_Note('Tested and perfect for 6\'3" limbs.');
+    setVerdict4_5_Note('Adequate tuck-in height.');
+    setVerdict6_plus_Note('Dignified but may terminate slightly high.');
     setMerchantLinks([]);
-    setCustomReviews([]);
   };
 
-  // Trigger form opening for editing existing product
   const handleOpenEditForm = (p: Product) => {
     setEditMode(true);
     setShowForm(true);
@@ -500,8 +403,6 @@ export const Admin: React.FC = () => {
     setId(p.id);
     setBrand(p.brand);
     setTitle(p.title);
-    setCategory(p.category);
-    setSubCategory(p.subCategory || '');
     setDescription(p.description || '');
     setPriceAtRetailer(p.priceAtRetailer);
     setRetailer(p.retailer);
@@ -509,179 +410,60 @@ export const Admin: React.FC = () => {
     setFitType(p.fitType);
     setVerifiedTier(p.verifiedTier);
     setOutOfStock(!!p.outOfStock);
+    setIsFeatured(!!p.isFeatured);
+    setDiscountPercent(p.discountPercent?.toString() || '0');
+    setProductSegment(p.productSegment || 'Upperwear');
+    setProductType(p.productType || 'T-Shirt');
     
-    // Segment and type mapping
-    const seg = p.productSegment || 'Upperwear';
-    const typ = p.productType || 'T-Shirt';
-    setProductSegment(seg);
-    setProductType(typ);
+    // Taxonomy values arrays
+    setCategories(p.categories || [p.category]);
+    setOccasions(p.occasions || []);
+    setSeasons(p.seasons || []);
+    setColors(p.colors || []);
+    setTags(p.tags || []);
+    setMaterial(p.material || '');
+    setImages(p.images || []);
 
-    // Safe sizes parser
-    let loadedSizes: string[] = [];
-    if (p.sizes) {
-      if (p.sizes.length === 1 && p.sizes[0].includes(',')) {
-        loadedSizes = p.sizes[0].split(',').map(s => s.trim()).filter(Boolean);
-      } else {
-        loadedSizes = p.sizes;
-      }
-    }
-    setSizes(loadedSizes.length > 0 ? loadedSizes : ['M', 'L', 'XL', 'XXL', '3XL']);
+    // Curation tall fields
+    setTallFriendly(p.tallFriendly !== false);
+    setSelectedHeightRanges(p.heightRanges || ["6'2–6'4"]);
+    setSelectedBodyTypes(p.bodyTypes || ['Athletic']);
+    setSelectedFitHighlights(p.fitHighlights || []);
+    setSizes(p.sizes || []);
 
-    // Safe badges parser
-    let loadedBadges: string[] = [];
-    if (p.verificationBadges) {
-      if (p.verificationBadges.length === 1 && p.verificationBadges[0].includes(',')) {
-        loadedBadges = p.verificationBadges[0].split(',').map(s => s.trim()).filter(Boolean);
-      } else {
-        loadedBadges = p.verificationBadges;
-      }
-    }
-    setVerificationBadges(loadedBadges.length > 0 ? loadedBadges : ['Extra Sleeve Length', 'Extended Torso Fit']);
-
-    setImagesInput(p.images.join(', '));
-    setOccasionsInput(p.occasions.join(', '));
-    setSeasonsInput(p.seasons.join(', '));
-    setColorsInput(p.colors.join(', '));
-    setTagsInput((p as any).tags ? (p as any).tags.join(', ') : '');
-
-    // New expanded fields
-    setMaterial((p as any).material || '');
-    setCareInstructions((p as any).careInstructions || '');
-    setWeightGrams((p as any).weightGrams?.toString() || '');
-    setCountryOfOrigin((p as any).countryOfOrigin || 'India');
-    setDiscountPercent((p as any).discountPercent?.toString() || '0');
-    setIsFeatured(!!(p as any).isFeatured);
-    setSkuCode((p as any).skuCode || '');
-
-    // Measurements mapping
-    const m = p.measurements || {};
-    setTotalLengthVal(getMeasVal(m.totalLength));
-    setTotalLengthUnit(getMeasUnit(m.totalLength));
-    setSleeveLengthVal(getMeasVal(m.sleeveLength));
-    setSleeveLengthUnit(getMeasUnit(m.sleeveLength));
-    setShoulderWidthVal(getMeasVal(m.shoulderWidth || m.shoulder));
-    setShoulderWidthUnit(getMeasUnit(m.shoulderWidth || m.shoulder));
-    setChestWidthVal(getMeasVal(m.chestWidth || m.chest));
-    setChestWidthUnit(getMeasUnit(m.chestWidth || m.chest));
-    setHemWidthVal(getMeasVal(m.hemWidth));
-    setHemWidthUnit(getMeasUnit(m.hemWidth));
-
-    setOutseamLengthVal(getMeasVal(m.outseamLength));
-    setOutseamLengthUnit(getMeasUnit(m.outseamLength));
-    setInseamLengthVal(getMeasVal(m.inseamLength || m.inseam));
-    setInseamLengthUnit(getMeasUnit(m.inseamLength || m.inseam));
-    setRiseVal(getMeasVal(m.rise));
-    setRiseUnit(getMeasUnit(m.rise));
-    setThighWidthVal(getMeasVal(m.thighWidth));
-    setThighWidthUnit(getMeasUnit(m.thighWidth));
-    setLegOpeningVal(getMeasVal(m.legOpening));
-    setLegOpeningUnit(getMeasUnit(m.legOpening));
-    setWaistWidthVal(getMeasVal(m.waistWidth));
-    setWaistWidthUnit(getMeasUnit(m.waistWidth));
-
-    setSoleLengthVal(getMeasVal(m.soleLength));
-    setSoleLengthUnit(getMeasUnit(m.soleLength));
-    setFootbedLengthVal(getMeasVal(m.footbedLength));
-    setFootbedLengthUnit(getMeasUnit(m.footbedLength));
-    setHeelHeightVal(getMeasVal(m.heelHeight));
-    setHeelHeightUnit(getMeasUnit(m.heelHeight));
-    setShaftHeightVal(getMeasVal(m.shaftHeight));
-    setShaftHeightUnit(getMeasUnit(m.shaftHeight));
-
-    setLayeringRoomVal(getMeasVal(m.layeringRoom));
-    setLayeringRoomUnit(getMeasUnit(m.layeringRoom));
-
-    // Verdicts mapping
+    // Verdict notes load
     const v0_1 = p.verdicts.find(v => v.band === '6_0_6_1');
-    if (v0_1) {
-      setVerdict0_1_Status(v0_1.status);
-      setVerdict0_1_Note(v0_1.note || '');
-    }
+    if (v0_1) setVerdict0_1_Note(v0_1.note || '');
     const v2_3 = p.verdicts.find(v => v.band === '6_2_6_3');
-    if (v2_3) {
-      setVerdict2_3_Status(v2_3.status);
-      setVerdict2_3_Note(v2_3.note || '');
-    }
+    if (v2_3) setVerdict2_3_Note(v2_3.note || '');
     const v4_5 = p.verdicts.find(v => v.band === '6_4_6_5');
-    if (v4_5) {
-      setVerdict4_5_Status(v4_5.status);
-      setVerdict4_5_Note(v4_5.note || '');
-    }
+    if (v4_5) setVerdict4_5_Note(v4_5.note || '');
     const v6_un = p.verdicts.find(v => v.band === '6_6_plus');
-    if (v6_un) {
-      setVerdict6_plus_Status(v6_un.status);
-      setVerdict6_plus_Note(v6_un.note || '');
-    }
+    if (v6_un) setVerdict6_plus_Note(v6_un.note || '');
 
-    // Normalize merchantLinks
-    const normalizedLinks = (p.merchantLinks || []).map(ml => ({
-      store: ml.store || (ml as any).retailer || '',
-      url: ml.url || '',
-      price: ml.price || 0
-    }));
-    setMerchantLinks(normalizedLinks);
-    setCustomReviews(p.customReviews || []);
+    setMerchantLinks(p.merchantLinks || []);
   };
 
-  // Submit product creation or update
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id || !brand || !title || !category || !priceAtRetailer) {
-      setFormError('Please fill out all required attributes: ID, Brand, Title, Category, and Price.');
+    if (!id || !brand || !title || !priceAtRetailer) {
+      setFormError('Please fill out all required fields: ID, Brand, Title, and Price.');
       return;
     }
 
-    // Parse array variables
-    const images = imagesInput.split(',').map(s => s.trim()).filter(Boolean);
-    const occasions = occasionsInput.split(',').map(s => s.trim()).filter(Boolean);
-    const seasons = seasonsInput.split(',').map(s => s.trim()).filter(Boolean);
-    const colors = colorsInput.split(',').map(s => s.trim()).filter(Boolean);
-    const tags = tagsInput.split(',').map(s => s.trim()).filter(Boolean);
-
-    // Build structured measurements object matching selected segment
-    const measurements: Record<string, { value: number; unit: 'cm' | 'inches' }> = {};
-    
-    if (productSegment === 'Upperwear' || productSegment === 'Ethnic Wear') {
-      if (totalLengthVal) measurements.totalLength = { value: parseFloat(totalLengthVal), unit: totalLengthUnit };
-      if (sleeveLengthVal) measurements.sleeveLength = { value: parseFloat(sleeveLengthVal), unit: sleeveLengthUnit };
-      if (shoulderWidthVal) measurements.shoulderWidth = { value: parseFloat(shoulderWidthVal), unit: shoulderWidthUnit };
-      if (chestWidthVal) measurements.chestWidth = { value: parseFloat(chestWidthVal), unit: chestWidthUnit };
-      if (hemWidthVal) measurements.hemWidth = { value: parseFloat(hemWidthVal), unit: hemWidthUnit };
-    } else if (productSegment === 'Bottomwear') {
-      if (outseamLengthVal) measurements.outseamLength = { value: parseFloat(outseamLengthVal), unit: outseamLengthUnit };
-      if (inseamLengthVal) measurements.inseamLength = { value: parseFloat(inseamLengthVal), unit: inseamLengthUnit };
-      if (riseVal) measurements.rise = { value: parseFloat(riseVal), unit: riseUnit };
-      if (thighWidthVal) measurements.thighWidth = { value: parseFloat(thighWidthVal), unit: thighWidthUnit };
-      if (legOpeningVal) measurements.legOpening = { value: parseFloat(legOpeningVal), unit: legOpeningUnit };
-      if (waistWidthVal) measurements.waistWidth = { value: parseFloat(waistWidthVal), unit: waistWidthUnit };
-    } else if (productSegment === 'Footwear') {
-      if (soleLengthVal) measurements.soleLength = { value: parseFloat(soleLengthVal), unit: soleLengthUnit };
-      if (footbedLengthVal) measurements.footbedLength = { value: parseFloat(footbedLengthVal), unit: footbedLengthUnit };
-      if (heelHeightVal) measurements.heelHeight = { value: parseFloat(heelHeightVal), unit: heelHeightUnit };
-      if (shaftHeightVal) measurements.shaftHeight = { value: parseFloat(shaftHeightVal), unit: shaftHeightUnit };
-    } else if (productSegment === 'Outerwear') {
-      if (totalLengthVal) measurements.totalLength = { value: parseFloat(totalLengthVal), unit: totalLengthUnit };
-      if (sleeveLengthVal) measurements.sleeveLength = { value: parseFloat(sleeveLengthVal), unit: sleeveLengthUnit };
-      if (shoulderWidthVal) measurements.shoulderWidth = { value: parseFloat(shoulderWidthVal), unit: shoulderWidthUnit };
-      if (chestWidthVal) measurements.chestWidth = { value: parseFloat(chestWidthVal), unit: chestWidthUnit };
-      if (hemWidthVal) measurements.hemWidth = { value: parseFloat(hemWidthVal), unit: hemWidthUnit };
-      if (layeringRoomVal) measurements.layeringRoom = { value: parseFloat(layeringRoomVal), unit: layeringRoomUnit };
-    }
-
-    // Build the 4 tall fit verdicts
     const verdicts: FitVerdict[] = [
-      { band: '6_0_6_1', status: verdict0_1_Status, note: verdict0_1_Note },
-      { band: '6_2_6_3', status: verdict2_3_Status, note: verdict2_3_Note },
-      { band: '6_4_6_5', status: verdict4_5_Status, note: verdict4_5_Note },
-      { band: '6_6_plus', status: verdict6_plus_Status, note: verdict6_plus_Note },
+      { band: '6_0_6_1', status: selectedHeightRanges.includes("6'0–6'2") ? 'friendly' : 'community', note: verdict0_1_Note },
+      { band: '6_2_6_3', status: selectedHeightRanges.includes("6'2–6'4") ? 'verified' : 'friendly', note: verdict2_3_Note },
+      { band: '6_4_6_5', status: selectedHeightRanges.includes("6'4–6'6") ? 'verified' : 'friendly', note: verdict4_5_Note },
+      { band: '6_6_plus', status: selectedHeightRanges.includes("6'6+") ? 'friendly' : 'runs_short', note: verdict6_plus_Note },
     ];
 
     const finalProduct: Product = {
       id,
       brand,
       title,
-      category,
-      subCategory,
+      category: categories[0] || 'Casual Wear',
+      categories,
       productSegment,
       productType,
       description,
@@ -695,56 +477,44 @@ export const Admin: React.FC = () => {
       seasons,
       colors,
       sizes,
-      verificationBadges,
-      measurements,
       verdicts,
       outOfStock,
       merchantLinks,
-      customReviews,
-      reviewsCount: customReviews.length,
-      averageRating: customReviews.length > 0 ? Number((customReviews.reduce((acc, curr) => acc + curr.rating, 0) / customReviews.length).toFixed(1)) : 5,
-      // New expanded fields
-      ...(material && { material }),
-      ...(careInstructions && { careInstructions }),
-      ...(weightGrams && { weightGrams: Number(weightGrams) }),
-      countryOfOrigin: countryOfOrigin || 'India',
+      material,
       tags,
       discountPercent: Number(discountPercent) || 0,
       isFeatured,
-      ...(skuCode && { skuCode }),
-    } as Product;
+      tallFriendly,
+      heightRanges: selectedHeightRanges,
+      bodyTypes: selectedBodyTypes,
+      fitHighlights: selectedFitHighlights,
+    };
 
     try {
       if (editMode) {
         await updateProduct(id, finalProduct);
-        setFormSuccess('Successfully updated product document ' + id);
+        setFormSuccess('Successfully updated product!');
       } else {
         await addProduct(finalProduct);
-        setFormSuccess('Successfully appended new product ' + id);
+        setFormSuccess('Successfully created product!');
       }
-
-      // Hide after a brief timer
       setTimeout(() => {
         setShowForm(false);
         setFormSuccess('');
       }, 1500);
-
     } catch (err: any) {
-      setFormError('Save failed: ' + (err.message || 'Unknown error. Check admin permissions.'));
+      setFormError('Save failed: ' + (err.message || 'Unknown error.'));
     }
   };
 
-  // Toggle in-stock / out-of-stock instantly from the dashboard
   const handleToggleStock = async (p: Product) => {
     try {
-      const nextStockState = !p.outOfStock;
-      await updateProduct(p.id, { outOfStock: nextStockState });
+      await updateProduct(p.id, { outOfStock: !p.outOfStock });
     } catch (e: any) {
-      alert("Error: " + e.message);
+      alert("Error updating stock: " + e.message);
     }
   };
 
-  // Remove product with validation
   const handleDeleteItem = async (p: Product) => {
     if (window.confirm(`Are you absolutely sure you want to delete ${p.title}?`)) {
       try {
@@ -755,62 +525,36 @@ export const Admin: React.FC = () => {
     }
   };
 
-  // Filtering products list
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           p.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter || (p.categories && p.categories.includes(categoryFilter));
     const matchesStock = stockFilter === 'All' || 
                          (stockFilter === 'In Stock' && !p.outOfStock) ||
                          (stockFilter === 'Out of Stock' && p.outOfStock);
-
     return matchesSearch && matchesCategory && matchesStock;
   });
 
-  // 1. GUEST WARNING STATUS
-  const isDevBypass = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-  const hasAccess = isAdmin || isDevBypass;
+  const hasAccess = isAdmin || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen py-24 px-4 bg-off-white text-left flex items-center justify-center">
+      <div className="min-h-screen py-24 px-4 bg-off-white flex items-center justify-center">
         <div className="max-w-md w-full bg-white border border-[#112133]/15 rounded-3xl p-8 text-center space-y-6 shadow-sm">
           <div className="w-16 h-16 bg-[#FF3F6C]/10 rounded-full flex items-center justify-center mx-auto text-[#FF3F6C]">
             <BadgeAlert size={36} />
           </div>
-          
-          <div className="space-y-2">
-            <h1 className="font-display font-black text-3xl uppercase tracking-wider text-[#112133]">
-              ADMIN RESTRICTED
-            </h1>
-            <p className="text-xs text-[#112133]/60 font-sans leading-relaxed">
-              This panel controls our secure product directory collections. Unauthorized administrative tampering is disabled.
-            </p>
-          </div>
-
-          {user ? (
-            <div className="p-4 rounded-2xl bg-black/5 text-[#112133] border border-black/5 text-left text-xs space-y-1">
-              <div className="font-semibold text-[10px] text-black/50 font-mono uppercase tracking-widest">
-                Current Connected User:
-              </div>
-              <div className="font-grotesk font-black text-black truncate">{user.email}</div>
-              <div className="text-[10px] text-[#FF3F6C] font-semibold mt-1">
-                ⚠️ Account not whitelisted for write permissions. Must use `ytiwari@argusoft.com` or `yuvrajtiwari0710@gmail.com`.
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => loginWithGoogle()}
-              className="w-full py-4 rounded-xl bg-black hover:bg-[#7D2AE8] text-white text-xs font-grotesk font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2"
-              id="admin-sso-login-btn"
-            >
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M12.24 10.285V13.4h6.887C18.2 15.614 15.645 18 12.24 18c-3.86 0-7-3.14-7-7s3.14-7 7-7c1.7 0 3.25.61 4.47 1.638l2.45-2.45C17.38 1.63 14.96 1 12.24 1c-5.52 0-10 4.48-10 10s4.48 10 10 10c5.772 0 10.155-4.05 10.155-10 0-.615-.055-1.2-.172-1.715H12.24z"/>
-              </svg>
-              <span>Verify Administration</span>
-            </button>
-          )}
+          <h2 className="text-[#112133] font-display text-2xl uppercase tracking-wider">Restricted Entry</h2>
+          <p className="text-[#112133]/60 text-xs leading-relaxed">
+            Admin validation required to alter catalogs. Login via Google to authenticate.
+          </p>
+          <button 
+            onClick={loginWithGoogle}
+            className="w-full py-4 bg-[#7D2AE8] text-white rounded-xl text-xs font-grotesk font-black uppercase tracking-wider hover:bg-[#6820C4]"
+          >
+            Sign In with Google
+          </button>
         </div>
       </div>
     );
@@ -819,7 +563,7 @@ export const Admin: React.FC = () => {
   return (
     <div className="pb-24 pt-10 text-[#112133] max-w-7xl mx-auto px-4 md:px-8 text-left">
       
-      {/* 2. ADMIN HEADER */}
+      {/* HEADER */}
       <div className="border-b border-[#112133]/15 pb-6 mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -828,11 +572,11 @@ export const Admin: React.FC = () => {
               <span>Verified System Admin Gate</span>
             </span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-black font-display uppercase tracking-tight text-[#112133] leading-none text-left">
+          <h1 className="text-5xl md:text-6xl font-black font-display uppercase tracking-tight text-[#112133] leading-none">
             ADMIN LOCKER
           </h1>
-          <p className="text-xs text-[#112133]/60 leading-relaxed font-sans mt-2">
-            Logged in securely as <span className="font-bold text-[#112133]">{user?.email}</span>. Publish, update catalog details, and flag stock outfalls.
+          <p className="text-xs text-[#112133]/60 leading-relaxed mt-2 font-sans">
+            Logged in securely as <span className="font-bold text-[#112133]">{user?.email}</span>. Publish and curate products efficiently.
           </p>
         </div>
 
@@ -842,27 +586,27 @@ export const Admin: React.FC = () => {
             className="flex items-center gap-2 px-5 py-3.5 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
           >
             <Plus size={16} />
-            <span>Add Brand Product</span>
+            <span>Add Curated Product</span>
           </button>
         </div>
       </div>
 
-      {/* 3. CRUD FORM PANEL */}
+      {/* FORM MODAL */}
       {showForm && (
         <div className="bg-white border-2 border-[#7D2AE8]/30 rounded-3xl p-6 md:p-8 mb-10 shadow-md">
           <div className="flex items-center justify-between border-b border-black/10 pb-4 mb-6">
             <h2 className="font-display text-2xl uppercase tracking-wider text-[#7D2AE8] font-bold">
-              {editMode ? 'Edit Curated Product' : 'Create New Curved Entry'}
+              {editMode ? 'Edit Curated Product' : 'Create New Curated Product'}
             </h2>
             <button 
               onClick={() => setShowForm(false)}
               className="text-[#112133]/40 hover:text-black font-bold text-xs uppercase font-grotesk px-3 py-1.5 bg-black/5 rounded-xl transition"
             >
-              Discard Changes
+              Discard
             </button>
           </div>
 
-          {/* ── IMPORT FROM URL SECTION (create mode only) ── */}
+          {/* URL IMPORT IS PRIMARY */}
           {!editMode && (
             <div className="mb-8 border-2 border-dashed border-[#7D2AE8]/30 rounded-2xl p-5 bg-gradient-to-br from-[#7D2AE8]/3 to-transparent">
               <div className="flex items-center gap-2 mb-3">
@@ -871,11 +615,11 @@ export const Admin: React.FC = () => {
                   Import Product From URL
                 </span>
                 <span className="text-[9px] bg-[#7D2AE8]/10 text-[#7D2AE8] px-2 py-0.5 rounded-full font-black uppercase tracking-widest">
-                  Auto-fills Form
+                  Auto-fills Form in Seconds
                 </span>
               </div>
-              <p className="text-[10px] text-black/45 font-sans mb-4">
-                Paste a product URL from Myntra, AJIO, Amazon, Flipkart, H&amp;M, Zara, Urbanic, Bewakoof, Snitch, Rare Rabbit, or any retailer. The form will be auto-populated for you to review before saving.
+              <p className="text-[10px] text-black/45 mb-4 font-sans">
+                Paste product URL from Myntra, AJIO, Amazon, Flipkart, H&amp;M, Zara, Snitch, Rare Rabbit, Urbanic, Bewakoof etc.
               </p>
 
               <div className="flex gap-3 items-stretch">
@@ -885,19 +629,16 @@ export const Admin: React.FC = () => {
                     type="url"
                     value={importUrl}
                     onChange={(e) => setImportUrl(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleImportFromUrl()}
                     placeholder="https://www.myntra.com/shirts/brand/product-id"
                     disabled={importStatus === 'loading'}
                     className="w-full pl-9 pr-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-mono disabled:opacity-60"
-                    id="import-url-input"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={handleImportFromUrl}
                   disabled={importStatus === 'loading' || !importUrl.trim()}
-                  id="import-url-btn"
-                  className="flex items-center gap-2 px-5 py-3 bg-[#7D2AE8] hover:bg-[#6820C4] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shrink-0"
+                  className="flex items-center gap-2 px-5 py-3 bg-[#7D2AE8] hover:bg-[#6820C4] disabled:opacity-50 text-white rounded-xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shrink-0"
                 >
                   {importStatus === 'loading' ? (
                     <><Loader2 size={14} className="animate-spin" /> Importing...</>
@@ -907,7 +648,6 @@ export const Admin: React.FC = () => {
                 </button>
               </div>
 
-              {/* Detected retailer badge */}
               {detectedRetailer && importStatus !== 'error' && (
                 <div className="mt-3 flex items-center gap-2">
                   <span className="text-[10px] text-black/40 font-sans">Detected Retailer:</span>
@@ -917,12 +657,9 @@ export const Admin: React.FC = () => {
                 </div>
               )}
 
-              {/* Status toast */}
               {importMessage && (
                 <div className={`mt-3 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
-                  importStatus === 'success'
-                    ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
-                    : 'bg-[#FF3F6C]/10 text-[#FF3F6C] border-[#FF3F6C]/20'
+                  importStatus === 'success' ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-[#FF3F6C]/10 text-[#FF3F6C] border-[#FF3F6C]/20'
                 }`}>
                   {importStatus === 'success' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
                   {importMessage}
@@ -943,8 +680,8 @@ export const Admin: React.FC = () => {
               </div>
             )}
 
-            {/* Dynamic Product Segment & Type Selectors */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gradient-to-r from-[#7D2AE8]/5 to-transparent p-5 rounded-2xl border border-[#7D2AE8]/15">
+            {/* SEGMENT & TYPE SELECTORS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FAF9F6] p-5 rounded-2xl border border-black/5">
               <div>
                 <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block mb-1.5">
                   Product Segment *
@@ -955,18 +692,10 @@ export const Admin: React.FC = () => {
                     const nextSegment = e.target.value;
                     setProductSegment(nextSegment);
                     const types = SEGMENT_TYPES[nextSegment] || [];
-                    if (types.length > 0) {
-                      setProductType(types[0]);
-                    }
-                    if (nextSegment === 'Footwear') {
-                      setSizes(['UK 9', 'UK 10', 'UK 11', 'UK 12', 'UK 13']);
-                    } else if (nextSegment === 'Bottomwear') {
-                      setSizes(['32', '34', '36', '38']);
-                    } else {
-                      setSizes(['M', 'L', 'XL', 'XXL', '3XL']);
-                    }
+                    if (types.length > 0) setProductType(types[0]);
+                    setSizes(getSizeOptions(nextSegment).slice(1, 5));
                   }}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold appearance-none bg-white"
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold bg-white"
                 >
                   <option value="Upperwear">Upperwear</option>
                   <option value="Bottomwear">Bottomwear</option>
@@ -984,907 +713,779 @@ export const Admin: React.FC = () => {
                 <select
                   value={productType}
                   onChange={(e) => setProductType(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold appearance-none bg-white"
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold bg-white"
                 >
                   {(SEGMENT_TYPES[productSegment] || []).map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
+                    <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* Grid 1: Basic Identifiers */}
+            {/* BASIC METADATA */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
               <div className="md:col-span-3">
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Unique SKU ID (Alpha-numeric, e.g. prod-1) *
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Product ID (slug) *
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={id}
+                  onChange={(e) => setId(e.target.value.replace(/[^a-z0-9_-]/gi, '').toLowerCase())}
+                  placeholder="e.g. black-relaxed-cargo"
                   disabled={editMode}
-                  onChange={(e) => setId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-mono font-bold bg-black/5"
-                  required
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-mono disabled:bg-black/5"
                 />
               </div>
 
               <div className="md:col-span-3">
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Manufacturer / Brand *
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Brand *
                 </label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Manyavar, Zara"
-                  value={brand} 
+                <input
+                  type="text"
+                  value={brand}
                   onChange={(e) => setBrand(e.target.value)}
+                  placeholder="e.g. Zara"
                   className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
-                  required
                 />
               </div>
 
               <div className="md:col-span-6">
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Garment Public Title *
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Product Title *
                 </label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Emerald Green Draped Chikankari Kurta"
-                  value={title} 
+                <input
+                  type="text"
+                  value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Premium Structured Navy Blazer"
                   className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
-                  required
                 />
               </div>
             </div>
 
-            {/* Grid 2: Descriptions and Categories */}
+            {/* DESCRIPTION & FABRIC */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-3">
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Broad Category *
+              <div className="md:col-span-8">
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Description
                 </label>
-                <select 
-                  value={category} 
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold appearance-none bg-white"
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe the silhouette, fit, drape, and tall suitability details..."
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-sans"
+                />
+              </div>
+
+              <div className="md:col-span-4">
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Material / Fabric
+                </label>
+                <input
+                  type="text"
+                  value={material}
+                  onChange={(e) => setMaterial(e.target.value)}
+                  placeholder="e.g. 100% Cotton, Linen Blend"
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
+                />
+              </div>
+            </div>
+
+            {/* TAXONOMY CHIP PICKERS */}
+            <div className="space-y-6 bg-[#FAF9F6] p-6 rounded-2xl border border-black/5">
+              <h3 className="text-xs font-black uppercase tracking-wider text-black/60 border-b border-black/10 pb-2">
+                Garment Taxonomy &amp; Tags
+              </h3>
+
+              {/* Broad Category */}
+              <div>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
+                  Broad Categories (Select Multiple)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {BROAD_CATEGORIES.map(cat => {
+                    const isSelected = categories.includes(cat);
+                    return (
+                      <button
+                        type="button"
+                        key={cat}
+                        onClick={() => toggleSelection(cat, categories, setCategories)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                          isSelected 
+                            ? 'bg-[#7D2AE8] text-white shadow-sm' 
+                            : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Occasions */}
+              <div>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
+                  Occasions (Select Multiple)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {OCCASIONS.map(occ => {
+                    const isSelected = occasions.includes(occ);
+                    return (
+                      <button
+                        type="button"
+                        key={occ}
+                        onClick={() => toggleSelection(occ, occasions, setOccasions)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                          isSelected 
+                            ? 'bg-[#7D2AE8] text-white shadow-sm' 
+                            : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
+                        }`}
+                      >
+                        {occ}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Seasons */}
+              <div>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
+                  Seasons
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {SEASONS.map(s => {
+                    const isSelected = seasons.includes(s);
+                    return (
+                      <button
+                        type="button"
+                        key={s}
+                        onClick={() => toggleSelection(s, seasons, setSeasons)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                          isSelected 
+                            ? 'bg-[#7D2AE8] text-white shadow-sm' 
+                            : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Colors */}
+              <div>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
+                  Colors
+                </label>
+                <div className="flex flex-wrap gap-2.5">
+                  {COLORS.map(color => {
+                    const isSelected = colors.includes(color.name);
+                    return (
+                      <button
+                        type="button"
+                        key={color.name}
+                        onClick={() => toggleSelection(color.name, colors, setColors)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                          isSelected 
+                            ? 'bg-[#7D2AE8] text-white shadow-sm ring-2 ring-[#7D2AE8]/20' 
+                            : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
+                        }`}
+                      >
+                        <span 
+                          className="w-3.5 h-3.5 rounded-full shadow-inner border border-black/10" 
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span>{color.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Search &amp; Filter Tags (Type and press Enter or click Add)
+                </label>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                    placeholder="e.g. relaxed-fit, extra-long"
+                    className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTag}
+                    className="px-4 bg-[#7D2AE8] hover:bg-[#6820C4] text-white font-grotesk font-black text-xs uppercase tracking-wider rounded-xl"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map(tag => (
+                    <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-[#7D2AE8]/10 text-[#7D2AE8] border border-[#7D2AE8]/20 rounded-full text-[10px] font-black uppercase tracking-wider">
+                      <span>{tag}</span>
+                      <button type="button" onClick={() => handleRemoveTag(tag)} className="hover:text-red-500">
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* IMAGE MANAGEMENT REDESIGN */}
+            <div className="bg-[#FAF9F6] p-6 rounded-2xl border border-black/5 space-y-6">
+              <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                <h3 className="text-xs font-black uppercase tracking-wider text-black/60">
+                  Image Source &amp; Management
+                </h3>
+                
+                <div className="flex rounded-lg border border-black/15 overflow-hidden text-[10px] font-black uppercase bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setImageSource('imported')}
+                    className={`px-3 py-1.5 transition-all ${imageSource === 'imported' ? 'bg-[#7D2AE8] text-white' : 'hover:bg-black/5 text-black/60'}`}
+                  >
+                    Imported URLs
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageSource('upload')}
+                    className={`px-3 py-1.5 transition-all ${imageSource === 'upload' ? 'bg-[#7D2AE8] text-white' : 'hover:bg-black/5 text-black/60'}`}
+                  >
+                    Upload From Device
+                  </button>
+                </div>
+              </div>
+
+              {imageSource === 'imported' ? (
+                <div className="space-y-4">
+                  <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block">
+                    Paste Image URL
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={imageUrlInput}
+                      onChange={(e) => setImageUrlInput(e.target.value)}
+                      placeholder="https://images.unsplash.com/..."
+                      className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-mono flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddImageUrl}
+                      className="px-4 bg-[#7D2AE8] hover:bg-[#6820C4] text-white font-grotesk font-black text-xs uppercase tracking-wider rounded-xl"
+                    >
+                      Add URL
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-black/20 hover:border-[#7D2AE8]/50 rounded-2xl p-6 bg-white transition text-center relative cursor-pointer">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleDeviceUploadSimulated}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  <Upload size={24} className="mx-auto text-black/30 mb-2" />
+                  <span className="text-xs font-bold text-black/60 block">Drag &amp; Drop Images here</span>
+                  <span className="text-[10px] text-black/40 font-sans block mt-1">or Click to browse local files</span>
+                </div>
+              )}
+
+              {/* IMAGE PREVIEW GRID WITH DRAG-TO-REORDER */}
+              {images.length > 0 ? (
+                <div className="space-y-2">
+                  <span className="text-[10px] text-black/45 block font-bold uppercase tracking-wider">
+                    Garment Image Catalog ({images.length} Images - first image is primary showcase)
+                  </span>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                    {images.map((img, idx) => (
+                      <div key={img + idx} className="group aspect-[3/4] bg-white border border-black/10 rounded-xl overflow-hidden relative shadow-sm hover:shadow-md transition">
+                        <img src={img} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        
+                        {/* Hover Overlay Controls */}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                          <div className="flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => handleMarkPrimaryImage(idx)}
+                              title="Set as Primary"
+                              className={`p-1.5 rounded-lg ${idx === 0 ? 'bg-[#7D2AE8] text-white' : 'bg-white/90 text-black hover:bg-white'}`}
+                            >
+                              <Star size={12} className={idx === 0 ? 'fill-white' : ''} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(idx)}
+                              className="p-1.5 rounded-lg bg-red-500/90 text-white hover:bg-red-600"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center justify-center gap-1 bg-white/20 rounded-lg py-1">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveImage(idx, 'up')}
+                              disabled={idx === 0}
+                              className="p-1 hover:text-[#00C4CC] text-white disabled:opacity-30"
+                            >
+                              <ArrowUp size={12} />
+                            </button>
+                            <span className="text-[9px] font-mono font-black text-white px-1">#{idx + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveImage(idx, 'down')}
+                              disabled={idx === images.length - 1}
+                              className="p-1 hover:text-[#00C4CC] text-white disabled:opacity-30"
+                            >
+                              <ArrowDown size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 border border-black/10 rounded-xl text-center text-[#112133]/50 text-xs italic">
+                  No images loaded. Import a URL or add files.
+                </div>
+              )}
+            </div>
+
+            {/* TALL FIT CURATION - HERO SECTION */}
+            <div className="border-2 border-[#7D2AE8] rounded-3xl p-6 bg-gradient-to-br from-[#7D2AE8]/5 to-transparent space-y-6 shadow-sm">
+              <div className="flex items-center justify-between border-b border-[#7D2AE8]/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <Ruler className="text-[#7D2AE8]" size={20} />
+                  <h3 className="text-sm font-black uppercase tracking-wider text-[#7D2AE8]">
+                    🏆 TALL FIT CURATION ENGINE
+                  </h3>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] text-black/55 font-black uppercase tracking-wider">
+                    Tall Friendly Selection:
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={tallFriendly}
+                      onChange={(e) => setTallFriendly(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-black/15 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:height-4 after:width-4 after:transition-all peer-checked:bg-[#00C4CC]"></div>
+                    <span className="ml-2 text-xs font-black uppercase tracking-wide text-[#7D2AE8]">
+                      {tallFriendly ? 'YES' : 'NO'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Checkbox Grids */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Recommended Height Range */}
+                <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
+                  <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
+                    Recommended Height Ranges *
+                  </label>
+                  <div className="space-y-2">
+                    {HEIGHT_RANGES.map(range => {
+                      const isChecked = selectedHeightRanges.includes(range);
+                      return (
+                        <label key={range} className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-black/75">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleSelection(range, selectedHeightRanges, setSelectedHeightRanges)}
+                            className="rounded text-[#7D2AE8] focus:ring-[#7D2AE8] w-4 h-4 border-black/15"
+                          />
+                          <span>{range} Tall Bands</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Body Types */}
+                <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
+                  <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
+                    Body Types *
+                  </label>
+                  <div className="space-y-2">
+                    {BODY_TYPES.map(type => {
+                      const isChecked = selectedBodyTypes.includes(type);
+                      return (
+                        <label key={type} className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-black/75">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleSelection(type, selectedBodyTypes, setSelectedBodyTypes)}
+                            className="rounded text-[#7D2AE8] focus:ring-[#7D2AE8] w-4 h-4 border-black/15"
+                          />
+                          <span>{type} Build</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Tall Fit Highlights */}
+                <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
+                  <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
+                    Tall Fit Highlights *
+                  </label>
+                  <div className="space-y-2">
+                    {FIT_HIGHLIGHTS.map(highlight => {
+                      const isChecked = selectedFitHighlights.includes(highlight);
+                      return (
+                        <label key={highlight} className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-black/75">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleSelection(highlight, selectedFitHighlights, setSelectedFitHighlights)}
+                            className="rounded text-[#7D2AE8] focus:ring-[#7D2AE8] w-4 h-4 border-black/15"
+                          />
+                          <span>{highlight}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Sizes list (Dynamic based on Segment) */}
+              <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
+                <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
+                  Select Curated Sizes Available (Tailored Proportions)
+                </label>
+                <div className="flex flex-wrap gap-2.5">
+                  {getSizeOptions(productSegment).map(sz => {
+                    const isChecked = sizes.includes(sz);
+                    return (
+                      <button
+                        type="button"
+                        key={sz}
+                        onClick={() => toggleSelection(sz, sizes, setSizes)}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${
+                          isChecked 
+                            ? 'bg-[#7D2AE8] text-white border-[#7D2AE8]' 
+                            : 'bg-white text-black/60 border-black/15 hover:border-[#7D2AE8]/50'
+                        }`}
+                      >
+                        {sz}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* VERDICT NOTES FOR THE 4 BANDS */}
+              <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-4">
+                <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
+                  Anatomical Height-Band Fit Verdict Notes
+                </label>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'0"–6'1" Verdict Note</label>
+                    <input 
+                      type="text" 
+                      value={verdict0_1_Note} 
+                      onChange={(e) => setVerdict0_1_Note(e.target.value)}
+                      className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'2"–6'3" Verdict Note</label>
+                    <input 
+                      type="text" 
+                      value={verdict2_3_Note} 
+                      onChange={(e) => setVerdict2_3_Note(e.target.value)}
+                      className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'4"–6'5" Verdict Note</label>
+                    <input 
+                      type="text" 
+                      value={verdict4_5_Note} 
+                      onChange={(e) => setVerdict4_5_Note(e.target.value)}
+                      className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'6"+ Verdict Note</label>
+                    <input 
+                      type="text" 
+                      value={verdict6_plus_Note} 
+                      onChange={(e) => setVerdict6_plus_Note(e.target.value)}
+                      className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* PRICING & AVAILABILITY */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-[#FAF9F6] p-5 rounded-2xl border border-black/5">
+              <div>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Price at Retailer (INR) *
+                </label>
+                <input
+                  type="number"
+                  value={priceAtRetailer}
+                  onChange={(e) => setPriceAtRetailer(Number(e.target.value))}
+                  placeholder="1999"
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Discount Percent (%)
+                </label>
+                <input
+                  type="number"
+                  value={discountPercent}
+                  onChange={(e) => setDiscountPercent(e.target.value)}
+                  placeholder="0"
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Verified Tier *
+                </label>
+                <select
+                  value={verifiedTier}
+                  onChange={(e) => setVerifiedTier(e.target.value as any)}
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold bg-white"
                 >
-                  <option value="Ethnic Wear">Ethnic Wear</option>
-                  <option value="Formals">Formals</option>
-                  <option value="Streetwear">Streetwear</option>
-                  <option value="Casuals">Casuals</option>
+                  <option value="verified">Verified Fit</option>
+                  <option value="friendly">Friendly Fit</option>
+                  <option value="community">Community Fit</option>
                 </select>
               </div>
 
-              <div className="md:col-span-3">
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Detailed subCategory
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Kurtas, Shirts, Blazers, Hoodies"
-                  value={subCategory} 
-                  onChange={(e) => setSubCategory(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
-                />
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Base Catalog Price (INR) *
-                </label>
-                <input 
-                  type="number" 
-                  value={priceAtRetailer} 
-                  onChange={(e) => setPriceAtRetailer(Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
-                  required
-                />
-              </div>
-
-              <div className="md:col-span-3 flex items-center pt-5">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={outOfStock} 
-                    onChange={(e) => setOutOfStock(e.target.checked)}
-                    className="w-4 h-4 text-[#FF3F6C] focus:ring-[#FF3F6C] border-black/20 rounded"
-                  />
-                  <span className="text-[10px] text-[#FF3F6C] font-black uppercase tracking-wider">
-                    Flag Out Of Stock 🔴
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Grid 3: Long description */}
-            <div>
-              <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                Editorial Description
-              </label>
-              <textarea 
-                rows={3}
-                placeholder="Write long narrative highlighting the tailoring cuts, leg drop sizes, sleeve length, stretch qualities etc."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-medium font-sans"
-              />
-            </div>
-
-            {/* Grid 4: Referral affiliate details */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 bg-black/5 p-4 rounded-2xl">
-              <div className="md:col-span-4">
-                <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block mb-1">
-                  Primary Partner Retailer name
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Myntra, Tata CLiQ, Ajio"
-                  value={retailer} 
-                  onChange={(e) => setRetailer(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold bg-white"
-                />
-              </div>
-
-              <div className="md:col-span-8">
-                <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block mb-1">
-                  Primary Out-Link (Affiliate redirect landing page)
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="https://www.retailer.com/out-link"
-                  value={affiliateUrl} 
-                  onChange={(e) => setAffiliateUrl(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-mono font-medium bg-white"
-                />
-              </div>
-            </div>
-
-            {/* Grid 5: Multi-outlet merchantLinks */}
-            <div className="border border-black/15 p-6 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-black/5 pb-3">
-                <div>
-                  <h4 className="font-display text-sm font-black uppercase tracking-wide text-[#7D2AE8]">
-                    Direct Site Merchant Outlets list (Multi-Store Links)
-                  </h4>
-                  <p className="text-[9px] text-black/50 font-serif leading-relaxed">
-                    Provide multiple affiliate links to checkout standard listings (e.g. Amazon, Flipkart, Ajio, brand site).
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleAddOutletCard}
-                  className="flex items-center gap-1 px-3.5 py-2 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-xl text-[10px] font-grotesk font-black uppercase tracking-wider transition shadow-sm"
-                >
-                  <Plus size={12} /> Add Outlet
-                </button>
-              </div>
-
-              {/* Added listings list */}
-              {merchantLinks.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {merchantLinks.map((ml, index) => (
-                    <div key={index} className="border border-black/10 p-4 rounded-xl bg-neutral-50 relative space-y-3 shadow-xs">
-                      <div className="flex justify-between items-center border-b border-black/5 pb-1.5">
-                        <span className="font-mono text-[9px] uppercase tracking-wider text-black/40 font-bold">
-                          Outlet Entry #{index + 1}
-                        </span>
-                        <button 
-                          type="button"
-                          onClick={() => handleRemoveMerchantLink(index)}
-                          className="text-[#FF3F6C] hover:text-[#FF3F6C]/85 font-black text-[9px] uppercase flex items-center gap-0.5 bg-[#FF3F6C]/5 px-2 py-1 rounded-lg transition"
-                        >
-                          <Trash2 size={10} /> Delete
-                        </button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div>
-                          <label className="text-[8px] text-black/50 uppercase font-black tracking-wider block mb-1">
-                            Store Name
-                          </label>
-                          <input 
-                            type="text" 
-                            placeholder="e.g. Amazon" 
-                            value={ml.store || ''}
-                            onChange={(e) => handleUpdateOutlet(index, 'store', e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-black/15 text-xs font-bold bg-white"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[8px] text-black/50 uppercase font-black tracking-wider block mb-1">
-                            Affiliate URL
-                          </label>
-                          <input 
-                            type="text" 
-                            placeholder="https://..." 
-                            value={ml.url || ''}
-                            onChange={(e) => handleUpdateOutlet(index, 'url', e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-black/15 text-xs font-medium font-mono bg-white"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[8px] text-black/50 uppercase font-black tracking-wider block mb-1">
-                            Price (INR)
-                          </label>
-                          <input 
-                            type="number" 
-                            placeholder="e.g. 1999" 
-                            value={ml.price || 0}
-                            onChange={(e) => handleUpdateOutlet(index, 'price', Number(e.target.value))}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-black/15 text-xs font-bold bg-white"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 bg-black/3 rounded-xl text-xs text-[#112133]/55 italic text-center">
-                  No merchant outlets added yet. Click &quot;Add Outlet&quot; to begin.
-                </div>
-              )}
-            </div>
-
-            {/* Grid 6: Arrays Configuration (Tags, colors) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Product Image URLs (Can take multiple URLs separated by commas)
-                </label>
-                <input 
-                  type="text" 
-                  value={imagesInput} 
-                  onChange={(e) => setImagesInput(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-medium font-sans"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-2.5">
-                  Verification Badges (Tall body-fit highlights)
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    'Verified Tall Friendly',
-                    'Extra Sleeve Length',
-                    'Long Inseam',
-                    'Extended Torso Fit',
-                    'Broad Shoulder Friendly',
-                    'Tall Athlete Approved',
-                    'Extra Leg Room',
-                    'Long Rise',
-                    'Community Verified',
-                    'Staff Verified'
-                  ].map((badge) => {
-                    const isChecked = verificationBadges.includes(badge);
-                    return (
-                      <label
-                        key={badge}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] font-bold cursor-pointer transition select-none ${
-                          isChecked
-                            ? 'bg-[#7D2AE8]/10 border-[#7D2AE8]/30 text-[#7D2AE8]'
-                            : 'bg-white border-black/10 text-[#112133]/60 hover:bg-neutral-50'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {
-                            if (isChecked) {
-                              setVerificationBadges(verificationBadges.filter(b => b !== badge));
-                            } else {
-                              setVerificationBadges([...verificationBadges, badge]);
-                            }
-                          }}
-                          className="w-3.5 h-3.5 rounded text-[#7D2AE8] focus:ring-[#7D2AE8] border-black/15"
-                        />
-                        <span>{badge}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Grid 6b: Tags */}
-            <div>
-              <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                Searchable Tags (comma-separated, e.g. tall, extra-sleeve, summer)
-              </label>
-              <input
-                type="text"
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
-                placeholder="tall, extra-length, linen, featured"
-              />
-            </div>
-
-            {/* Grid 7: Detail spec matrices comma-separated */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-4 border border-black/10 rounded-2xl">
-              <div>
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Occasions (comma-separated)
-                </label>
-                <input 
-                  type="text" 
-                  value={occasionsInput} 
-                  onChange={(e) => setOccasionsInput(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Seasons (comma-separated)
-                </label>
-                <input 
-                  type="text" 
-                  value={seasonsInput} 
-                  onChange={(e) => setSeasonsInput(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">
-                  Colors (comma-separated)
-                </label>
-                <input 
-                  type="text" 
-                  value={colorsInput} 
-                  onChange={(e) => setColorsInput(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-2">
-                  Sizes Available *
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {getSizeOptions(productSegment).map((sz) => {
-                    const isChecked = sizes.includes(sz);
-                    const isFootwearHighlight = productSegment === 'Footwear' && ['UK 9', 'UK 10', 'UK 11', 'UK 12', 'UK 13'].includes(sz);
-                    return (
-                      <label
-                        key={sz}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold cursor-pointer transition select-none ${
-                          isChecked 
-                            ? 'bg-[#7D2AE8] border-[#7D2AE8] text-white shadow-sm' 
-                            : isFootwearHighlight 
-                              ? 'bg-[#7D2AE8]/5 border-[#7D2AE8]/30 text-[#7D2AE8]' 
-                              : 'bg-white border-black/15 text-black hover:bg-neutral-50'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {
-                            if (isChecked) {
-                              setSizes(sizes.filter((s) => s !== sz));
-                            } else {
-                              setSizes([...sizes, sz]);
-                            }
-                          }}
-                          className="sr-only"
-                        />
-                        <span>{sz}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-                {productSegment === 'Footwear' && (
-                  <span className="text-[8px] text-[#7D2AE8] font-bold uppercase mt-1 block tracking-wider">
-                    ★ Default UK 9–13 sizes highlighted (tall men focus)
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Grid 8: Measurements Specs */}
-            <div className="border border-[#00C4CC]/30 rounded-2xl p-5 bg-gradient-to-br from-[#00C4CC]/3 to-transparent space-y-4">
-              <div>
-                <span className="font-display font-black uppercase tracking-wider text-xs text-[#00C4CC] block mb-1">
-                  Tailoring Specifications ({productSegment})
-                </span>
-                <p className="text-[9px] text-[#112133]/55 font-sans leading-relaxed">
-                  Specify measurements optimized for tall-body clothing and footwear. Select appropriate units (cm or inches) for each field.
-                </p>
-              </div>
-
-              {(productSegment === 'Upperwear' || productSegment === 'Ethnic Wear') && (
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                  {renderMeasurementInput('Total Length', totalLengthVal, setTotalLengthVal, totalLengthUnit, setTotalLengthUnit)}
-                  {renderMeasurementInput('Sleeve Length', sleeveLengthVal, setSleeveLengthVal, sleeveLengthUnit, setSleeveLengthUnit)}
-                  {renderMeasurementInput('Shoulder Width', shoulderWidthVal, setShoulderWidthVal, shoulderWidthUnit, setShoulderWidthUnit)}
-                  {renderMeasurementInput('Chest Width', chestWidthVal, setChestWidthVal, chestWidthUnit, setChestWidthUnit)}
-                  {renderMeasurementInput('Hem Width', hemWidthVal, setHemWidthVal, hemWidthUnit, setHemWidthUnit)}
-                </div>
-              )}
-
-              {productSegment === 'Bottomwear' && (
-                <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
-                  {renderMeasurementInput('Outseam Length', outseamLengthVal, setOutseamLengthVal, outseamLengthUnit, setOutseamLengthUnit)}
-                  {renderMeasurementInput('Inseam Length', inseamLengthVal, setInseamLengthVal, inseamLengthUnit, setInseamLengthUnit)}
-                  {renderMeasurementInput('Trouser Rise', riseVal, setRiseVal, riseUnit, setRiseUnit)}
-                  {renderMeasurementInput('Thigh Width', thighWidthVal, setThighWidthVal, thighWidthUnit, setThighWidthUnit)}
-                  {renderMeasurementInput('Leg Opening', legOpeningVal, setLegOpeningVal, legOpeningUnit, setLegOpeningUnit)}
-                  {renderMeasurementInput('Waist Width', waistWidthVal, setWaistWidthVal, waistWidthUnit, setWaistWidthUnit)}
-                </div>
-              )}
-
-              {productSegment === 'Footwear' && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {renderMeasurementInput('Sole Length', soleLengthVal, setSoleLengthVal, soleLengthUnit, setSoleLengthUnit)}
-                  {renderMeasurementInput('Footbed Length', footbedLengthVal, setFootbedLengthVal, footbedLengthUnit, setFootbedLengthUnit)}
-                  {renderMeasurementInput('Heel Height', heelHeightVal, setHeelHeightVal, heelHeightUnit, setHeelHeightUnit)}
-                  {renderMeasurementInput('Shaft Height', shaftHeightVal, setShaftHeightVal, shaftHeightUnit, setShaftHeightUnit)}
-                </div>
-              )}
-
-              {productSegment === 'Outerwear' && (
-                <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
-                  {renderMeasurementInput('Total Length', totalLengthVal, setTotalLengthVal, totalLengthUnit, setTotalLengthUnit)}
-                  {renderMeasurementInput('Sleeve Length', sleeveLengthVal, setSleeveLengthVal, sleeveLengthUnit, setSleeveLengthUnit)}
-                  {renderMeasurementInput('Shoulder Width', shoulderWidthVal, setShoulderWidthVal, shoulderWidthUnit, setShoulderWidthUnit)}
-                  {renderMeasurementInput('Chest Width', chestWidthVal, setChestWidthVal, chestWidthUnit, setChestWidthUnit)}
-                  {renderMeasurementInput('Hem Width', hemWidthVal, setHemWidthVal, hemWidthUnit, setHemWidthUnit)}
-                  {renderMeasurementInput('Layering Room', layeringRoomVal, setLayeringRoomVal, layeringRoomUnit, setLayeringRoomUnit)}
-                </div>
-              )}
-
-              {productSegment === 'Accessories' && (
-                <div className="p-3 bg-black/5 rounded-xl text-xs text-[#112133]/60 italic font-sans text-center">
-                  No specialized tailoring specifications required for general accessories.
-                </div>
-              )}
-            </div>
-
-            {/* Grid 9: FIT VERDICTS DIAGNOSIS COHORTS FOR TALL BANDS */}
-            <div className="border border-black/15 rounded-2xl p-5 space-y-4 text-left">
-              <div>
-                <span className="font-display font-black uppercase text-[#7D2AE8] text-sm block">Fit Verdicts & Smart Calibration notes</span>
-                <p className="text-[9px] text-[#112133]/55 max-w-xl font-serif">
-                  Write verified recommendation status reviews to guide tall buyers on exact shoulder stretches or hem finishes.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {/* Band 1 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                  <span className="font-mono text-xs font-black text-[#112133]">Cohort 6'0" - 6'1":</span>
-                  <select 
-                    value={verdict0_1_Status} 
-                    onChange={(e) => setVerdict0_1_Status(e.target.value as VerdictStatus)}
-                    className="px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
-                  >
-                    <option value="verified">Verified Fit ✅</option>
-                    <option value="friendly">Tall Friendly 👍</option>
-                    <option value="community">Community Reported 👥</option>
-                    <option value="runs_short">Runs Short ⚠️</option>
-                  </select>
-                  <input 
-                    type="text" 
-                    placeholder="Calibration note for this segment..." 
-                    value={verdict0_1_Note} 
-                    onChange={(e) => setVerdict0_1_Note(e.target.value)}
-                    className="md:col-span-2 px-3 py-2 border border-black/15 rounded-lg text-xs font-medium"
-                  />
-                </div>
-
-                {/* Band 2 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                  <span className="font-mono text-xs font-black text-[#112133]">Cohort 6'2" - 6'3":</span>
-                  <select 
-                    value={verdict2_3_Status} 
-                    onChange={(e) => setVerdict2_3_Status(e.target.value as VerdictStatus)}
-                    className="px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
-                  >
-                    <option value="verified">Verified Fit ✅</option>
-                    <option value="friendly">Tall Friendly 👍</option>
-                    <option value="community">Community Reported 👥</option>
-                    <option value="runs_short">Runs Short ⚠️</option>
-                  </select>
-                  <input 
-                    type="text" 
-                    placeholder="Calibration note for this segment..." 
-                    value={verdict2_3_Note} 
-                    onChange={(e) => setVerdict2_3_Note(e.target.value)}
-                    className="md:col-span-2 px-3 py-2 border border-black/15 rounded-lg text-xs font-medium"
-                  />
-                </div>
-
-                {/* Band 3 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                  <span className="font-mono text-xs font-black text-[#112133]">Cohort 6'4" - 6'5":</span>
-                  <select 
-                    value={verdict4_5_Status} 
-                    onChange={(e) => setVerdict4_5_Status(e.target.value as VerdictStatus)}
-                    className="px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
-                  >
-                    <option value="verified">Verified Fit ✅</option>
-                    <option value="friendly">Tall Friendly 👍</option>
-                    <option value="community">Community Reported 👥</option>
-                    <option value="runs_short">Runs Short ⚠️</option>
-                  </select>
-                  <input 
-                    type="text" 
-                    placeholder="Calibration note for this segment..." 
-                    value={verdict4_5_Note} 
-                    onChange={(e) => setVerdict4_5_Note(e.target.value)}
-                    className="md:col-span-2 px-3 py-2 border border-black/15 rounded-lg text-xs font-medium"
-                  />
-                </div>
-
-                {/* Band 4 */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                  <span className="font-mono text-xs font-black text-[#112133]">Cohort 6'6"+ Sky:</span>
-                  <select 
-                    value={verdict6_plus_Status} 
-                    onChange={(e) => setVerdict6_plus_Status(e.target.value as VerdictStatus)}
-                    className="px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
-                  >
-                    <option value="verified">Verified Fit ✅</option>
-                    <option value="friendly">Tall Friendly 👍</option>
-                    <option value="community">Community Reported 👥</option>
-                    <option value="runs_short">Runs Short ⚠️</option>
-                  </select>
-                  <input 
-                    type="text" 
-                    placeholder="Calibration note..." 
-                    value={verdict6_plus_Note} 
-                    onChange={(e) => setVerdict6_plus_Note(e.target.value)}
-                    className="md:col-span-2 px-3 py-2 border border-black/15 rounded-lg text-xs font-medium"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Grid 9b: NEW EXPANDED PRODUCT FIELDS */}
-            <div className="border border-[#7D2AE8]/20 rounded-2xl p-5 space-y-4 bg-[#7D2AE8]/3">
-              <div>
-                <span className="font-display font-black uppercase text-[#7D2AE8] text-sm block">Extended Product Details</span>
-                <p className="text-[9px] text-[#112133]/55 font-serif">Material, care, logistics, and merchandising fields.</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Material / Fabric</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 100% Cotton, Linen Blend"
-                    value={material}
-                    onChange={(e) => setMaterial(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Care Instructions</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Machine wash cold, hang dry"
-                    value={careInstructions}
-                    onChange={(e) => setCareInstructions(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Country of Origin</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. India, Bangladesh"
-                    value={countryOfOrigin}
-                    onChange={(e) => setCountryOfOrigin(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Manufacturer SKU Code</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ZA-OS-TEE-CHR-L"
-                    value={skuCode}
-                    onChange={(e) => setSkuCode(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-mono font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Weight (grams)</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 320"
-                    value={weightGrams}
-                    onChange={(e) => setWeightGrams(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-black/55 font-black uppercase tracking-wider block mb-1">Discount % (0–100)</label>
-                  <input
-                    type="number"
-                    min="0" max="100"
-                    value={discountPercent}
-                    onChange={(e) => setDiscountPercent(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 pt-1">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="flex items-center gap-6 pt-6">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-black/75">
                   <input
                     type="checkbox"
                     checked={isFeatured}
                     onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="w-4 h-4 text-[#7D2AE8] focus:ring-[#7D2AE8] border-black/20 rounded"
+                    className="rounded text-[#7D2AE8] focus:ring-[#7D2AE8] w-4 h-4 border-black/15"
                   />
-                  <span className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider">
-                    ⭐ Feature on Homepage / Highlights Section
-                  </span>
+                  <span>Feature on Home</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-black/75">
+                  <input
+                    type="checkbox"
+                    checked={outOfStock}
+                    onChange={(e) => setOutOfStock(e.target.checked)}
+                    className="rounded text-[#7D2AE8] focus:ring-[#7D2AE8] w-4 h-4 border-black/15"
+                  />
+                  <span>Out of Stock</span>
                 </label>
               </div>
             </div>
 
-            {/* Grid 10: CUSTOM REVIEWS (Requested field input support) */}
-            <div className="border border-black/15 p-5 rounded-2xl space-y-4">
+            {/* RETAILER DETAILS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-[#FAF9F6] p-5 rounded-2xl border border-black/5">
               <div>
-                <h4 className="font-display text-sm font-black uppercase tracking-wide text-[#7D2AE8]">
-                  Tall Citizens Community Reviews (Flexible Input)
-                </h4>
-                <p className="text-[9px] text-black/50 font-serif leading-relaxed">
-                  Support review inputs detailing user rating, consumer name, and descriptive fit text.
-                </p>
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Primary Retailer *
+                </label>
+                <input
+                  type="text"
+                  value={retailer}
+                  onChange={(e) => setRetailer(e.target.value)}
+                  placeholder="e.g. Myntra"
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
+                />
               </div>
 
-              {customReviews.length > 0 && (
-                <div className="space-y-2">
-                  {customReviews.map((r, i) => (
-                    <div key={i} className="bg-neutral-50 p-3.5 rounded-xl border border-black/5 text-xs flex justify-between items-start">
-                      <div className="text-left space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-black text-[10px] text-black">{r.author}</span>
-                          <span className="flex items-center text-amber-500 font-bold font-mono text-[10px]">
-                            <Star size={10} className="fill-current" /> {r.rating}/5
-                          </span>
-                        </div>
-                        <p className="text-[#112133]/80 italic">"{r.text}"</p>
-                        <span className="text-[9px] text-[#112133]/40 font-mono">{r.date}</span>
-                      </div>
-                      <button 
-                        type="button" 
-                        onClick={() => handleRemoveReview(i)}
-                        className="p-1 hover:bg-[#FF3F6C]/10 text-[#FF3F6C] rounded-lg transition"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="bg-[#FAF9F6] p-3.5 rounded-xl space-y-3">
-                <span className="text-[10px] font-black uppercase tracking-wider text-black/55">Create Community Review:</span>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <input 
-                    type="text" 
-                    placeholder="Author Name (e.g. Yash S.)" 
-                    value={newReviewAuthor}
-                    onChange={(e) => setNewReviewAuthor(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-black/15 text-xs font-bold bg-white"
-                  />
-                  <select 
-                    value={newReviewRating}
-                    onChange={(e) => setNewReviewRating(Number(e.target.value))}
-                    className="px-3 py-2 rounded-lg border border-black/15 text-xs font-bold bg-white"
-                  >
-                    <option value={5}>5 Stars ⭐⭐⭐⭐⭐</option>
-                    <option value={4}>4 Stars ⭐⭐⭐⭐</option>
-                    <option value={3}>3 Stars ⭐⭐⭐</option>
-                    <option value={2}>2 Stars ⭐⭐</option>
-                    <option value={1}>1 Star ⭐</option>
-                  </select>
-                  <input 
-                    type="text" 
-                    placeholder="Fit review, e.g. Extra 2 inches in bottom hem is genius." 
-                    value={newReviewText}
-                    onChange={(e) => setNewReviewText(e.target.value)}
-                    className="sm:col-span-2 px-3 py-2 rounded-lg border border-black/15 text-xs font-medium bg-white"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleAddReview}
-                  className="px-4 py-2 bg-black hover:bg-neutral-800 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition"
-                >
-                  Append Review Info
-                </button>
+              <div className="md:col-span-2">
+                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                  Primary Affiliate Link URL *
+                </label>
+                <input
+                  type="url"
+                  value={affiliateUrl}
+                  onChange={(e) => setAffiliateUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-mono"
+                />
               </div>
             </div>
 
-            {/* Save Buttons panel */}
-            <div className="pt-4 border-t border-black/10 flex justify-end gap-3">
-              <button 
-                type="button" 
+            {/* SUBMIT BUTTON */}
+            <div className="flex gap-4 pt-4">
+              <button
+                type="submit"
+                className="px-6 py-4 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-md shadow-[#7D2AE8]/10"
+              >
+                {editMode ? 'Save Curated Product' : 'Create Curated Product'}
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setShowForm(false)}
-                className="px-6 py-3.5 rounded-xl bg-black/5 hover:bg-black/10 text-xs font-bold uppercase transition"
+                className="px-6 py-4 bg-black/5 hover:bg-black/10 text-black/70 rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all"
               >
                 Cancel
-              </button>
-              
-              <button 
-                type="submit"
-                className="px-8 py-3.5 rounded-xl bg-[#7D2AE8] hover:bg-[#6820C4] text-white text-xs font-black uppercase tracking-wider transition"
-              >
-                {editMode ? 'Publish Amendments' : 'Submit Catalog Product'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* 4. PRODUCTS INDEX DIRECTORY */}
-      <div className="bg-white border border-black/15 rounded-3xl p-6 shadow-sm text-left">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/10 pb-4 mb-6">
-          <h3 className="font-display text-xl uppercase tracking-wider font-bold">
-            Curated Products ({filteredProducts.length})
-          </h3>
-
-          {/* Filtering tools */}
-          <div className="flex flex-wrap gap-2.5 items-center">
-            {/* Search Input bar */}
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-3 text-[#112133]/45" />
-              <input 
-                type="text" 
-                placeholder="Search SKU, brand or title..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="text-xs font-medium pl-8 pr-4 py-2 rounded-xl border border-black/15 bg-neutral-50 focus:ring-1 focus:ring-[#7D2AE8] w-48"
-              />
-            </div>
-
-            {/* Category selection */}
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="text-xs font-bold px-3 py-2 rounded-xl border border-black/15 bg-white appearance-none pr-8 relative"
-            >
-              <option value="All">All Categories</option>
-              <option value="Ethnic Wear">Ethnic Wear</option>
-              <option value="Formals">Formals</option>
-              <option value="Streetwear">Streetwear</option>
-              <option value="Casuals">Casuals</option>
-            </select>
-
-            {/* Stock filter */}
-            <select
-              value={stockFilter}
-              onChange={(e) => setStockFilter(e.target.value)}
-              className="text-xs font-bold px-3 py-2 rounded-xl border border-black/15 bg-white appearance-none pr-8 relative"
-            >
-              <option value="All">All Stock Levels</option>
-              <option value="In Stock">In Stock Only</option>
-              <option value="Out of Stock">Out of Stock Only</option>
-            </select>
-          </div>
+      {/* FILTER & SEARCH PANEL */}
+      <div className="bg-[#FAF9F6] border border-black/10 rounded-2xl p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by title, brand, ID..."
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white focus:ring-2 focus:ring-[#7D2AE8]"
+          />
         </div>
 
-        {/* Listings elements */}
-        {filteredProducts.length === 0 ? (
-          <div className="py-20 text-center text-[#112133]/30">
-            <Archive size={32} className="mx-auto text-black/15 mb-2" />
-            <p className="text-sm font-bold">No catalog matches found.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-black/10 text-black/45 uppercase tracking-wider font-mono text-[9px]">
-                  <th className="py-3 px-2">SKU ID</th>
-                  <th className="py-3 px-2">Item Details</th>
-                  <th className="py-3 px-2">Broad Segment</th>
-                  <th className="py-3 px-2">Retail Price</th>
-                  <th className="py-3 px-2">Multi-Outlets Links</th>
-                  <th className="py-3 px-2">Stock Condition</th>
-                  <th className="py-3 px-2 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/5 font-sans font-bold">
-                {filteredProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-neutral-50/50 transition">
-                    <td className="py-4 px-2 font-mono text-[10px] text-[#7D2AE8]">
-                      {p.id}
-                    </td>
-                    <td className="py-4 px-2">
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src={p.images[0] || 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=100&auto=format&fit=crop'} 
-                          alt="preview" 
-                          className="w-12 h-12 object-cover rounded-lg border border-black/5 flex-shrink-0" 
-                        />
-                        <div className="flex flex-col text-left">
-                          <span className="text-black leading-tight mb-0.5">{p.title}</span>
-                          <span className="text-[10px] text-[#112133]/50 font-black tracking-normal uppercase">{p.brand} ({p.fitType})</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-2">
-                      <div className="flex flex-col">
-                        <span className="text-black">{p.category}</span>
-                        <span className="text-[10px] text-neutral-400 font-normal">{p.subCategory || 'No segment'}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-2 font-mono text-black font-extrabold">
-                      ₹{p.priceAtRetailer}
-                    </td>
-                    <td className="py-4 px-2 text-left">
-                      {p.merchantLinks && p.merchantLinks.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {p.merchantLinks.map((ml, idx) => (
-                            <span 
-                              key={idx} 
-                              className="text-[8px] uppercase tracking-wider font-extrabold bg-[#00C4CC]/5 text-[#00C4CC] border border-[#00C4CC]/10 px-1.5 py-0.5 rounded"
-                              title={ml.url}
-                            >
-                              {ml.retailer}: ₹{ml.price}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-[9px] text-[#112133]/40 font-normal">Primary only</span>
-                      )}
-                    </td>
-                    <td className="py-4 px-2">
-                      {p.outOfStock ? (
-                        <span className="inline-flex items-center gap-1 bg-[#FF3F6C]/10 text-[#FF3F6C] px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
-                          Out Of Stock
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">
-                          In Stock
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-4 px-2 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {/* Toggle stock availability instantly */}
-                        <button 
-                          onClick={() => handleToggleStock(p)}
-                          className="px-2.5 py-1.5 rounded-xl border border-black/10 hover:bg-black/5 text-[9px] uppercase font-black tracking-wider transition"
-                          title="Instant Stock Toggle"
-                        >
-                          {p.outOfStock ? 'Mark Available' : 'Mark OOS'}
-                        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white"
+          >
+            <option value="All">All Categories</option>
+            {BROAD_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
 
-                        {/* Edit details */}
-                        <button 
-                          onClick={() => handleOpenEditForm(p)}
-                          className="p-2 rounded-xl bg-black/5 hover:bg-black/10 text-[#7D2AE8] transition"
-                          title="Edit specs"
-                        >
-                          <Edit2 size={12} />
-                        </button>
-
-                        {/* Delete item */}
-                        <button 
-                          onClick={() => handleDeleteItem(p)}
-                          className="p-2 rounded-xl bg-black/5 hover:bg-[#FF3F6C]/10 text-[#FF3F6C] transition"
-                          title="Delete design"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+          <select
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value)}
+            className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white"
+          >
+            <option value="All">All Stock Status</option>
+            <option value="In Stock">In Stock Only</option>
+            <option value="Out of Stock">Out of Stock Only</option>
+          </select>
+        </div>
       </div>
 
+      {/* PRODUCTS TABLE LIST */}
+      <div className="bg-white border border-[#112133]/15 rounded-3xl overflow-hidden shadow-sm">
+        <div className="p-4 md:p-6 border-b border-[#112133]/10 bg-[#FAF9F6] flex justify-between items-center">
+          <h2 className="font-display text-lg uppercase font-black text-black/75">
+            Curated Garments Catalogue ({filteredProducts.length})
+          </h2>
+          <span className="text-[10px] bg-black/10 text-black/60 px-2.5 py-1 rounded-full font-mono font-bold">
+            Total active DB count: {products.length}
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="bg-black/5 text-[9px] font-black uppercase tracking-widest text-black/45 border-b border-[#112133]/10">
+                <th className="py-3 px-6">Product Image</th>
+                <th className="py-3 px-6">ID / Brand</th>
+                <th className="py-3 px-6">Title</th>
+                <th className="py-3 px-6">Segment / Type</th>
+                <th className="py-3 px-6">Price</th>
+                <th className="py-3 px-6">Availability</th>
+                <th className="py-3 px-6 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#112133]/5 text-xs font-bold">
+              {filteredProducts.map(p => (
+                <tr key={p.id} className="hover:bg-black/3 transition-colors">
+                  <td className="py-4 px-6">
+                    <img 
+                      src={p.images[0]} 
+                      alt="" 
+                      className="w-12 h-16 object-cover rounded-lg border border-black/10 shadow-inner" 
+                      referrerPolicy="no-referrer"
+                    />
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="text-[10px] font-mono block text-black/45">{p.id}</span>
+                    <span className="text-xs font-black uppercase text-[#7D2AE8]">{p.brand}</span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="line-clamp-2 max-w-xs">{p.title}</span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="block text-[10px] text-black/55">{p.productSegment}</span>
+                    <span className="block font-black text-[#00C4CC]">{p.productType}</span>
+                  </td>
+                  <td className="py-4 px-6 font-mono text-sm text-[#7D2AE8]">
+                    ₹{p.priceAtRetailer.toLocaleString('en-IN')}
+                  </td>
+                  <td className="py-4 px-6">
+                    <button
+                      onClick={() => handleToggleStock(p)}
+                      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border ${
+                        p.outOfStock 
+                          ? 'bg-red-500/10 text-red-700 border-red-500/20' 
+                          : 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
+                      }`}
+                    >
+                      {p.outOfStock ? '✕ Out of Stock' : '✓ In Stock'}
+                    </button>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleOpenEditForm(p)}
+                        className="p-2 bg-[#FAF9F6] border border-black/15 text-[#112133] hover:text-[#7D2AE8] hover:border-[#7D2AE8]/30 rounded-xl transition"
+                        title="Edit Entry"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(p)}
+                        className="p-2 bg-red-500/5 border border-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition"
+                        title="Delete Entry"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+              {filteredProducts.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-[#112133]/50 italic">
+                    No curated products matching filter query.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
-export default Admin;

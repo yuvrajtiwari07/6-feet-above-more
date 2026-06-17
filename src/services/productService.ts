@@ -34,6 +34,7 @@ function sanitizeProduct(p: Product): Product {
     brand:          p.brand.trim(),
     title:          p.title.trim(),
     category:       p.category.trim(),
+    categories:     (p.categories ?? []).filter(Boolean),
     subCategory:    p.subCategory?.trim(),
     productSegment: p.productSegment.trim(),
     productType:    p.productType.trim(),
@@ -46,17 +47,10 @@ function sanitizeProduct(p: Product): Product {
     seasons:        (p.seasons ?? []).filter(Boolean),
     colors:         (p.colors ?? []).filter(Boolean),
     sizes:          (p.sizes ?? []).filter(Boolean),
-    // Computed
-    reviewsCount:   p.customReviews?.length ?? 0,
-    averageRating:
-      p.customReviews && p.customReviews.length > 0
-        ? Number(
-            (
-              p.customReviews.reduce((acc, r) => acc + r.rating, 0) /
-              p.customReviews.length
-            ).toFixed(1)
-          )
-        : 5.0,
+    tags:           (p.tags ?? []).filter(Boolean),
+    heightRanges:   (p.heightRanges ?? []).filter(Boolean),
+    bodyTypes:      (p.bodyTypes ?? []).filter(Boolean),
+    fitHighlights:  (p.fitHighlights ?? []).filter(Boolean),
   };
 }
 
