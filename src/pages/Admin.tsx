@@ -317,15 +317,200 @@ export const Admin: React.FC = () => {
     }
   }, [id]);
 
+  const applyCuratedUrlResponse = useCallback((data: any) => {
+    if (data.brand) setBrand(data.brand);
+    if (data.title) setTitle(data.title);
+    if (data.material) setMaterial(data.material);
+    if (data.retailer) setRetailer(data.retailer);
+    if (data.price) setPriceAtRetailer(data.price);
+    setAffiliateUrl(importUrl.trim());
+
+    // Broad Category mapping
+    const selectedCats: string[] = [];
+    if (data.category === 'Ethnic Wear') {
+      selectedCats.push('Ethnic Wear');
+    } else if (data.category === 'Formals') {
+      selectedCats.push('Formal Wear', 'Business Casual');
+    } else if (data.category === 'Streetwear') {
+      selectedCats.push('Streetwear', 'Casual Wear');
+    } else if (data.category === 'Casuals') {
+      selectedCats.push('Casual Wear');
+    }
+    setCategories(selectedCats);
+
+    // Occasions mapping
+    if (data.occasions && Array.isArray(data.occasions)) {
+      const matchedOccs = data.occasions
+        .map((o: string) => {
+          const matched = OCCASIONS.find(opt => opt.toLowerCase().includes(o.toLowerCase()));
+          return matched || null;
+        })
+        .filter(Boolean) as string[];
+      setOccasions(matchedOccs.length > 0 ? matchedOccs : ['Daily Wear']);
+    }
+
+    // Seasons mapping
+    if (data.seasons && Array.isArray(data.seasons)) {
+      const matchedSeas = data.seasons
+        .map((s: string) => {
+          const matched = SEASONS.find(opt => opt.toLowerCase().includes(s.toLowerCase()));
+          return matched || null;
+        })
+        .filter(Boolean) as string[];
+      setSeasons(matchedSeas.length > 0 ? matchedSeas : ['All Season']);
+    }
+
+    // Colors mapping
+    if (data.colors && Array.isArray(data.colors)) {
+      const matchedColors = data.colors
+        .map((c: string) => {
+          const matched = COLORS.find(opt => opt.name.toLowerCase() === c.toLowerCase() || opt.name.toLowerCase().includes(c.toLowerCase()));
+          return matched ? matched.name : null;
+        })
+        .filter(Boolean) as string[];
+      if (matchedColors.length > 0) setColors(matchedColors);
+    }
+
+    // subCategory & segments detection
+    if (data.subCategory) {
+      const combinedText = `${data.title || ''} ${data.category || ''} ${data.subCategory || ''}`.toLowerCase();
+      let detectedSegment = 'Upperwear';
+      let detectedType = 'T-Shirt';
+
+      if (combinedText.match(/jeans|trouser|pant|cargo|chino|shorts/)) {
+        detectedSegment = 'Bottomwear';
+        detectedType = combinedText.includes('jeans') ? 'Jeans'
+          : combinedText.includes('cargo') ? 'Cargo Pants'
+          : combinedText.includes('jogger') ? 'Joggers'
+          : combinedText.includes('chino') ? 'Chinos'
+          : combinedText.includes('shorts') ? 'Shorts'
+          : 'Trousers';
+      } else if (combinedText.match(/shoe|sneaker|boot|loafer/)) {
+        detectedSegment = 'Footwear';
+        detectedType = combinedText.includes('sneaker') ? 'Sneakers'
+          : combinedText.includes('boot') ? 'Boots'
+          : combinedText.includes('loafer') ? 'Loafers'
+          : 'Formal Shoes';
+      } else if (combinedText.match(/hoodie|sweatshirt|jacket|overshirt/)) {
+        detectedSegment = 'Outerwear';
+        detectedType = combinedText.includes('hoodie') ? 'Hoodie'
+          : combinedText.includes('sweatshirt') ? 'Sweatshirt'
+          : combinedText.includes('overshirt') ? 'Overshirt'
+          : 'Jacket';
+      } else if (combinedText.match(/kurta|nehru/)) {
+        detectedSegment = 'Ethnic Wear';
+        detectedType = combinedText.includes('set') ? 'Kurta Set'
+          : combinedText.includes('nehru') ? 'Nehru Jacket'
+          : 'Kurta';
+      } else if (combinedText.match(/belt|cap|wallet|socks/)) {
+        detectedSegment = 'Accessories';
+        detectedType = combinedText.includes('belt') ? 'Belt'
+          : combinedText.includes('cap') ? 'Cap'
+          : combinedText.includes('wallet') ? 'Wallet'
+          : 'Socks';
+      } else {
+        detectedType = combinedText.includes('shirt') ? 'Shirt'
+          : combinedText.includes('polo') ? 'Polo'
+          : combinedText.includes('henley') ? 'Henley'
+          : 'T-Shirt';
+      }
+
+      setProductSegment(detectedSegment);
+      setProductType(detectedType);
+      setSizes(getSizeOptions(detectedSegment).slice(1, 5));
+    }
+
+    // Tall Curation centerpiece parameters
+    if (data.tallFit) {
+      if (data.tallFit.tallFriendly !== undefined) {
+        setTallFriendly(!!data.tallFit.tallFriendly);
+      }
+      
+      // Height Ranges
+      if (data.tallFit.recommendedHeightRanges && Array.isArray(data.tallFit.recommendedHeightRanges)) {
+        const matchedHeights = data.tallFit.recommendedHeightRanges
+          .map((h: string) => {
+            if (h.includes('6\'0') || h.includes('6\'1') || h.includes('6.0') || h.includes('6.1')) return "6'0–6'2";
+            if (h.includes('6\'2') || h.includes('6\'3') || h.includes('6.2') || h.includes('6.3')) return "6'2–6'4";
+            if (h.includes('6\'4') || h.includes('6\'5') || h.includes('6.4') || h.includes('6.5')) return "6'4–6'6";
+            if (h.includes('6\'6') || h.includes('6.6') || h.includes('+')) return "6'6+";
+            return null;
+          })
+          .filter(Boolean) as string[];
+        if (matchedHeights.length > 0) {
+          setSelectedHeightRanges([...new Set(matchedHeights)]);
+        }
+      }
+
+      // Body Types
+      if (data.tallFit.bodyTypes && Array.isArray(data.tallFit.bodyTypes)) {
+        const matchedBody = data.tallFit.bodyTypes
+          .map((b: string) => {
+            if (b.toLowerCase().includes('slim')) return 'Slim';
+            if (b.toLowerCase().includes('athletic')) return 'Athletic';
+            if (b.toLowerCase().includes('broad')) return 'Broad';
+            if (b.toLowerCase().includes('heavy')) return 'Heavy Build';
+            return null;
+          })
+          .filter(Boolean) as string[];
+        if (matchedBody.length > 0) {
+          setSelectedBodyTypes([...new Set(matchedBody)]);
+        }
+      }
+
+      // Tall Fit Highlights
+      if (data.tallFit.highlights && Array.isArray(data.tallFit.highlights)) {
+        const matchedHighlights = data.tallFit.highlights
+          .map((hl: string) => {
+            const lower = hl.toLowerCase();
+            if (lower.includes('sleeve')) return 'Long Sleeves';
+            if (lower.includes('inseam')) return 'Long Inseam';
+            if (lower.includes('shoulder')) return 'Broad Shoulder Friendly';
+            if (lower.includes('torso') || lower.includes('length')) return 'Extended Torso Fit';
+            if (lower.includes('leg') || lower.includes('room')) return 'Extra Leg Room';
+            if (lower.includes('rise')) return 'Long Rise';
+            return null;
+          })
+          .filter(Boolean) as string[];
+        if (matchedHighlights.length > 0) {
+          setSelectedFitHighlights([...new Set(matchedHighlights)]);
+        }
+      }
+    }
+
+    // Images
+    if (data.images && data.images.length > 0) {
+      setImages(data.images);
+    }
+
+    // Slug / ID generation
+    if (data.title && !id.startsWith('prod-')) {
+      const slugId = data.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 60);
+      setId(slugId);
+    }
+
+    // Tags list
+    const suggestedTags = ['tall-friendly', (data.brand || 'brand').toLowerCase()];
+    if (data.tags && Array.isArray(data.tags)) {
+      setTags([...new Set([...suggestedTags, ...data.tags.map(t => t.toLowerCase())])]);
+    } else {
+      setTags(suggestedTags);
+    }
+  }, [id, importUrl]);
+
   const handleImportFromUrl = async () => {
     if (!importUrl.trim()) return;
     setImportStatus('loading');
-    setImportMessage('');
+    setImportMessage('Curating Attributes...');
     setDetectedRetailer('');
 
     try {
       const token = await getAccessToken();
-      const res = await fetch('/api/admin/import-product', {
+      const res = await fetch('/api/curate/import-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -336,21 +521,52 @@ export const Admin: React.FC = () => {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error ?? 'Import failed');
+        throw new Error(data.error ?? 'Gemini import failed');
       }
 
-      setDetectedRetailer(data.retailerName ?? '');
-      applyImportedProduct(data.product);
+      setDetectedRetailer(data.retailer ?? '');
+      applyCuratedUrlResponse(data);
       setImportStatus('success');
-      setImportMessage('Imported successfully! AI auto-categorization complete. Review tall curation settings.');
+      setImportMessage(`Imported and Curated via ${data.source || 'AI'}! Review all settings before creating.`);
 
       setTimeout(() => {
         setImportStatus('idle');
         setImportMessage('');
-      }, 6000);
+      }, 8000);
     } catch (err: any) {
-      setImportStatus('error');
-      setImportMessage(err.message ?? 'Unable to import product data. Try another URL.');
+      console.warn('Gemini curation failed. Switching to standard parser...', err.message);
+      setImportMessage('Gemini failed. Switching to standard parser...');
+
+      // Fallback to old importer
+      try {
+        const token = await getAccessToken();
+        const res = await fetch('/api/admin/import-product', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ url: importUrl.trim() }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error ?? 'Fallback import failed');
+        }
+
+        setDetectedRetailer(data.retailerName ?? '');
+        applyImportedProduct(data.product);
+        setImportStatus('success');
+        setImportMessage('Imported successfully using standard parser. Review tall curation settings.');
+
+        setTimeout(() => {
+          setImportStatus('idle');
+          setImportMessage('');
+        }, 6000);
+      } catch (fallbackErr: any) {
+        setImportStatus('error');
+        setImportMessage(fallbackErr.message ?? 'Unable to import product data. Try another URL.');
+      }
     }
   };
 
