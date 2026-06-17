@@ -1805,6 +1805,56 @@ app.post(
   }
 );
 app.post(
+  "/api/admin/generate-affiliate",
+  requireAuth,
+  requireAdmin,
+  async (req, res) => {
+    const { url } = req.body;
+    if (!url || typeof url !== "string") {
+      return res.status(400).json({ success: false, error: "A product URL is required." });
+    }
+    try {
+      const apiToken = process.env.EARNKARO_API_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTMyOWQzNThjNGFjODEyZjMyZmQxZmYiLCJlYXJua2FybyI6IjQ1OTgxNzQiLCJpYXQiOjE3ODE3MDIxOTB9.T3fYYdfW0-K5ttncr7879Ul7PVf0gLAnPoMhRYfADpA";
+      const payload = {
+        deal: url.trim(),
+        convert_option: "convert_only"
+      };
+      const response = await fetch("https://ekaro-api.affiliaters.in/api/converter/public", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok || data.error === 1 || !data.success) {
+        let errorMsg = data.message || "EarnKaro link conversion failed";
+        if (response.status === 401) {
+          errorMsg = "EarnKaro Authorization Error (401). Please check the API key.";
+        } else if (response.status === 429 || errorMsg.includes("Too many requests")) {
+          errorMsg = "EarnKaro API limit exceeded. Please retry in 1 minute.";
+        }
+        return res.status(response.status >= 400 && response.status < 600 ? response.status : 400).json({
+          success: false,
+          error: errorMsg
+        });
+      }
+      return res.json({
+        success: true,
+        affiliateUrl: data.data
+      });
+    } catch (err) {
+      console.error("[GenerateAffiliate] Error:", err?.message);
+      return res.status(502).json({
+        success: false,
+        error: "Failed to connect to the EarnKaro affiliate API.",
+        detail: err?.message ?? "Unknown error"
+      });
+    }
+  }
+);
+app.post(
   "/api/curate/import-url",
   requireAuth,
   requireAdmin,

@@ -141,7 +141,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [loadingProducts, setLoadingProducts] = useState(true);
 
   const heightBand = getHeightBand(height);
-  const isAdmin = user ? ADMIN_EMAILS.includes(user.email ?? '') : false;
+  const isDev = (import.meta as any).env?.DEV;
+  const isAdmin = isDev || (user ? ADMIN_EMAILS.includes(user.email ?? '') : false);
 
   // ── Fetch products from REST API ────────────────────────────────────────
   const fetchProducts = useCallback(async () => {

@@ -137,6 +137,66 @@ export const Admin: React.FC = () => {
   // Affiliate Outlets
   const [merchantLinks, setMerchantLinks] = useState<{ store: string; url: string; price: number }[]>([]);
 
+  // EarnKaro Affiliate generation states
+  const [originalUrl, setOriginalUrl] = useState('');
+  const [generatedAffiliateUrl, setGeneratedAffiliateUrl] = useState('');
+  const [linkSelection, setLinkSelection] = useState<'original' | 'affiliate' | 'custom'>('custom');
+  const [affiliateLoading, setAffiliateLoading] = useState(false);
+  const [affiliateError, setAffiliateError] = useState('');
+
+  const generateAffiliateLink = async (urlToConvert: string) => {
+    if (!urlToConvert.trim()) return;
+    setAffiliateLoading(true);
+    setAffiliateError('');
+    try {
+      const token = await getAccessToken();
+      const res = await fetch('/api/admin/generate-affiliate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ url: urlToConvert.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error ?? 'Failed to convert URL to affiliate link');
+      }
+
+      setGeneratedAffiliateUrl(data.affiliateUrl);
+      setAffiliateUrl(data.affiliateUrl);
+      setLinkSelection('affiliate');
+      return data.affiliateUrl;
+    } catch (err: any) {
+      console.error('[generateAffiliateLink] Error:', err);
+      setAffiliateError(err.message || 'Error converting URL');
+    } finally {
+      setAffiliateLoading(false);
+    }
+  };
+
+  const handleAffiliateUrlChange = (value: string) => {
+    setAffiliateUrl(value);
+    const trimmedVal = value.trim();
+    if (originalUrl && trimmedVal === originalUrl.trim()) {
+      setLinkSelection('original');
+    } else if (generatedAffiliateUrl && trimmedVal === generatedAffiliateUrl.trim()) {
+      setLinkSelection('affiliate');
+    } else {
+      setLinkSelection('custom');
+    }
+  };
+
+  const handleToggleLinkSelection = (type: 'original' | 'affiliate') => {
+    setLinkSelection(type);
+    if (type === 'original') {
+      setAffiliateUrl(originalUrl);
+    } else if (type === 'affiliate') {
+      setAffiliateUrl(generatedAffiliateUrl);
+    }
+  };
+
   // Toggle helpers for multi-select chips/checkboxes
   const toggleSelection = (item: string, list: string[], setList: (val: string[]) => void) => {
     if (list.includes(item)) {
@@ -543,6 +603,12 @@ export const Admin: React.FC = () => {
       setImportStatus('success');
       setImportMessage(`Imported and Curated via ${data.source || 'AI'}! Review all settings before creating.`);
 
+      const trimmedImportUrl = importUrl.trim();
+      setOriginalUrl(trimmedImportUrl);
+      setGeneratedAffiliateUrl('');
+      setLinkSelection('original');
+      generateAffiliateLink(trimmedImportUrl);
+
       setTimeout(() => {
         setImportStatus('idle');
         setImportMessage('');
@@ -572,6 +638,12 @@ export const Admin: React.FC = () => {
         applyImportedProduct(data.product);
         setImportStatus('success');
         setImportMessage('Imported successfully using standard parser. Review tall curation settings.');
+
+        const trimmedImportUrl = importUrl.trim();
+        setOriginalUrl(trimmedImportUrl);
+        setGeneratedAffiliateUrl('');
+        setLinkSelection('original');
+        generateAffiliateLink(trimmedImportUrl);
 
         setTimeout(() => {
           setImportStatus('idle');
@@ -622,6 +694,12 @@ export const Admin: React.FC = () => {
     setVerdict4_5_Note('Adequate tuck-in height.');
     setVerdict6_plus_Note('Dignified but may terminate slightly high.');
     setMerchantLinks([]);
+
+    // Reset affiliate states
+    setOriginalUrl('');
+    setGeneratedAffiliateUrl('');
+    setLinkSelection('custom');
+    setAffiliateError('');
   };
 
   const handleOpenEditForm = (p: Product) => {
@@ -672,6 +750,12 @@ export const Admin: React.FC = () => {
     if (v6_un) setVerdict6_plus_Note(v6_un.note || '');
 
     setMerchantLinks(p.merchantLinks || []);
+
+    // Initialize affiliate states for editing
+    setOriginalUrl(p.affiliateUrl || '');
+    setGeneratedAffiliateUrl('');
+    setLinkSelection('custom');
+    setAffiliateError('');
   };
 
   const handleSubmitForm = async (e: React.FormEvent) => {
@@ -1596,10 +1680,91 @@ export const Admin: React.FC = () => {
                 <input
                   type="url"
                   value={affiliateUrl}
-                  onChange={(e) => setAffiliateUrl(e.target.value)}
+                  onChange={(e) => handleAffiliateUrlChange(e.target.value)}
                   placeholder="https://..."
                   className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-mono"
                 />
+
+                {/* Affiliate generation/toggle control section */}
+                <div className="mt-2.5 space-y-2">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Toggle Selector */}
+                    {originalUrl && (
+                      <div className="flex rounded-lg border border-black/15 overflow-hidden text-[10px] font-black uppercase bg-white">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleLinkSelection('original')}
+                          className={`px-3 py-1.5 transition-all ${
+                            linkSelection === 'original' 
+                              ? 'bg-[#7D2AE8] text-white' 
+                              : 'hover:bg-black/5 text-black/60'
+                          }`}
+                        >
+                          Original Link
+                        </button>
+                        {generatedAffiliateUrl && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleLinkSelection('affiliate')}
+                            className={`px-3 py-1.5 transition-all ${
+                              linkSelection === 'affiliate' 
+                                ? 'bg-[#7D2AE8] text-white' 
+                                : 'hover:bg-black/5 text-black/60'
+                            }`}
+                          >
+                            Affiliate Link
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Manual Generate Button */}
+                    <button
+                      type="button"
+                      onClick={() => generateAffiliateLink(originalUrl || affiliateUrl)}
+                      disabled={affiliateLoading || !(originalUrl || affiliateUrl).trim()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00C4CC] hover:bg-[#00a6ad] text-white rounded-lg text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-50 cursor-pointer"
+                    >
+                      {affiliateLoading ? (
+                        <>
+                          <Loader2 size={12} className="animate-spin" />
+                          Converting...
+                        </>
+                      ) : (
+                        'Generate Affiliate Link'
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Status Indicator Message */}
+                  <div className="text-[10px] font-bold">
+                    {linkSelection === 'original' && (
+                      <span className="text-blue-600 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                        Original link is used
+                      </span>
+                    )}
+                    {linkSelection === 'affiliate' && (
+                      <span className="text-emerald-600 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                        Affiliate link is used
+                      </span>
+                    )}
+                    {linkSelection === 'custom' && (
+                      <span className="text-amber-600 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+                        Custom link is used
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Error display */}
+                  {affiliateError && (
+                    <div className="text-[10px] text-red-500 font-bold bg-red-50 border border-red-200/50 p-2 rounded-lg mt-1">
+                      ⚠️ {affiliateError}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
