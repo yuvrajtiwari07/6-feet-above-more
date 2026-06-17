@@ -318,11 +318,12 @@ export const Admin: React.FC = () => {
   }, [id]);
 
   const applyCuratedUrlResponse = useCallback((data: any) => {
-    if (data.brand) setBrand(data.brand);
-    if (data.title) setTitle(data.title);
-    if (data.material) setMaterial(data.material);
-    if (data.retailer) setRetailer(data.retailer);
-    if (data.price) setPriceAtRetailer(data.price);
+    setBrand(data.brand || '');
+    setTitle(data.title || '');
+    setMaterial(data.material || '');
+    setRetailer(data.retailer || '');
+    setPriceAtRetailer(data.price || 0);
+    setImages(data.images || []);
     setAffiliateUrl(importUrl.trim());
 
     // Broad Category mapping
@@ -336,7 +337,7 @@ export const Admin: React.FC = () => {
     } else if (data.category === 'Casuals') {
       selectedCats.push('Casual Wear');
     }
-    setCategories(selectedCats);
+    setCategories(selectedCats.length > 0 ? selectedCats : ['Casual Wear']);
 
     // Occasions mapping
     if (data.occasions && Array.isArray(data.occasions)) {
@@ -347,6 +348,8 @@ export const Admin: React.FC = () => {
         })
         .filter(Boolean) as string[];
       setOccasions(matchedOccs.length > 0 ? matchedOccs : ['Daily Wear']);
+    } else {
+      setOccasions(['Daily Wear']);
     }
 
     // Seasons mapping
@@ -364,11 +367,20 @@ export const Admin: React.FC = () => {
     if (data.colors && Array.isArray(data.colors)) {
       const matchedColors = data.colors
         .map((c: string) => {
-          const matched = COLORS.find(opt => opt.name.toLowerCase() === c.toLowerCase() || opt.name.toLowerCase().includes(c.toLowerCase()));
-          return matched ? matched.name : null;
+          if (!c) return null;
+          const clean = c.trim();
+          const matched = COLORS.find(opt => 
+            opt.name.toLowerCase() === clean.toLowerCase() || 
+            opt.name.toLowerCase().includes(clean.toLowerCase()) ||
+            clean.toLowerCase().includes(opt.name.toLowerCase())
+          );
+          if (matched) return matched.name;
+          return clean.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         })
         .filter(Boolean) as string[];
-      if (matchedColors.length > 0) setColors(matchedColors);
+      setColors(matchedColors.length > 0 ? matchedColors : []);
+    } else {
+      setColors([]);
     }
 
     // subCategory & segments detection
@@ -1099,7 +1111,7 @@ export const Admin: React.FC = () => {
                 <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
                   Colors
                 </label>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2.5 mb-2.5">
                   {COLORS.map(color => {
                     const isSelected = colors.includes(color.name);
                     return (
@@ -1121,6 +1133,42 @@ export const Admin: React.FC = () => {
                       </button>
                     );
                   })}
+                  {colors
+                    .filter(c => !COLORS.some(opt => opt.name.toLowerCase() === c.toLowerCase()))
+                    .map(customColor => (
+                      <button
+                        type="button"
+                        key={customColor}
+                        onClick={() => toggleSelection(customColor, colors, setColors)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-[#7D2AE8] text-white shadow-sm ring-2 ring-[#7D2AE8]/20"
+                      >
+                        <span 
+                          className="w-3.5 h-3.5 rounded-full shadow-inner border border-black/10 bg-gradient-to-r from-violet-400 to-indigo-500" 
+                        />
+                        <span>{customColor}</span>
+                        <X className="w-3.5 h-3.5 ml-0.5" />
+                      </button>
+                    ))}
+                </div>
+                <div className="flex gap-2 max-w-[240px]">
+                  <input
+                    type="text"
+                    placeholder="Add custom color..."
+                    className="flex-1 px-3 py-1.5 text-xs border border-black/15 rounded bg-white text-black placeholder:text-black/35 focus:outline-none focus:border-[#7D2AE8]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = e.currentTarget.value.trim();
+                        if (val) {
+                          const formatted = val.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                          if (!colors.includes(formatted)) {
+                            setColors([...colors, formatted]);
+                          }
+                          e.currentTarget.value = '';
+                        }
+                      }
+                    }}
+                  />
                 </div>
               </div>
 

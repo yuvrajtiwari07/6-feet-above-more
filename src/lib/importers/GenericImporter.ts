@@ -121,14 +121,9 @@ export class GenericImporter extends BaseImporter {
 
     const title = (meta['og:title'] ?? $('h1').first().text().trim()) || undefined;
     const description = meta['og:description'] ?? $('meta[name="description"]').attr('content') ?? undefined;
-    const images: string[] = [];
-
-    // Collect og:image and og:image:secure_url
-    if (meta['og:image:secure_url']) images.push(meta['og:image:secure_url']);
-    else if (meta['og:image']) images.push(meta['og:image']);
-
-    const priceRaw = meta['product:price:amount'] ?? meta['og:price:amount'] ?? '';
-    const price = this.parsePrice(priceRaw) || undefined;
+    
+    const price = this.extractPriceFromDom(html);
+    const images = this.extractImagesFromDom(html, url);
 
     const brand = meta['og:brand'] ?? meta['product:brand'] ?? undefined;
 

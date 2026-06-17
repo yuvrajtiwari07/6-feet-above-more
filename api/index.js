@@ -859,6 +859,89 @@ var BaseImporter = class {
     }
     return { price, originalPrice: highPrice, discountPercent };
   }
+  /**
+   * Robust fallback to find all product images in a page's HTML
+   */
+  extractImagesFromDom(html, urlStr) {
+    const $ = cheerio.load(html);
+    const images = [];
+    const meta = this.extractMetaTags(html);
+    const metaKeys = ["og:image", "og:image:secure_url", "twitter:image", "og:image:url"];
+    for (const key of metaKeys) {
+      if (meta[key] && !images.includes(meta[key])) {
+        images.push(meta[key]);
+      }
+    }
+    $("img").each((_, el) => {
+      const src = $(el).attr("src") || $(el).attr("data-src") || $(el).attr("data-zoom-src") || $(el).attr("data-srcset");
+      if (!src) return;
+      const cleanSrc = src.trim().split(" ")[0];
+      if (!cleanSrc.startsWith("http") && !cleanSrc.startsWith("//")) return;
+      const fullSrc = cleanSrc.startsWith("//") ? `https:${cleanSrc}` : cleanSrc;
+      if (images.includes(fullSrc)) return;
+      const low = fullSrc.toLowerCase();
+      if (low.includes("logo") || low.includes("icon") || low.includes("tracker") || low.includes("star") || low.includes("banner") || low.includes("badge") || low.includes("placeholder")) {
+        return;
+      }
+      if (urlStr.includes("myntra.com") && (low.includes("myntassets.com") && (low.includes("assets/images/") || low.includes("h_")))) {
+        images.push(fullSrc);
+      } else if (urlStr.includes("ajio.com") && (low.includes("ajio.com") && (low.includes("prd-images") || low.includes("500x500") || low.includes("1000x1000")))) {
+        images.push(fullSrc);
+      } else if (urlStr.includes("snitch.co") && (low.includes("cdn.shopify.com") || low.includes("snitch"))) {
+        images.push(fullSrc);
+      } else if (urlStr.includes("hm.com") && low.includes("hm.com")) {
+        images.push(fullSrc);
+      } else if (urlStr.includes("zara.com") && low.includes("zara.net")) {
+        images.push(fullSrc);
+      } else if (low.includes("cdn") || low.includes("product") || low.includes("image") || low.includes("media") || low.includes("upload")) {
+        if (!low.includes("avatar") && !low.includes("profile")) {
+          images.push(fullSrc);
+        }
+      }
+    });
+    return images;
+  }
+  /**
+   * Robust fallback to find price in a page's HTML
+   */
+  extractPriceFromDom(html) {
+    const $ = cheerio.load(html);
+    const meta = this.extractMetaTags(html);
+    const priceMetaKeys = [
+      "product:price:amount",
+      "og:price:amount",
+      "price",
+      "product:sale_price:amount",
+      "twitter:data1"
+    ];
+    for (const key of priceMetaKeys) {
+      if (meta[key]) {
+        const val = this.parsePrice(meta[key]);
+        if (val && val > 0) return val;
+      }
+    }
+    const priceSelectors = [
+      ".pdp-price",
+      ".pdp-sp",
+      ".price",
+      ".sale-price",
+      '[itemprop="price"]',
+      ".product-price",
+      ".current-price"
+    ];
+    for (const selector of priceSelectors) {
+      const text = $(selector).first().text();
+      const val = this.parsePrice(text);
+      if (val && val > 0) return val;
+    }
+    const textContent = $("body").text().slice(0, 1e4);
+    const match = textContent.match(/(?:Rs\.?|₹)\s*([\d,]+(?:\.\d{2})?)/i);
+    if (match && match[1]) {
+      const val = this.parsePrice(match[1]);
+      if (val && val > 0) return val;
+    }
+    return void 0;
+  }
 };
 
 // src/lib/importers/MyntraImporter.ts
@@ -873,6 +956,7 @@ var MyntraImporter = class extends BaseImporter {
   async importProduct(url) {
     const html = await this.fetchPage(url);
     const embedded = this.extractEmbeddedState(html, [
+      /window\.__myx\s*=\s*(\{.+?\});?\s*<\/script>/s,
       /window\.__DATA__\s*=\s*(\{.+?\});?\s*<\/script>/s,
       /window\.__PRELOADED_STATE__\s*=\s*(\{.+?\});?\s*<\/script>/s,
       /"pdpData"\s*:\s*(\{.+?\})\s*,\s*"seoData"/s
@@ -892,10 +976,32 @@ var MyntraImporter = class extends BaseImporter {
     const pricing = pdp?.price ?? pdp?.priceInfo ?? {};
     const sizes = pdp?.sizes ?? pdp?.sizeChartDetail ?? [];
     const images = [];
-    const rawImages = media?.images ?? media?.albumMedia ?? [];
-    for (const img of rawImages) {
-      const src = img?.src ?? img?.imageURL ?? img?.url;
-      if (src && typeof src === "string") images.push(src);
+    if (Array.isArray(media?.albums)) {
+      media.albums.forEach((album) => {
+        if (Array.isArray(album.images)) {
+          album.images.forEach((img) => {
+            let src = img?.secureSrc || img?.imageURL || img?.src;
+            if (src && typeof src === "string") {
+              if (src.includes("($height)")) {
+                src = src.replace("($height)", "1080").replace("($width)", "810").replace("($qualityPercentage)", "90");
+              }
+              images.push(src);
+            }
+          });
+        }
+      });
+    }
+    if (images.length === 0) {
+      const rawImages = media?.images ?? media?.albumMedia ?? [];
+      for (const img of rawImages) {
+        let src = img?.secureSrc ?? img?.imageURL ?? img?.src ?? img?.url;
+        if (src && typeof src === "string") {
+          if (src.includes("($height)")) {
+            src = src.replace("($height)", "1080").replace("($width)", "810").replace("($qualityPercentage)", "90");
+          }
+          images.push(src);
+        }
+      }
     }
     const sizeList = sizes.map((s) => s?.label ?? s?.size ?? s?.displayValue).filter(Boolean);
     const name = pdp?.name ?? pdp?.productDisplayName ?? "";
@@ -938,10 +1044,13 @@ var MyntraImporter = class extends BaseImporter {
   parseDom(html, url) {
     const $ = cheerio2.load(html);
     const meta = this.extractMetaTags(html);
+    const price = this.extractPriceFromDom(html);
+    const images = this.extractImagesFromDom(html, url);
     return {
       title: (meta["og:title"] ?? $("h1").first().text().trim()) || void 0,
       description: meta["og:description"] ?? void 0,
-      images: meta["og:image"] ? [meta["og:image"]] : void 0,
+      price,
+      images: images.length > 0 ? images : void 0,
       retailer: "Myntra",
       retailerUrl: url
     };
@@ -1018,11 +1127,11 @@ var AjioImporter = class extends BaseImporter {
     const $ = cheerio3.load(html);
     const meta = this.extractMetaTags(html);
     const title = $(".prod-name").first().text().trim() || meta["og:title"] || $("h1").first().text().trim() || void 0;
-    const priceText = $(".prod-sp").first().text() || meta["product:price:amount"];
-    const images = meta["og:image"] ? [meta["og:image"]] : [];
+    const price = this.extractPriceFromDom(html);
+    const images = this.extractImagesFromDom(html, url);
     return {
       title,
-      price: this.parsePrice(priceText),
+      price,
       description: meta["og:description"] ?? void 0,
       images: images.length > 0 ? images : void 0,
       retailer: "AJIO",
@@ -1539,11 +1648,8 @@ var GenericImporter = class extends BaseImporter {
     const $ = cheerio8.load(html);
     const title = (meta["og:title"] ?? $("h1").first().text().trim()) || void 0;
     const description = meta["og:description"] ?? $('meta[name="description"]').attr("content") ?? void 0;
-    const images = [];
-    if (meta["og:image:secure_url"]) images.push(meta["og:image:secure_url"]);
-    else if (meta["og:image"]) images.push(meta["og:image"]);
-    const priceRaw = meta["product:price:amount"] ?? meta["og:price:amount"] ?? "";
-    const price = this.parsePrice(priceRaw) || void 0;
+    const price = this.extractPriceFromDom(html);
+    const images = this.extractImagesFromDom(html, url);
     const brand = meta["og:brand"] ?? meta["product:brand"] ?? void 0;
     return {
       brand,
@@ -1750,12 +1856,12 @@ Generate a clean, professional, structured curation response matching this JSON 
   "title": "Concise human-friendly display title",
   "category": "One of: 'Ethnic Wear', 'Formals', 'Streetwear', 'Casuals'",
   "subCategory": "Garment detailed style (e.g., Shirts, Kurtas, Cargo Pants)",
-  "material": "Material blend breakdown (e.g., 100% Cotton, Belgian Linen)",
-  "price": 1499,
+  "material": "Material blend breakdown or null/empty if unknown",
+  "price": 1499, // Inferred integer price or null/empty if unknown (do NOT guess if not in raw metadata)
   "retailer": "Retailer platform name",
-  "occasions": ["Daily Wear", "Travel"],
+  "occasions": ["Daily Wear", "Travel"], // or empty array [] if unknown
   "seasons": ["All Season"],
-  "colors": ["Navy", "Olive"],
+  "colors": ["Navy", "Olive"], // or empty array [] if unknown
   "tags": ["relaxed-fit", "tall-friendly"],
   "tallFit": {
     "tallFriendly": true,
@@ -1767,10 +1873,12 @@ Generate a clean, professional, structured curation response matching this JSON 
 
 Strict requirements:
 1. "category" MUST be exactly one of: 'Ethnic Wear', 'Formals', 'Streetwear', 'Casuals'.
-2. The "price" MUST be an integer number.
-3. The response MUST be a single raw JSON object. Do not wrap the JSON output in markdown code blocks or any other formatting.`;
+2. The "price" MUST be an integer number or null. Do NOT guess/hallucinate prices if they are not in the scraped metadata.
+3. The "material" MUST be a string or null. Do NOT guess/hallucinate materials.
+4. The "colors" MUST be an array of strings or empty array []. Do NOT guess/hallucinate colors.
+5. The response MUST be a single raw JSON object. Do not wrap the JSON output in markdown code blocks or any other formatting.`;
         const response = await ai.models.generateContent({
-          model: "gemini-3.5-flash",
+          model: "gemini-2.0-flash",
           contents: prompt,
           config: {
             responseMimeType: "application/json"
@@ -1781,6 +1889,7 @@ Strict requirements:
         return res.json({
           success: true,
           source: "gemini-3.5-flash",
+          images: scraped.images || [],
           ...parsedResult
         });
       } catch (err) {
@@ -1827,7 +1936,7 @@ function runFallbackParser(scraped, url, detectedRetailer) {
     else if (combinedText.includes("jacket")) subCategory = "Jackets";
     else subCategory = "Garments";
   }
-  const price = typeof scraped.price === "number" ? scraped.price : 1499;
+  const price = typeof scraped.price === "number" ? scraped.price : null;
   const highlights = ["Extended Torso Fit"];
   if (combinedText.match(/shirt|jacket|hoodie|sweatshirt/)) {
     highlights.push("Extended Sleeves");
@@ -1837,16 +1946,17 @@ function runFallbackParser(scraped, url, detectedRetailer) {
   return {
     success: true,
     source: "fallback-parser",
-    brand: scraped.brand || "Roadster",
-    title: scraped.title || "Curated Tall Garment",
+    brand: scraped.brand || null,
+    title: scraped.title || null,
+    images: scraped.images || [],
     category,
     subCategory,
-    material: scraped.material || "100% Cotton",
+    material: scraped.material || null,
     price,
     retailer,
-    occasions: scraped.occasions && scraped.occasions.length > 0 ? scraped.occasions : ["Daily Wear"],
+    occasions: scraped.occasions && scraped.occasions.length > 0 ? scraped.occasions : [],
     seasons: scraped.seasons && scraped.seasons.length > 0 ? scraped.seasons : ["All Season"],
-    colors: scraped.colors && scraped.colors.length > 0 ? scraped.colors : ["Navy"],
+    colors: scraped.colors && scraped.colors.length > 0 ? scraped.colors : [],
     tags: scraped.tags && scraped.tags.length > 0 ? scraped.tags : ["relaxed-fit", "tall-friendly"],
     tallFit: {
       tallFriendly: true,

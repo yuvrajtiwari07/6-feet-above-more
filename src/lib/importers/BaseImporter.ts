@@ -168,4 +168,104 @@ export abstract class BaseImporter implements ProductImporter {
 
     return { price, originalPrice: highPrice, discountPercent };
   }
+
+  /**
+   * Robust fallback to find all product images in a page's HTML
+   */
+  protected extractImagesFromDom(html: string, urlStr: string): string[] {
+    const $ = cheerio.load(html);
+    const images: string[] = [];
+    const meta = this.extractMetaTags(html);
+
+    // 1. Gather from OpenGraph and Twitter cards
+    const metaKeys = ['og:image', 'og:image:secure_url', 'twitter:image', 'og:image:url'];
+    for (const key of metaKeys) {
+      if (meta[key] && !images.includes(meta[key])) {
+        images.push(meta[key]);
+      }
+    }
+
+    // 2. Scan all img elements for high-quality product images
+    $('img').each((_, el) => {
+      const src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-zoom-src') || $(el).attr('data-srcset');
+      if (!src) return;
+
+      const cleanSrc = src.trim().split(' ')[0]; // Split srcset potential formats
+      if (!cleanSrc.startsWith('http') && !cleanSrc.startsWith('//')) return;
+      const fullSrc = cleanSrc.startsWith('//') ? `https:${cleanSrc}` : cleanSrc;
+
+      if (images.includes(fullSrc)) return;
+
+      // Filter out tiny UI elements, icons, logos, trackers, stars
+      const low = fullSrc.toLowerCase();
+      if (low.includes('logo') || low.includes('icon') || low.includes('tracker') || low.includes('star') || low.includes('banner') || low.includes('badge') || low.includes('placeholder')) {
+        return;
+      }
+
+      // Domain specific logic
+      if (urlStr.includes('myntra.com') && (low.includes('myntassets.com') && (low.includes('assets/images/') || low.includes('h_')))) {
+        images.push(fullSrc);
+      } else if (urlStr.includes('ajio.com') && (low.includes('ajio.com') && (low.includes('prd-images') || low.includes('500x500') || low.includes('1000x1000')))) {
+        images.push(fullSrc);
+      } else if (urlStr.includes('snitch.co') && (low.includes('cdn.shopify.com') || low.includes('snitch'))) {
+        images.push(fullSrc);
+      } else if (urlStr.includes('hm.com') && low.includes('hm.com')) {
+        images.push(fullSrc);
+      } else if (urlStr.includes('zara.com') && low.includes('zara.net')) {
+        images.push(fullSrc);
+      } else if (low.includes('cdn') || low.includes('product') || low.includes('image') || low.includes('media') || low.includes('upload')) {
+        if (!low.includes('avatar') && !low.includes('profile')) {
+          images.push(fullSrc);
+        }
+      }
+    });
+
+    return images;
+  }
+
+  /**
+   * Robust fallback to find price in a page's HTML
+   */
+  protected extractPriceFromDom(html: string): number | undefined {
+    const $ = cheerio.load(html);
+    const meta = this.extractMetaTags(html);
+
+    // 1. Look for price meta tags
+    const priceMetaKeys = [
+      'product:price:amount',
+      'og:price:amount',
+      'price',
+      'product:sale_price:amount',
+      'twitter:data1'
+    ];
+
+    for (const key of priceMetaKeys) {
+      if (meta[key]) {
+        const val = this.parsePrice(meta[key]);
+        if (val && val > 0) return val;
+      }
+    }
+
+    // 2. Scan DOM elements for price content
+    const priceSelectors = [
+      '.pdp-price', '.pdp-sp', '.price', '.sale-price', 
+      '[itemprop="price"]', '.product-price', '.current-price'
+    ];
+
+    for (const selector of priceSelectors) {
+      const text = $(selector).first().text();
+      const val = this.parsePrice(text);
+      if (val && val > 0) return val;
+    }
+
+    // 3. Regex match for Rs. or ₹ in text (last resort)
+    const textContent = $('body').text().slice(0, 10000);
+    const match = textContent.match(/(?:Rs\.?|₹)\s*([\d,]+(?:\.\d{2})?)/i);
+    if (match && match[1]) {
+      const val = this.parsePrice(match[1]);
+      if (val && val > 0) return val;
+    }
+
+    return undefined;
+  }
 }

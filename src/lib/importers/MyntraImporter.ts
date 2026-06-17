@@ -18,6 +18,7 @@ export class MyntraImporter extends BaseImporter {
 
     // Strategy 1: Extract from embedded window.__DATA__ JSON
     const embedded = this.extractEmbeddedState(html, [
+      /window\.__myx\s*=\s*(\{.+?\});?\s*<\/script>/s,
       /window\.__DATA__\s*=\s*(\{.+?\});?\s*<\/script>/s,
       /window\.__PRELOADED_STATE__\s*=\s*(\{.+?\});?\s*<\/script>/s,
       /"pdpData"\s*:\s*(\{.+?\})\s*,\s*"seoData"/s,
@@ -45,10 +46,39 @@ export class MyntraImporter extends BaseImporter {
     const sizes = pdp?.sizes ?? pdp?.sizeChartDetail ?? [];
 
     const images: string[] = [];
-    const rawImages = media?.images ?? media?.albumMedia ?? [];
-    for (const img of rawImages) {
-      const src = img?.src ?? img?.imageURL ?? img?.url;
-      if (src && typeof src === 'string') images.push(src);
+    if (Array.isArray(media?.albums)) {
+      media.albums.forEach((album: any) => {
+        if (Array.isArray(album.images)) {
+          album.images.forEach((img: any) => {
+            let src = img?.secureSrc || img?.imageURL || img?.src;
+            if (src && typeof src === 'string') {
+              if (src.includes('($height)')) {
+                src = src
+                  .replace('($height)', '1080')
+                  .replace('($width)', '810')
+                  .replace('($qualityPercentage)', '90');
+              }
+              images.push(src);
+            }
+          });
+        }
+      });
+    }
+
+    if (images.length === 0) {
+      const rawImages = media?.images ?? media?.albumMedia ?? [];
+      for (const img of rawImages) {
+        let src = img?.secureSrc ?? img?.imageURL ?? img?.src ?? img?.url;
+        if (src && typeof src === 'string') {
+          if (src.includes('($height)')) {
+            src = src
+              .replace('($height)', '1080')
+              .replace('($width)', '810')
+              .replace('($qualityPercentage)', '90');
+          }
+          images.push(src);
+        }
+      }
     }
 
     const sizeList = sizes
@@ -101,11 +131,14 @@ export class MyntraImporter extends BaseImporter {
   private parseDom(html: string, url: string): ImportedProduct {
     const $ = cheerio.load(html);
     const meta = this.extractMetaTags(html);
+    const price = this.extractPriceFromDom(html);
+    const images = this.extractImagesFromDom(html, url);
 
     return {
       title: (meta['og:title'] ?? $('h1').first().text().trim()) || undefined,
       description: meta['og:description'] ?? undefined,
-      images: meta['og:image'] ? [meta['og:image']] : undefined,
+      price,
+      images: images.length > 0 ? images : undefined,
       retailer: 'Myntra',
       retailerUrl: url,
     };

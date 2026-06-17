@@ -107,12 +107,12 @@ export class AjioImporter extends BaseImporter {
       $('h1').first().text().trim() ||
       undefined;
 
-    const priceText = $('.prod-sp').first().text() || meta['product:price:amount'];
-    const images = meta['og:image'] ? [meta['og:image']] : [];
+    const price = this.extractPriceFromDom(html);
+    const images = this.extractImagesFromDom(html, url);
 
     return {
       title,
-      price: this.parsePrice(priceText),
+      price,
       description: meta['og:description'] ?? undefined,
       images: images.length > 0 ? images : undefined,
       retailer: 'AJIO',

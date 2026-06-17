@@ -179,12 +179,12 @@ Generate a clean, professional, structured curation response matching this JSON 
   "title": "Concise human-friendly display title",
   "category": "One of: 'Ethnic Wear', 'Formals', 'Streetwear', 'Casuals'",
   "subCategory": "Garment detailed style (e.g., Shirts, Kurtas, Cargo Pants)",
-  "material": "Material blend breakdown (e.g., 100% Cotton, Belgian Linen)",
-  "price": 1499,
+  "material": "Material blend breakdown or null/empty if unknown",
+  "price": 1499, // Inferred integer price or null/empty if unknown (do NOT guess if not in raw metadata)
   "retailer": "Retailer platform name",
-  "occasions": ["Daily Wear", "Travel"],
+  "occasions": ["Daily Wear", "Travel"], // or empty array [] if unknown
   "seasons": ["All Season"],
-  "colors": ["Navy", "Olive"],
+  "colors": ["Navy", "Olive"], // or empty array [] if unknown
   "tags": ["relaxed-fit", "tall-friendly"],
   "tallFit": {
     "tallFriendly": true,
@@ -196,11 +196,13 @@ Generate a clean, professional, structured curation response matching this JSON 
 
 Strict requirements:
 1. "category" MUST be exactly one of: 'Ethnic Wear', 'Formals', 'Streetwear', 'Casuals'.
-2. The "price" MUST be an integer number.
-3. The response MUST be a single raw JSON object. Do not wrap the JSON output in markdown code blocks or any other formatting.`;
+2. The "price" MUST be an integer number or null. Do NOT guess/hallucinate prices if they are not in the scraped metadata.
+3. The "material" MUST be a string or null. Do NOT guess/hallucinate materials.
+4. The "colors" MUST be an array of strings or empty array []. Do NOT guess/hallucinate colors.
+5. The response MUST be a single raw JSON object. Do not wrap the JSON output in markdown code blocks or any other formatting.`;
 
         const response = await ai.models.generateContent({
-          model: 'gemini-3.5-flash',
+          model: 'gemini-2.0-flash',
           contents: prompt,
           config: {
             responseMimeType: 'application/json'
@@ -213,6 +215,7 @@ Strict requirements:
         return res.json({
           success: true,
           source: 'gemini-3.5-flash',
+          images: scraped.images || [],
           ...parsedResult
         });
       } catch (err: any) {
@@ -267,7 +270,7 @@ function runFallbackParser(scraped: any, url: string, detectedRetailer: string):
     else subCategory = 'Garments';
   }
 
-  const price = typeof scraped.price === 'number' ? scraped.price : 1499;
+  const price = typeof scraped.price === 'number' ? scraped.price : null;
 
   // Tall fit curation defaults
   const highlights = ['Extended Torso Fit'];
@@ -280,16 +283,17 @@ function runFallbackParser(scraped: any, url: string, detectedRetailer: string):
   return {
     success: true,
     source: 'fallback-parser',
-    brand: scraped.brand || 'Roadster',
-    title: scraped.title || 'Curated Tall Garment',
+    brand: scraped.brand || null,
+    title: scraped.title || null,
+    images: scraped.images || [],
     category,
     subCategory,
-    material: scraped.material || '100% Cotton',
+    material: scraped.material || null,
     price,
     retailer,
-    occasions: scraped.occasions && scraped.occasions.length > 0 ? scraped.occasions : ['Daily Wear'],
+    occasions: scraped.occasions && scraped.occasions.length > 0 ? scraped.occasions : [],
     seasons: scraped.seasons && scraped.seasons.length > 0 ? scraped.seasons : ['All Season'],
-    colors: scraped.colors && scraped.colors.length > 0 ? scraped.colors : ['Navy'],
+    colors: scraped.colors && scraped.colors.length > 0 ? scraped.colors : [],
     tags: scraped.tags && scraped.tags.length > 0 ? scraped.tags : ['relaxed-fit', 'tall-friendly'],
     tallFit: {
       tallFriendly: true,
