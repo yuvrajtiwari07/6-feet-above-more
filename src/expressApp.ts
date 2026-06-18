@@ -276,8 +276,8 @@ Strict requirements:
         return res.json({
           success: true,
           source: 'gemini-3.5-flash',
-          images: scraped.images || [],
-          ...parsedResult
+          ...parsedResult,
+          images: scraped.images && scraped.images.length > 0 ? scraped.images : (parsedResult.images || [])
         });
       } catch (err: any) {
         console.error('[AICuration] Gemini API curation failed. Falling back to structured parser.', err?.message);
