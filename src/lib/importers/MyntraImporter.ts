@@ -25,27 +25,27 @@ export class MyntraImporter extends BaseImporter {
     ]);
 
     if (embedded) {
-      return this.parseEmbeddedData(embedded, url);
+      return this.parseEmbeddedData(embedded, url, html);
     }
 
     // Strategy 2: JSON-LD
     const jsonLd = this.extractJsonLd(html, 'Product');
     if (jsonLd) {
-      return this.parseJsonLd(jsonLd, url);
+      return this.parseJsonLd(jsonLd, url, html);
     }
 
     // Strategy 3: Meta tags + DOM fallback
     return this.parseDom(html, url);
   }
 
-  private parseEmbeddedData(data: any, url: string): ImportedProduct {
+  private parseEmbeddedData(data: any, url: string, html: string): ImportedProduct {
     // Navigate through common Myntra embedded data structures
     const pdp = data?.pdpData ?? data?.product ?? data;
     const media = pdp?.media ?? pdp?.images ?? {};
     const pricing = pdp?.price ?? pdp?.priceInfo ?? {};
     const sizes = pdp?.sizes ?? pdp?.sizeChartDetail ?? [];
 
-    const images: string[] = [];
+    let images: string[] = [];
     if (Array.isArray(media?.albums)) {
       media.albums.forEach((album: any) => {
         if (Array.isArray(album.images)) {
@@ -81,17 +81,22 @@ export class MyntraImporter extends BaseImporter {
       }
     }
 
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
+
     const sizeList = sizes
       .map((s: any) => s?.label ?? s?.size ?? s?.displayValue)
       .filter(Boolean);
 
     const name = pdp?.name ?? pdp?.productDisplayName ?? '';
     const brandName = pdp?.brand?.name ?? pdp?.brandName ?? '';
+    const description = this.stripHtml(pdp?.description ?? pdp?.productDescriptors?.description?.value) || this.extractDescriptionFromDom(html);
 
     return {
       brand: brandName || undefined,
       title: name || undefined,
-      description: this.stripHtml(pdp?.description ?? pdp?.productDescriptors?.description?.value),
+      description,
       price: this.parsePrice(String(pricing?.discounted ?? pricing?.salePrice ?? pricing?.mrp ?? '')),
       originalPrice: this.parsePrice(String(pricing?.mrp ?? '')),
       discountPercent: pricing?.discountPercent ?? undefined,
@@ -107,18 +112,24 @@ export class MyntraImporter extends BaseImporter {
     };
   }
 
-  private parseJsonLd(data: any, url: string): ImportedProduct {
+  private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
-    const images = Array.isArray(data.image)
+    let images = Array.isArray(data.image)
       ? data.image
       : data.image ? [data.image] : [];
+
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
+
+    const description = this.stripHtml(data.description) || this.extractDescriptionFromDom(html);
 
     return {
       brand: data.brand?.name ?? data.brand ?? undefined,
       title: data.name ?? undefined,
-      description: this.stripHtml(data.description),
+      description,
       ...offers,
-      images,
+      images: images.length > 0 ? images : undefined,
       colors: data.color ? [data.color] : undefined,
       material: data.material ?? undefined,
       averageRating: data.aggregateRating?.ratingValue ?? undefined,
@@ -133,10 +144,11 @@ export class MyntraImporter extends BaseImporter {
     const meta = this.extractMetaTags(html);
     const price = this.extractPriceFromDom(html);
     const images = this.extractImagesFromDom(html, url);
+    const description = this.extractDescriptionFromDom(html);
 
     return {
       title: (meta['og:title'] ?? $('h1').first().text().trim()) || undefined,
-      description: meta['og:description'] ?? undefined,
+      description,
       price,
       images: images.length > 0 ? images : undefined,
       retailer: 'Myntra',

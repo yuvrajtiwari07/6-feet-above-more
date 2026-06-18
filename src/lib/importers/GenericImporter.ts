@@ -24,7 +24,7 @@ export class GenericImporter extends BaseImporter {
     const jsonLd = this.extractJsonLd(html, 'Product');
     if (jsonLd?.name) {
       return {
-        ...this.parseJsonLd(jsonLd, url),
+        ...this.parseJsonLd(jsonLd, url, html),
         retailer: retailerName,
         retailerUrl: url,
       };
@@ -35,7 +35,7 @@ export class GenericImporter extends BaseImporter {
       /<script id="__NEXT_DATA__"[^>]*>\s*(\{.+?\})\s*<\/script>/s,
     ]);
     if (nextData) {
-      const parsed = this.parseNextData(nextData, url, retailerName);
+      const parsed = this.parseNextData(nextData, url, html, retailerName);
       if (parsed.title || parsed.price || (parsed.images?.length ?? 0) > 0) {
         return parsed;
       }
@@ -45,9 +45,13 @@ export class GenericImporter extends BaseImporter {
     return this.parseFromMeta(meta, html, url, retailerName);
   }
 
-  private parseJsonLd(data: any, url: string): ImportedProduct {
+  private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
-    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    let images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
 
     const sizes: string[] = [];
     const colors: string[] = [];
@@ -61,12 +65,14 @@ export class GenericImporter extends BaseImporter {
     }
     if (data.color && !colors.includes(data.color)) colors.push(data.color);
 
+    const description = this.stripHtml(data.description) || this.extractDescriptionFromDom(html);
+
     return {
       brand: data.brand?.name ?? data.brand ?? undefined,
       title: data.name ?? undefined,
-      description: this.stripHtml(data.description),
+      description,
       ...offers,
-      images,
+      images: images.length > 0 ? images : undefined,
       sizes: sizes.length > 0 ? [...new Set(sizes)] : undefined,
       colors: colors.length > 0 ? [...new Set(colors)] : undefined,
       material: data.material ?? undefined,
@@ -79,7 +85,7 @@ export class GenericImporter extends BaseImporter {
     };
   }
 
-  private parseNextData(data: any, url: string, retailerName: string): ImportedProduct {
+  private parseNextData(data: any, url: string, html: string, retailerName: string): ImportedProduct {
     // Common Next.js pageProps structures
     const product =
       data?.props?.pageProps?.product ??
@@ -89,7 +95,7 @@ export class GenericImporter extends BaseImporter {
 
     if (!product) return { retailer: retailerName, retailerUrl: url };
 
-    const images: string[] = (product?.images ?? product?.media ?? product?.gallery ?? [])
+    let images: string[] = (product?.images ?? product?.media ?? product?.gallery ?? [])
       .map((img: any) => {
         const src = img?.url ?? img?.src ?? img?.imageURL ?? (typeof img === 'string' ? img : null);
         if (!src) return null;
@@ -97,10 +103,16 @@ export class GenericImporter extends BaseImporter {
       })
       .filter(Boolean);
 
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
+
+    const description = this.stripHtml(product?.description ?? product?.shortDescription) || this.extractDescriptionFromDom(html);
+
     return {
       brand: product?.brand?.name ?? product?.brandName ?? product?.brand ?? undefined,
       title: product?.name ?? product?.title ?? product?.productName ?? undefined,
-      description: this.stripHtml(product?.description ?? product?.shortDescription),
+      description,
       price: this.parsePrice(String(product?.price?.value ?? product?.salePrice ?? product?.price ?? '')),
       originalPrice: this.parsePrice(String(product?.originalPrice ?? product?.mrp ?? product?.price?.originalValue ?? '')),
       images: images.length > 0 ? images : undefined,
@@ -120,7 +132,7 @@ export class GenericImporter extends BaseImporter {
     const $ = cheerio.load(html);
 
     const title = (meta['og:title'] ?? $('h1').first().text().trim()) || undefined;
-    const description = meta['og:description'] ?? $('meta[name="description"]').attr('content') ?? undefined;
+    const description = this.extractDescriptionFromDom(html);
     
     const price = this.extractPriceFromDom(html);
     const images = this.extractImagesFromDom(html, url);

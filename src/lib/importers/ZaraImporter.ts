@@ -19,7 +19,7 @@ export class ZaraImporter extends BaseImporter {
     // Strategy 1: JSON-LD
     const jsonLd = this.extractJsonLd(html, 'Product');
     if (jsonLd?.name) {
-      return this.parseJsonLd(jsonLd, url);
+      return this.parseJsonLd(jsonLd, url, html);
     }
 
     // Strategy 2: Zara embeds product data as window.Zara.cfg or __NEXT_DATA__
@@ -29,20 +29,24 @@ export class ZaraImporter extends BaseImporter {
     ]);
 
     if (embedded) {
-      return this.parseEmbeddedData(embedded, url);
+      return this.parseEmbeddedData(embedded, url, html);
     }
 
     // Strategy 3: Zara API fallback (extract product ID and call internal API)
-    const apiProduct = await this.tryZaraApi(url);
+    const apiProduct = await this.tryZaraApi(url, html);
     if (apiProduct) return apiProduct;
 
     // Strategy 4: DOM + meta
     return this.parseDom(html, url);
   }
 
-  private parseJsonLd(data: any, url: string): ImportedProduct {
+  private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
-    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    let images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
 
     const colors: string[] = [];
     if (data.color) colors.push(data.color);
@@ -55,12 +59,14 @@ export class ZaraImporter extends BaseImporter {
       });
     }
 
+    const description = this.stripHtml(data.description) || this.extractDescriptionFromDom(html);
+
     return {
       brand: 'Zara',
       title: data.name ?? undefined,
-      description: this.stripHtml(data.description),
+      description,
       ...offers,
-      images,
+      images: images.length > 0 ? images : undefined,
       colors: colors.length > 0 ? colors : undefined,
       sizes: sizes.length > 0 ? [...new Set(sizes)] : undefined,
       material: data.material ?? undefined,
@@ -69,7 +75,7 @@ export class ZaraImporter extends BaseImporter {
     };
   }
 
-  private parseEmbeddedData(data: any, url: string): ImportedProduct {
+  private parseEmbeddedData(data: any, url: string, html: string): ImportedProduct {
     // Handle __NEXT_DATA__ structure
     const product =
       data?.props?.pageProps?.product ??
@@ -88,7 +94,7 @@ export class ZaraImporter extends BaseImporter {
       .filter(Boolean);
 
     // Zara images often use xmedia format
-    const images: string[] = [];
+    let images: string[] = [];
     (detail?.media ?? detail?.xmedia ?? []).forEach((media: any) => {
       (media?.xmedia ?? [media]).forEach((img: any) => {
         if (img?.url) {
@@ -98,14 +104,20 @@ export class ZaraImporter extends BaseImporter {
       });
     });
 
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
+
     const price = detail?.price != null
       ? (typeof detail.price === 'number' ? detail.price / 100 : this.parsePrice(String(detail.price)))
       : undefined;
 
+    const description = this.stripHtml(detail?.description ?? product?.description) || this.extractDescriptionFromDom(html);
+
     return {
       brand: 'Zara',
       title: detail?.name ?? product?.name ?? undefined,
-      description: this.stripHtml(detail?.description ?? product?.description),
+      description,
       price,
       images: images.length > 0 ? images : undefined,
       colors: colors.length > 0 ? colors : undefined,
@@ -116,7 +128,7 @@ export class ZaraImporter extends BaseImporter {
   }
 
   /** Zara has a public API — try fetching structured JSON directly */
-  private async tryZaraApi(pageUrl: string): Promise<ImportedProduct | null> {
+  private async tryZaraApi(pageUrl: string, html: string): Promise<ImportedProduct | null> {
     try {
       // Extract product ID from URL (e.g., /en-in/12345678.html)
       const match = pageUrl.match(/\b(\d{7,10})\.html/);
@@ -134,7 +146,7 @@ export class ZaraImporter extends BaseImporter {
       if (!response.ok) return null;
       const data = await response.json();
 
-      return this.parseEmbeddedData(data, pageUrl);
+      return this.parseEmbeddedData(data, pageUrl, html);
     } catch {
       return null;
     }
@@ -146,13 +158,14 @@ export class ZaraImporter extends BaseImporter {
 
     const title = (meta['og:title'] ?? $('h1').first().text().trim()) || undefined;
     const price = this.parsePrice(meta['product:price:amount'] || $('.price__amount-current').first().text());
-    const images = meta['og:image'] ? [meta['og:image']] : [];
+    const images = this.extractImagesFromDom(html, url);
+    const description = this.extractDescriptionFromDom(html);
 
     return {
       brand: 'Zara',
       title,
       price,
-      description: meta['og:description'] ?? undefined,
+      description,
       images: images.length > 0 ? images : undefined,
       retailer: 'Zara',
       retailerUrl: url,

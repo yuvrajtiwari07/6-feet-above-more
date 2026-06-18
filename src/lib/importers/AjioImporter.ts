@@ -19,7 +19,7 @@ export class AjioImporter extends BaseImporter {
     // Strategy 1: JSON-LD structured data
     const jsonLd = this.extractJsonLd(html, 'Product');
     if (jsonLd?.name) {
-      return this.parseJsonLd(jsonLd, url);
+      return this.parseJsonLd(jsonLd, url, html);
     }
 
     // Strategy 2: Embedded window state
@@ -30,18 +30,22 @@ export class AjioImporter extends BaseImporter {
     ]);
 
     if (embedded) {
-      return this.parseEmbeddedData(embedded, url);
+      return this.parseEmbeddedData(embedded, url, html);
     }
 
     // Strategy 3: DOM + meta tags
     return this.parseDom(html, url);
   }
 
-  private parseJsonLd(data: any, url: string): ImportedProduct {
+  private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
-    const images = Array.isArray(data.image)
+    let images = Array.isArray(data.image)
       ? data.image.filter((i: any) => typeof i === 'string')
       : data.image ? [data.image] : [];
+
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
 
     const sizes: string[] = [];
     if (Array.isArray(data.offers)) {
@@ -50,10 +54,12 @@ export class AjioImporter extends BaseImporter {
       });
     }
 
+    const description = this.stripHtml(data.description) || this.extractDescriptionFromDom(html);
+
     return {
       brand: data.brand?.name ?? data.brand ?? undefined,
       title: data.name ?? undefined,
-      description: this.stripHtml(data.description),
+      description,
       ...offers,
       images: images.length > 0 ? images : undefined,
       sizes: sizes.length > 0 ? [...new Set(sizes)] : undefined,
@@ -70,25 +76,52 @@ export class AjioImporter extends BaseImporter {
     };
   }
 
-  private parseEmbeddedData(data: any, url: string): ImportedProduct {
-    // AJIO often stores data in props.pageProps or similar Next.js structure
-    const productData =
+  private parseEmbeddedData(data: any, url: string, html: string): ImportedProduct {
+    // AJIO often stores data in props.pageProps or window.__INITIAL_STATE__
+    let productData =
       data?.props?.pageProps?.product ??
       data?.product ??
       data?.pageData?.product ??
       data;
 
-    const images = (productData?.images ?? productData?.media ?? [])
+    // Handle AJIO's dictionary nesting in initial state
+    if (productData && productData.productDetails) {
+      const keys = Object.keys(productData.productDetails);
+      if (keys.length > 0) {
+        productData = productData.productDetails[keys[0]];
+      }
+    }
+
+    let images = (productData?.images ?? productData?.media ?? [])
       .map((img: any) => img?.url ?? img?.src ?? img)
       .filter((src: any) => typeof src === 'string' && src.startsWith('http'));
+
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
+
+    // AJIO prices are nested objects: e.g. price: { value: 1299, formattedValue: "Rs. 1,299" }
+    const priceVal = productData?.price?.value ?? productData?.salePrice ?? productData?.price;
+    const mrpVal = productData?.wasPriceData?.value ?? productData?.mrp ?? productData?.wasPriceData;
+
+    const price = priceVal != null ? this.parsePrice(String(priceVal)) : undefined;
+    const originalPrice = mrpVal != null ? this.parsePrice(String(mrpVal)) : undefined;
+
+    // Extract sizes from sizeVariants: e.g. [{ size: "32", scCode: "..." }]
+    const sizes: string[] = (productData?.sizeVariants ?? [])
+      .map((v: any) => String(v?.size ?? ''))
+      .filter(Boolean);
+
+    const description = this.stripHtml(productData?.description) || this.extractDescriptionFromDom(html);
 
     return {
       brand: productData?.brandName ?? productData?.brand ?? undefined,
       title: productData?.name ?? productData?.productName ?? undefined,
-      description: this.stripHtml(productData?.description),
-      price: this.parsePrice(String(productData?.price ?? productData?.salePrice ?? '')),
-      originalPrice: this.parsePrice(String(productData?.mrp ?? '')),
+      description,
+      price,
+      originalPrice,
       images: images.length > 0 ? images : undefined,
+      sizes: sizes.length > 0 ? [...new Set(sizes)] : undefined,
       colors: productData?.colour ? [productData.colour] : undefined,
       material: productData?.fabric ?? productData?.material ?? undefined,
       retailer: 'AJIO',
@@ -100,7 +133,6 @@ export class AjioImporter extends BaseImporter {
     const $ = cheerio.load(html);
     const meta = this.extractMetaTags(html);
 
-    // AJIO often has product title in .prod-name
     const title =
       $('.prod-name').first().text().trim() ||
       meta['og:title'] ||
@@ -109,11 +141,12 @@ export class AjioImporter extends BaseImporter {
 
     const price = this.extractPriceFromDom(html);
     const images = this.extractImagesFromDom(html, url);
+    const description = this.extractDescriptionFromDom(html);
 
     return {
       title,
       price,
-      description: meta['og:description'] ?? undefined,
+      description,
       images: images.length > 0 ? images : undefined,
       retailer: 'AJIO',
       retailerUrl: url,

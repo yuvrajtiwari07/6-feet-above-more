@@ -185,16 +185,36 @@ export abstract class BaseImporter implements ProductImporter {
       }
     }
 
-    // 2. Scan all img elements for high-quality product images
-    $('img').each((_, el) => {
-      const src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-zoom-src') || $(el).attr('data-srcset');
-      if (!src) return;
+    // Helper to parse srcset and get highest res
+    const parseSrcset = (srcsetStr: string): string => {
+      const parts = srcsetStr.split(',').map(p => p.trim());
+      if (parts.length === 0) return '';
+      // Find the last item in srcset, which is usually the highest resolution
+      const lastPart = parts[parts.length - 1];
+      return lastPart.split(' ')[0] || '';
+    };
 
-      const cleanSrc = src.trim().split(' ')[0]; // Split srcset potential formats
+    const imageElements: string[] = [];
+
+    // 2. Scan all img and picture source elements for high-quality product images
+    $('img, picture source, source').each((_, el) => {
+      const srcAttr = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-zoom-src') || $(el).attr('data-original') || $(el).attr('data-lazy-src') || $(el).attr('data-lazy');
+      const srcsetAttr = $(el).attr('srcset') || $(el).attr('data-srcset');
+
+      let rawSrc = '';
+      if (srcsetAttr) {
+        rawSrc = parseSrcset(srcsetAttr);
+      } else if (srcAttr) {
+        rawSrc = srcAttr.trim();
+      }
+
+      if (!rawSrc) return;
+
+      const cleanSrc = rawSrc.split(' ')[0];
       if (!cleanSrc.startsWith('http') && !cleanSrc.startsWith('//')) return;
       const fullSrc = cleanSrc.startsWith('//') ? `https:${cleanSrc}` : cleanSrc;
 
-      if (images.includes(fullSrc)) return;
+      if (images.includes(fullSrc) || imageElements.includes(fullSrc)) return;
 
       // Filter out tiny UI elements, icons, logos, trackers, stars
       const low = fullSrc.toLowerCase();
@@ -202,25 +222,25 @@ export abstract class BaseImporter implements ProductImporter {
         return;
       }
 
-      // Domain specific logic
-      if (urlStr.includes('myntra.com') && (low.includes('myntassets.com') && (low.includes('assets/images/') || low.includes('h_')))) {
-        images.push(fullSrc);
-      } else if (urlStr.includes('ajio.com') && (low.includes('ajio.com') && (low.includes('prd-images') || low.includes('500x500') || low.includes('1000x1000')))) {
-        images.push(fullSrc);
+      // Domain specific logic (loosened filters)
+      if (urlStr.includes('myntra.com') && low.includes('myntassets.com')) {
+        imageElements.push(fullSrc);
+      } else if (urlStr.includes('ajio.com') && (low.includes('ajio.com') || low.includes('ajio'))) {
+        imageElements.push(fullSrc);
       } else if (urlStr.includes('snitch.co') && (low.includes('cdn.shopify.com') || low.includes('snitch'))) {
-        images.push(fullSrc);
-      } else if (urlStr.includes('hm.com') && low.includes('hm.com')) {
-        images.push(fullSrc);
-      } else if (urlStr.includes('zara.com') && low.includes('zara.net')) {
-        images.push(fullSrc);
+        imageElements.push(fullSrc);
+      } else if (urlStr.includes('hm.com') && (low.includes('hm.com') || low.includes('hm'))) {
+        imageElements.push(fullSrc);
+      } else if (urlStr.includes('zara.com') && (low.includes('zara.net') || low.includes('zara.com'))) {
+        imageElements.push(fullSrc);
       } else if (low.includes('cdn') || low.includes('product') || low.includes('image') || low.includes('media') || low.includes('upload')) {
         if (!low.includes('avatar') && !low.includes('profile')) {
-          images.push(fullSrc);
+          imageElements.push(fullSrc);
         }
       }
     });
 
-    return images;
+    return [...images, ...imageElements];
   }
 
   /**
@@ -268,4 +288,68 @@ export abstract class BaseImporter implements ProductImporter {
 
     return undefined;
   }
+
+  /**
+   * Robust fallback to find product description in a page's HTML
+   */
+  protected extractDescriptionFromDom(html: string): string | undefined {
+    const $ = cheerio.load(html);
+    const meta = this.extractMetaTags(html);
+
+    // 1. Look in meta tags (avoid short generic text)
+    const descMetaKeys = [
+      'og:description',
+      'twitter:description',
+      'description'
+    ];
+
+    for (const key of descMetaKeys) {
+      const val = meta[key];
+      if (val && val.length > 30 && !val.includes('online at') && !val.includes('Buy') && !val.includes('free shipping')) {
+        return this.stripHtml(val);
+      }
+    }
+
+    // 2. Scan DOM elements for description content
+    const descriptionSelectors = [
+      '.prod-desc', '.prod-list', '.product-description-content',
+      '.pdp-product-description-content', '.pdp-details-common',
+      '.product-description', '.product-single__description',
+      '.description-block', '[itemprop="description"]',
+      '.pdp-desc-section', '#description', '.details-attributes-list',
+      '.product-details__description', '.product-detail-info',
+      '.desc-container', '.prod-detail-list', '.product-detail-container',
+      'div[data-testid="product-description"]', '.item-description'
+    ];
+
+    for (const selector of descriptionSelectors) {
+      const el = $(selector);
+      if (el.length > 0) {
+        // If it's a list (like AJIO bullet points), serialize list items to text
+        if (el.is('ul') || el.find('li').length > 0) {
+          const items: string[] = [];
+          el.find('li').each((_, li) => {
+            const txt = $(li).text().trim();
+            if (txt) items.push(txt);
+          });
+          if (items.length > 0) {
+            return items.join(' | ');
+          }
+        }
+        
+        const text = el.text().trim();
+        if (text.length > 20) {
+          return this.stripHtml(text);
+        }
+      }
+    }
+
+    // Fallback to og:description if nothing else found
+    if (meta['og:description']) {
+      return this.stripHtml(meta['og:description']);
+    }
+
+    return undefined;
+  }
 }
+

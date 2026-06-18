@@ -19,7 +19,7 @@ export class HmImporter extends BaseImporter {
     // Strategy 1: JSON-LD — H&M uses structured data reliably
     const jsonLd = this.extractJsonLd(html, 'Product');
     if (jsonLd?.name) {
-      return this.parseJsonLd(jsonLd, url);
+      return this.parseJsonLd(jsonLd, url, html);
     }
 
     // Strategy 2: __NEXT_DATA__ (H&M's site is built on Next.js)
@@ -27,17 +27,20 @@ export class HmImporter extends BaseImporter {
       /<script id="__NEXT_DATA__"[^>]*>\s*(\{.+?\})\s*<\/script>/s,
     ]);
     if (nextData) {
-      return this.parseNextData(nextData, url);
+      return this.parseNextData(nextData, url, html);
     }
 
     // Strategy 3: DOM + meta
     return this.parseDom(html, url);
   }
 
-  private parseJsonLd(data: any, url: string): ImportedProduct {
+  private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
 
-    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    let images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
 
     // Extract sizes from offers
     const sizes: string[] = [];
@@ -58,12 +61,14 @@ export class HmImporter extends BaseImporter {
       });
     }
 
+    const description = this.stripHtml(data.description) || this.extractDescriptionFromDom(html);
+
     return {
       brand: 'H&M',
       title: data.name ?? undefined,
-      description: this.stripHtml(data.description),
+      description,
       ...offers,
-      images,
+      images: images.length > 0 ? images : undefined,
       sizes: sizes.length > 0 ? [...new Set(sizes)] : undefined,
       colors: colors.length > 0 ? [...new Set(colors)] : undefined,
       material: data.material ?? undefined,
@@ -78,27 +83,33 @@ export class HmImporter extends BaseImporter {
     };
   }
 
-  private parseNextData(data: any, url: string): ImportedProduct {
+  private parseNextData(data: any, url: string, html: string): ImportedProduct {
     const product =
       data?.props?.pageProps?.product ??
       data?.props?.pageProps?.initialData?.product ??
       data;
 
-    const images: string[] = (product?.images ?? product?.galleryImages ?? [])
+    let images: string[] = (product?.images ?? product?.galleryImages ?? [])
       .map((img: any) => {
         const src = img?.url ?? img?.src ?? img?.baseUrl;
         return src?.startsWith('http') ? src : src ? `https:${src}` : null;
       })
       .filter(Boolean);
 
+    if (images.length === 0) {
+      images = this.extractImagesFromDom(html, url);
+    }
+
     const sizes = (product?.variants ?? product?.sizes ?? [])
       .map((v: any) => v?.size ?? v?.value ?? v?.label)
       .filter(Boolean);
 
+    const description = this.stripHtml(product?.description ?? product?.longDescription) || this.extractDescriptionFromDom(html);
+
     return {
       brand: 'H&M',
       title: product?.name ?? product?.title ?? undefined,
-      description: this.stripHtml(product?.description ?? product?.longDescription),
+      description,
       price: this.parsePrice(String(product?.price?.value ?? product?.salePrice ?? '')),
       originalPrice: this.parsePrice(String(product?.price?.originalValue ?? '')),
       images: images.length > 0 ? images : undefined,
@@ -116,13 +127,14 @@ export class HmImporter extends BaseImporter {
 
     const title = (meta['og:title'] ?? $('h1').first().text().trim()) || undefined;
     const price = this.parsePrice(meta['product:price:amount'] || $('.price-value').first().text());
-    const images = meta['og:image'] ? [meta['og:image']] : [];
+    const images = this.extractImagesFromDom(html, url);
+    const description = this.extractDescriptionFromDom(html);
 
     return {
       brand: 'H&M',
       title,
       price,
-      description: meta['og:description'] ?? undefined,
+      description,
       images: images.length > 0 ? images : undefined,
       retailer: 'H&M',
       retailerUrl: url,
