@@ -283,26 +283,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setHeight = async (h: string) => {
     setHeightState(h);
     localStorage.setItem('lamba_height', h);
-    let updatedPrefs: any;
-    setPreferences(prev => {
-      const updated = { ...prev, height: h };
-      localStorage.setItem('lamba_preferences', JSON.stringify(updated));
-      updatedPrefs = updated;
-      return updated;
-    });
+    const updatedPrefs = { ...preferences, height: h };
+    setPreferences(updatedPrefs);
+    localStorage.setItem('lamba_preferences', JSON.stringify(updatedPrefs));
     if (user) await syncProfileToBackend({ height: h, preferences: updatedPrefs });
   };
 
   const setBodyType = async (bt: 'Lean' | 'Athletic' | 'Broad' | 'Heavy') => {
     setBodyTypeState(bt);
     localStorage.setItem('lamba_body_type', bt);
-    let updatedPrefs: any;
-    setPreferences(prev => {
-      const updated = { ...prev, bodyType: bt };
-      localStorage.setItem('lamba_preferences', JSON.stringify(updated));
-      updatedPrefs = updated;
-      return updated;
-    });
+    const updatedPrefs = { ...preferences, bodyType: bt };
+    setPreferences(updatedPrefs);
+    localStorage.setItem('lamba_preferences', JSON.stringify(updatedPrefs));
     if (user) await syncProfileToBackend({ bodyType: bt, preferences: updatedPrefs });
   };
 
@@ -313,36 +305,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updatePreferences = async (p: Partial<UserPreferences>) => {
-    let updatedPrefs: any;
-    setPreferences(prev => {
-      const updated = { ...prev, ...p };
-      localStorage.setItem('lamba_preferences', JSON.stringify(updated));
-      updatedPrefs = updated;
-      return updated;
-    });
+    const updatedPrefs = { ...preferences, ...p };
+    setPreferences(updatedPrefs);
+    localStorage.setItem('lamba_preferences', JSON.stringify(updatedPrefs));
     if (user) await syncProfileToBackend({ preferences: updatedPrefs });
   };
 
   const toggleSaveProduct = async (id: string) => {
-    let finalIds: string[] = [];
-    setSavedProductIds(prev => {
-      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      localStorage.setItem('lamba_saved_products', JSON.stringify(next));
-      finalIds = next;
-      return next;
-    });
-    if (user) await syncProfileToBackend({ savedProductIds: finalIds });
+    const next = savedProductIds.includes(id) ? savedProductIds.filter(x => x !== id) : [...savedProductIds, id];
+    setSavedProductIds(next);
+    localStorage.setItem('lamba_saved_products', JSON.stringify(next));
+    if (user) await syncProfileToBackend({ savedProductIds: next });
   };
 
   const toggleSaveFit = async (id: string) => {
-    let finalIds: string[] = [];
-    setSavedFitIds(prev => {
-      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-      localStorage.setItem('lamba_saved_fits', JSON.stringify(next));
-      finalIds = next;
-      return next;
-    });
-    if (user) await syncProfileToBackend({ savedFitIds: finalIds });
+    const next = savedFitIds.includes(id) ? savedFitIds.filter(x => x !== id) : [...savedFitIds, id];
+    setSavedFitIds(next);
+    localStorage.setItem('lamba_saved_fits', JSON.stringify(next));
+    if (user) await syncProfileToBackend({ savedFitIds: next });
   };
 
   // ── Routing ──────────────────────────────────────────────────────────────
