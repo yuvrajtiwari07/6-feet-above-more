@@ -90,3 +90,31 @@ export interface UserPreferences {
   preferredBrands: string[];
   occasions: string[];
 }
+
+export interface CatalogCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  coverImage?: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface Catalog {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  categoryId?: string;
+  categoryName: string;
+  coverImage?: string;
+  productIds: string[];
+  affiliateUrl?: string;   // EarnKaro whole-catalog link
+  isPublished: boolean;
+  sortOrder: number;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}

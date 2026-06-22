@@ -13,6 +13,9 @@ import SearchFilters from './pages/SearchFilters';
 import Saved from './pages/Saved';
 import Profile from './pages/Profile';
 import { Admin } from './pages/Admin';
+import CatalogCategories from './pages/catalog/CatalogCategories';
+import CatalogList from './pages/catalog/CatalogList';
+import CatalogDetail from './pages/catalog/CatalogDetail';
 
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -39,6 +42,12 @@ const PageRenderer: React.FC = () => {
         return <Profile />;
       case 'admin':
         return <Admin />;
+      case 'catalog-categories':
+        return <CatalogCategories />;
+      case 'catalog-list':
+        return <CatalogList />;
+      case 'catalog-detail':
+        return <CatalogDetail />;
       default:
         return <Home />;
     }

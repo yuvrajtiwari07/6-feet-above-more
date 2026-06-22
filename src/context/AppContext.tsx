@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { HeightBand, UserPreferences, Product } from '../types';
+import { HeightBand, UserPreferences, Product, Catalog, CatalogCategory } from '../types';
 import {
   supabase,
   signInWithGoogle,
@@ -21,7 +21,10 @@ export type RouteType =
   | 'search'
   | 'saved'
   | 'profile'
-  | 'admin';
+  | 'admin'
+  | 'catalog-categories'
+  | 'catalog-list'
+  | 'catalog-detail';
 
 interface RouteState {
   current: RouteType;
@@ -71,6 +74,18 @@ interface AppContextType {
   addProduct: (p: Product) => Promise<void>;
   updateProduct: (id: string, p: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
+
+  // Catalogs
+  catalogs: Catalog[];
+  catalogCategories: CatalogCategory[];
+  loadingCatalogs: boolean;
+  addCatalog: (c: Partial<Catalog>) => Promise<Catalog>;
+  updateCatalog: (id: string, c: Partial<Catalog>) => Promise<void>;
+  deleteCatalog: (id: string) => Promise<void>;
+  addCatalogCategory: (c: Partial<CatalogCategory>) => Promise<CatalogCategory>;
+  updateCatalogCategory: (id: string, c: Partial<CatalogCategory>) => Promise<void>;
+  deleteCatalogCategory: (id: string) => Promise<void>;
+  refreshCatalogs: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -279,6 +294,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts(prev => prev.filter(x => x.id !== id));
   };
 
+  // ── Catalog state ────────────────────────────────────────────────────────
+  const [catalogs, setCatalogs] = useState<Catalog[]>([]);
+  const [catalogCategories, setCatalogCategories] = useState<CatalogCategory[]>([]);
+  const [loadingCatalogs, setLoadingCatalogs] = useState(true);
+
+  const fetchCatalogs = useCallback(async () => {
+    setLoadingCatalogs(true);
+    try {
+      const [catData, catCatData] = await Promise.all([
+        apiFetch('/api/catalogs').catch(() => ({ catalogs: [] })),
+        apiFetch('/api/catalogs/categories').catch(() => ({ categories: [] })),
+      ]);
+      setCatalogs(catData.catalogs ?? []);
+      setCatalogCategories(catCatData.categories ?? []);
+    } catch (err) {
+      console.error('[AppContext] Failed to fetch catalogs:', err);
+    } finally {
+      setLoadingCatalogs(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchCatalogs(); }, [fetchCatalogs]);
+
+  const addCatalog = async (c: Partial<Catalog>): Promise<Catalog> => {
+    const data = await apiFetch('/api/catalogs', { method: 'POST', body: JSON.stringify(c) });
+    if (data.catalog) setCatalogs(prev => [data.catalog, ...prev]);
+    return data.catalog;
+  };
+
+  const updateCatalog = async (id: string, c: Partial<Catalog>) => {
+    const data = await apiFetch(`/api/catalogs/${id}`, { method: 'PUT', body: JSON.stringify(c) });
+    if (data.catalog) setCatalogs(prev => prev.map(x => x.id === id ? data.catalog : x));
+  };
+
+  const deleteCatalog = async (id: string) => {
+    await apiFetch(`/api/catalogs/${id}`, { method: 'DELETE' });
+    setCatalogs(prev => prev.filter(x => x.id !== id));
+  };
+
+  const addCatalogCategory = async (c: Partial<CatalogCategory>): Promise<CatalogCategory> => {
+    const data = await apiFetch('/api/catalogs/categories', { method: 'POST', body: JSON.stringify(c) });
+    if (data.category) setCatalogCategories(prev => [...prev, data.category]);
+    return data.category;
+  };
+
+  const updateCatalogCategory = async (id: string, c: Partial<CatalogCategory>) => {
+    const data = await apiFetch(`/api/catalogs/categories/${id}`, { method: 'PUT', body: JSON.stringify(c) });
+    if (data.category) setCatalogCategories(prev => prev.map(x => x.id === id ? data.category : x));
+  };
+
+  const deleteCatalogCategory = async (id: string) => {
+    await apiFetch(`/api/catalogs/categories/${id}`, { method: 'DELETE' });
+    setCatalogCategories(prev => prev.filter(x => x.id !== id));
+  };
+
+  const refreshCatalogs = useCallback(async () => { await fetchCatalogs(); }, [fetchCatalogs]);
+
   // ── Profile setters ──────────────────────────────────────────────────────
   const setHeight = async (h: string) => {
     setHeightState(h);
@@ -338,9 +410,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const current = segments[0] as RouteType;
     const params: Record<string, string> = {};
     if (segments[1]) {
-      if (current === 'category')    params.categoryName = decodeURIComponent(segments[1]);
-      else if (current === 'product') params.productId   = decodeURIComponent(segments[1]);
-      else if (current === 'search')  params.query        = decodeURIComponent(segments[1]);
+      if (current === 'category' || current === 'catalog-list') params.categoryName = decodeURIComponent(segments[1]);
+      else if (current === 'product')                           params.productId    = decodeURIComponent(segments[1]);
+      else if (current === 'search')                            params.query        = decodeURIComponent(segments[1]);
+      else if (current === 'catalog-detail')                    params.catalogId    = decodeURIComponent(segments[1]);
     }
     return { current: current || 'home', params };
   };
@@ -351,6 +424,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (params.categoryName) hash += `/${encodeURIComponent(params.categoryName)}`;
       else if (params.productId) hash += `/${encodeURIComponent(params.productId)}`;
       else if (params.query) hash += `/${encodeURIComponent(params.query)}`;
+      else if (params.catalogId) hash += `/${encodeURIComponent(params.catalogId)}`;
     }
     setRouteHistory(prev => [...prev, route]);
     window.location.hash = hash;
@@ -417,6 +491,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addProduct,
         updateProduct,
         deleteProduct,
+        catalogs,
+        catalogCategories,
+        loadingCatalogs,
+        addCatalog,
+        updateCatalog,
+        deleteCatalog,
+        addCatalogCategory,
+        updateCatalogCategory,
+        deleteCatalogCategory,
+        refreshCatalogs,
       }}
     >
       {children}

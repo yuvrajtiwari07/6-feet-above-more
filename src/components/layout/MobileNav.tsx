@@ -11,7 +11,7 @@ export const MobileNav: React.FC = () => {
   const tabs: { label: string; icon: React.ReactNode; route: RouteType; params?: any; id: string }[] = [
     { label: 'Home', icon: <Home size={20} />, route: 'home', id: 'mob-home' },
     { label: 'Categories', icon: <Grid size={20} />, route: 'category', params: { categoryName: 'Streetwear' }, id: 'mob-categories' },
-    { label: 'Looks', icon: <Sparkles size={20} />, route: 'complete-fits', id: 'mob-looks' },
+    { label: 'Catalogs', icon: <Sparkles size={20} />, route: 'catalog-categories', id: 'mob-catalogs' },
     { label: 'Saved', icon: <Heart size={20} />, route: 'saved', id: 'mob-saved' },
     { label: 'Profile', icon: <User size={20} />, route: 'profile', id: 'mob-profile' },
   ];
@@ -26,7 +26,8 @@ export const MobileNav: React.FC = () => {
         {tabs.map((tab) => {
           // Identify if tab is active
           const isCategoryActive = tab.route === 'category' && activeTab === 'category';
-          const isActive = activeTab === tab.route || isCategoryActive;
+          const isCatalogActive = tab.route === 'catalog-categories' && (activeTab === 'catalog-categories' || activeTab === 'catalog-list' || activeTab === 'catalog-detail');
+          const isActive = activeTab === tab.route || isCategoryActive || isCatalogActive;
 
           return (
             <button

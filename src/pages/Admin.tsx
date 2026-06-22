@@ -7,8 +7,11 @@ import {
   Plus, Edit2, Check, AlertTriangle, ShieldCheck, Trash2, 
   Eye, Archive, RotateCcw, Link2, MessageSquare, BadgeAlert, 
   Sparkles, CheckCircle, Ruler, CreditCard, ChevronRight, Search, Star,
-  Download, Loader2, Globe, X, Upload, ArrowUp, ArrowDown
+  Download, Loader2, Globe, X, Upload, ArrowUp, ArrowDown, FolderOpen, LayoutGrid
 } from 'lucide-react';
+import { CatalogCategoryAdmin } from '../components/admin/CatalogCategoryAdmin';
+import { CatalogAdmin } from '../components/admin/CatalogAdmin';
+
 
 const SEGMENT_TYPES: Record<string, string[]> = {
   Upperwear: ['T-Shirt', 'Shirt', 'Polo', 'Henley', 'Vest', 'Tank Top'],
@@ -73,6 +76,16 @@ export const Admin: React.FC = () => {
     user, 
     loginWithGoogle 
   } = useApp();
+
+  // Tab state
+  const [activeAdminTab, setActiveAdminTab] = useState<'products' | 'categories' | 'catalogs'>('products');
+  const [onImportSuccessCallback, setOnImportSuccessCallback] = useState<((p: Product) => void) | null>(null);
+
+  const handleOpenImportModal = (onSuccess: (p: Product) => void) => {
+    setOnImportSuccessCallback(() => onSuccess);
+    setActiveAdminTab('products');
+    handleOpenAddForm();
+  };
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -811,10 +824,14 @@ export const Admin: React.FC = () => {
       } else {
         await addProduct(finalProduct);
         setFormSuccess('Successfully created product!');
+        if (onImportSuccessCallback) {
+          onImportSuccessCallback(finalProduct);
+        }
       }
       setTimeout(() => {
         setShowForm(false);
         setFormSuccess('');
+        setOnImportSuccessCallback(null);
       }, 1500);
     } catch (err: any) {
       setFormError('Save failed: ' + (err.message || 'Unknown error.'));
@@ -894,15 +911,59 @@ export const Admin: React.FC = () => {
           </p>
         </div>
 
-        <div>
-          <button
-            onClick={handleOpenAddForm}
-            className="flex items-center gap-2 px-5 py-3.5 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
-          >
-            <Plus size={16} />
-            <span>Add Curated Product</span>
-          </button>
-        </div>
+        {activeAdminTab === 'products' && (
+          <div>
+            <button
+              onClick={handleOpenAddForm}
+              className="flex items-center gap-2 px-5 py-3.5 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
+            >
+              <Plus size={16} />
+              <span>Add Curated Product</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ADMIN TABS BAR */}
+      <div className="flex border-b border-black/10 gap-6 mb-8">
+        <button
+          onClick={() => { setActiveAdminTab('products'); setShowForm(false); }}
+          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
+            activeAdminTab === 'products' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
+          }`}
+          id="admin-tab-products"
+        >
+          <span className="flex items-center gap-1.5">
+            <Ruler size={13} />
+            Curated Products
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setActiveAdminTab('categories'); setShowForm(false); }}
+          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
+            activeAdminTab === 'categories' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
+          }`}
+          id="admin-tab-categories"
+        >
+          <span className="flex items-center gap-1.5">
+            <FolderOpen size={13} />
+            Catalog Categories
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setActiveAdminTab('catalogs'); setShowForm(false); }}
+          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
+            activeAdminTab === 'catalogs' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
+          }`}
+          id="admin-tab-catalogs"
+        >
+          <span className="flex items-center gap-1.5">
+            <LayoutGrid size={13} />
+            Catalogs
+          </span>
+        </button>
       </div>
 
       {/* FORM MODAL */}
@@ -1789,8 +1850,11 @@ export const Admin: React.FC = () => {
         </div>
       )}
 
-      {/* FILTER & SEARCH PANEL */}
-      <div className="bg-[#FAF9F6] border border-black/10 rounded-2xl p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* PRODUCTS TAB CONTENT */}
+      {!showForm && activeAdminTab === 'products' && (
+        <>
+          {/* FILTER & SEARCH PANEL */}
+          <div className="bg-[#FAF9F6] border border-black/10 rounded-2xl p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
           <input
@@ -1917,6 +1981,18 @@ export const Admin: React.FC = () => {
           </table>
         </div>
       </div>
+      </>
+      )}
+
+      {/* CATALOG CATEGORIES TAB CONTENT */}
+      {!showForm && activeAdminTab === 'categories' && (
+        <CatalogCategoryAdmin />
+      )}
+
+      {/* CATALOGS TAB CONTENT */}
+      {!showForm && activeAdminTab === 'catalogs' && (
+        <CatalogAdmin onOpenImportModal={handleOpenImportModal} />
+      )}
     </div>
   );
 };

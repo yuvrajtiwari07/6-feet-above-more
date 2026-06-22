@@ -51,12 +51,12 @@ export const Header: React.FC = () => {
           </button>
           
           <button 
-            onClick={() => navigate('complete-fits')}
-            className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#FF3F6C] transition ${route.current === 'complete-fits' ? 'text-[#FF3F6C]' : ''}`}
-            id="desktop-fits-btn"
+            onClick={() => navigate('catalog-categories')}
+            className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#FF3F6C] transition ${route.current === 'catalog-categories' || route.current === 'catalog-list' || route.current === 'catalog-detail' ? 'text-[#FF3F6C]' : ''}`}
+            id="desktop-catalogs-btn"
           >
             <Sparkles size={15} />
-            Our Lookbooks
+            Catalogs
           </button>
         </div>
 

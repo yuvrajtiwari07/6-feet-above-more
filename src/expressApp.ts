@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import productRouter from './controllers/productController';
 import userRouter from './controllers/userController';
+import catalogRouter from './controllers/catalogController';
 import { requireAuth } from './middleware/authMiddleware';
 import { requireAdmin } from './middleware/adminMiddleware';
 import { ImporterFactory } from './lib/importers/ImporterFactory';
@@ -67,6 +68,9 @@ app.post('/api/track', (_req, res) => {
 
 // User profile (authenticated)
 app.use('/api/users', userRouter);
+
+// Catalog categories + catalogs
+app.use('/api/catalogs', catalogRouter);
 
 // ─── Admin: Import Product from URL ───────────────────────
 // POST /api/admin/import-product
