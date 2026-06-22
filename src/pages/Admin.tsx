@@ -3,15 +3,16 @@ import { useApp } from '../context/AppContext';
 import { Product, FitVerdict, HeightBand, VerdictStatus } from '../types';
 import type { ImportedProduct } from '../lib/importers/types';
 import { getAccessToken } from '../supabase';
-import { 
-  Plus, Edit2, Check, AlertTriangle, ShieldCheck, Trash2, 
-  Eye, Archive, RotateCcw, Link2, MessageSquare, BadgeAlert, 
+import {
+  Plus, Edit2, Check, AlertTriangle, ShieldCheck, Trash2,
+  Eye, Archive, RotateCcw, Link2, MessageSquare, BadgeAlert,
   Sparkles, CheckCircle, Ruler, CreditCard, ChevronRight, Search, Star,
   Download, Loader2, Globe, X, Upload, ArrowUp, ArrowDown, FolderOpen, LayoutGrid
 } from 'lucide-react';
 import { CatalogCategoryAdmin } from '../components/admin/CatalogCategoryAdmin';
 import { CatalogAdmin } from '../components/admin/CatalogAdmin';
 
+//name
 
 const SEGMENT_TYPES: Record<string, string[]> = {
   Upperwear: ['T-Shirt', 'Shirt', 'Polo', 'Henley', 'Vest', 'Tank Top'],
@@ -33,13 +34,13 @@ const getSizeOptions = (segment: string): string[] => {
 };
 
 const BROAD_CATEGORIES = [
-  'Casual Wear', 'Formal Wear', 'Athleisure', 'Streetwear', 
-  'Business Casual', 'Ethnic Wear', 'Winter Wear', 'Summer Wear', 
+  'Casual Wear', 'Formal Wear', 'Athleisure', 'Streetwear',
+  'Business Casual', 'Ethnic Wear', 'Winter Wear', 'Summer Wear',
   'Travel Wear', 'Gym Wear', 'Outdoor Wear'
 ];
 
 const OCCASIONS = [
-  'Daily Wear', 'Office', 'Gym', 'Travel', 'Date Night', 'Party', 
+  'Daily Wear', 'Office', 'Gym', 'Travel', 'Date Night', 'Party',
   'Wedding', 'Festive', 'Outdoor', 'Business Casual', 'Work From Home', 'Vacation'
 ];
 
@@ -62,19 +63,19 @@ const COLORS = [
 const HEIGHT_RANGES = ["6'0–6'2", "6'2–6'4", "6'4–6'6", "6'6+"];
 const BODY_TYPES = ['Slim', 'Athletic', 'Broad', 'Heavy Build'];
 const FIT_HIGHLIGHTS = [
-  'Long Sleeves', 'Long Inseam', 'Broad Shoulder Friendly', 
+  'Long Sleeves', 'Long Inseam', 'Broad Shoulder Friendly',
   'Extended Torso Fit', 'Extra Leg Room', 'Long Rise'
 ];
 
 export const Admin: React.FC = () => {
-  const { 
-    products, 
-    addProduct, 
-    updateProduct, 
-    deleteProduct, 
-    isAdmin, 
-    user, 
-    loginWithGoogle 
+  const {
+    products,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    isAdmin,
+    user,
+    loginWithGoogle
   } = useApp();
 
   // Tab state
@@ -297,38 +298,38 @@ export const Admin: React.FC = () => {
       detectedSegment = 'Bottomwear';
       detectedType = combinedText.includes('jeans') ? 'Jeans'
         : combinedText.includes('cargo') ? 'Cargo Pants'
-        : combinedText.includes('jogger') ? 'Joggers'
-        : combinedText.includes('chino') ? 'Chinos'
-        : combinedText.includes('shorts') ? 'Shorts'
-        : 'Trousers';
+          : combinedText.includes('jogger') ? 'Joggers'
+            : combinedText.includes('chino') ? 'Chinos'
+              : combinedText.includes('shorts') ? 'Shorts'
+                : 'Trousers';
     } else if (combinedText.match(/shoe|sneaker|boot|loafer/)) {
       detectedSegment = 'Footwear';
       detectedType = combinedText.includes('sneaker') ? 'Sneakers'
         : combinedText.includes('boot') ? 'Boots'
-        : combinedText.includes('loafer') ? 'Loafers'
-        : 'Formal Shoes';
+          : combinedText.includes('loafer') ? 'Loafers'
+            : 'Formal Shoes';
     } else if (combinedText.match(/hoodie|sweatshirt|jacket|overshirt/)) {
       detectedSegment = 'Outerwear';
       detectedType = combinedText.includes('hoodie') ? 'Hoodie'
         : combinedText.includes('sweatshirt') ? 'Sweatshirt'
-        : combinedText.includes('overshirt') ? 'Overshirt'
-        : 'Jacket';
+          : combinedText.includes('overshirt') ? 'Overshirt'
+            : 'Jacket';
     } else if (combinedText.match(/kurta|nehru/)) {
       detectedSegment = 'Ethnic Wear';
       detectedType = combinedText.includes('set') ? 'Kurta Set'
         : combinedText.includes('nehru') ? 'Nehru Jacket'
-        : 'Kurta';
+          : 'Kurta';
     } else if (combinedText.match(/belt|cap|wallet|socks/)) {
       detectedSegment = 'Accessories';
       detectedType = combinedText.includes('belt') ? 'Belt'
         : combinedText.includes('cap') ? 'Cap'
-        : combinedText.includes('wallet') ? 'Wallet'
-        : 'Socks';
+          : combinedText.includes('wallet') ? 'Wallet'
+            : 'Socks';
     } else {
       detectedType = combinedText.includes('shirt') ? 'Shirt'
         : combinedText.includes('polo') ? 'Polo'
-        : combinedText.includes('henley') ? 'Henley'
-        : 'T-Shirt';
+          : combinedText.includes('henley') ? 'Henley'
+            : 'T-Shirt';
     }
 
     setProductSegment(detectedSegment);
@@ -353,7 +354,7 @@ export const Admin: React.FC = () => {
     setOccasions(suggestedOccs);
 
     // Seasons suggestion
-    setSeasons(combinedText.match(/winter|jacket|wool|hood/ ) ? ['Winter'] : ['All Season']);
+    setSeasons(combinedText.match(/winter|jacket|wool|hood/) ? ['Winter'] : ['All Season']);
 
     // Height & Body suggestions for tall-fit curation
     if (detectedSegment === 'Upperwear' || detectedSegment === 'Outerwear') {
@@ -444,8 +445,8 @@ export const Admin: React.FC = () => {
         .filter((c: any) => c && typeof c === 'string')
         .map((c: string) => {
           const clean = c.trim();
-          const matched = COLORS.find(opt => 
-            opt.name.toLowerCase() === clean.toLowerCase() || 
+          const matched = COLORS.find(opt =>
+            opt.name.toLowerCase() === clean.toLowerCase() ||
             opt.name.toLowerCase().includes(clean.toLowerCase()) ||
             clean.toLowerCase().includes(opt.name.toLowerCase())
           );
@@ -468,38 +469,38 @@ export const Admin: React.FC = () => {
         detectedSegment = 'Bottomwear';
         detectedType = combinedText.includes('jeans') ? 'Jeans'
           : combinedText.includes('cargo') ? 'Cargo Pants'
-          : combinedText.includes('jogger') ? 'Joggers'
-          : combinedText.includes('chino') ? 'Chinos'
-          : combinedText.includes('shorts') ? 'Shorts'
-          : 'Trousers';
+            : combinedText.includes('jogger') ? 'Joggers'
+              : combinedText.includes('chino') ? 'Chinos'
+                : combinedText.includes('shorts') ? 'Shorts'
+                  : 'Trousers';
       } else if (combinedText.match(/shoe|sneaker|boot|loafer/)) {
         detectedSegment = 'Footwear';
         detectedType = combinedText.includes('sneaker') ? 'Sneakers'
           : combinedText.includes('boot') ? 'Boots'
-          : combinedText.includes('loafer') ? 'Loafers'
-          : 'Formal Shoes';
+            : combinedText.includes('loafer') ? 'Loafers'
+              : 'Formal Shoes';
       } else if (combinedText.match(/hoodie|sweatshirt|jacket|overshirt/)) {
         detectedSegment = 'Outerwear';
         detectedType = combinedText.includes('hoodie') ? 'Hoodie'
           : combinedText.includes('sweatshirt') ? 'Sweatshirt'
-          : combinedText.includes('overshirt') ? 'Overshirt'
-          : 'Jacket';
+            : combinedText.includes('overshirt') ? 'Overshirt'
+              : 'Jacket';
       } else if (combinedText.match(/kurta|nehru/)) {
         detectedSegment = 'Ethnic Wear';
         detectedType = combinedText.includes('set') ? 'Kurta Set'
           : combinedText.includes('nehru') ? 'Nehru Jacket'
-          : 'Kurta';
+            : 'Kurta';
       } else if (combinedText.match(/belt|cap|wallet|socks/)) {
         detectedSegment = 'Accessories';
         detectedType = combinedText.includes('belt') ? 'Belt'
           : combinedText.includes('cap') ? 'Cap'
-          : combinedText.includes('wallet') ? 'Wallet'
-          : 'Socks';
+            : combinedText.includes('wallet') ? 'Wallet'
+              : 'Socks';
       } else {
         detectedType = combinedText.includes('shirt') ? 'Shirt'
           : combinedText.includes('polo') ? 'Polo'
-          : combinedText.includes('henley') ? 'Henley'
-          : 'T-Shirt';
+            : combinedText.includes('henley') ? 'Henley'
+              : 'T-Shirt';
       }
 
       setProductSegment(detectedSegment);
@@ -512,7 +513,7 @@ export const Admin: React.FC = () => {
       if (data.tallFit.tallFriendly !== undefined) {
         setTallFriendly(!!data.tallFit.tallFriendly);
       }
-      
+
       // Height Ranges
       if (data.tallFit.recommendedHeightRanges && Array.isArray(data.tallFit.recommendedHeightRanges)) {
         const matchedHeights = data.tallFit.recommendedHeightRanges
@@ -735,7 +736,7 @@ export const Admin: React.FC = () => {
     setDiscountPercent(p.discountPercent?.toString() || '0');
     setProductSegment(p.productSegment || 'Upperwear');
     setProductType(p.productType || 'T-Shirt');
-    
+
     // Taxonomy values arrays
     setCategories(p.categories || [p.category]);
     setOccasions(p.occasions || []);
@@ -857,13 +858,13 @@ export const Admin: React.FC = () => {
   };
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter || (p.categories && p.categories.includes(categoryFilter));
-    const matchesStock = stockFilter === 'All' || 
-                         (stockFilter === 'In Stock' && !p.outOfStock) ||
-                         (stockFilter === 'Out of Stock' && p.outOfStock);
+    const matchesStock = stockFilter === 'All' ||
+      (stockFilter === 'In Stock' && !p.outOfStock) ||
+      (stockFilter === 'Out of Stock' && p.outOfStock);
     return matchesSearch && matchesCategory && matchesStock;
   });
 
@@ -880,7 +881,7 @@ export const Admin: React.FC = () => {
           <p className="text-[#112133]/60 text-xs leading-relaxed">
             Admin validation required to alter catalogs. Login via Google to authenticate.
           </p>
-          <button 
+          <button
             onClick={loginWithGoogle}
             className="w-full py-4 bg-[#7D2AE8] text-white rounded-xl text-xs font-grotesk font-black uppercase tracking-wider hover:bg-[#6820C4]"
           >
@@ -893,7 +894,7 @@ export const Admin: React.FC = () => {
 
   return (
     <div className="pb-24 pt-10 text-[#112133] max-w-7xl mx-auto px-4 md:px-8 text-left">
-      
+
       {/* HEADER */}
       <div className="border-b border-[#112133]/15 pb-6 mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
@@ -928,9 +929,8 @@ export const Admin: React.FC = () => {
       <div className="flex border-b border-black/10 gap-6 mb-8">
         <button
           onClick={() => { setActiveAdminTab('products'); setShowForm(false); }}
-          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
-            activeAdminTab === 'products' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
-          }`}
+          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${activeAdminTab === 'products' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
+            }`}
           id="admin-tab-products"
         >
           <span className="flex items-center gap-1.5">
@@ -941,9 +941,8 @@ export const Admin: React.FC = () => {
 
         <button
           onClick={() => { setActiveAdminTab('categories'); setShowForm(false); }}
-          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
-            activeAdminTab === 'categories' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
-          }`}
+          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${activeAdminTab === 'categories' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
+            }`}
           id="admin-tab-categories"
         >
           <span className="flex items-center gap-1.5">
@@ -954,9 +953,8 @@ export const Admin: React.FC = () => {
 
         <button
           onClick={() => { setActiveAdminTab('catalogs'); setShowForm(false); }}
-          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
-            activeAdminTab === 'catalogs' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
-          }`}
+          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${activeAdminTab === 'catalogs' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
+            }`}
           id="admin-tab-catalogs"
         >
           <span className="flex items-center gap-1.5">
@@ -973,7 +971,7 @@ export const Admin: React.FC = () => {
             <h2 className="font-display text-2xl uppercase tracking-wider text-[#7D2AE8] font-bold">
               {editMode ? 'Edit Curated Product' : 'Create New Curated Product'}
             </h2>
-            <button 
+            <button
               onClick={() => setShowForm(false)}
               className="text-[#112133]/40 hover:text-black font-bold text-xs uppercase font-grotesk px-3 py-1.5 bg-black/5 rounded-xl transition"
             >
@@ -1033,9 +1031,8 @@ export const Admin: React.FC = () => {
               )}
 
               {importMessage && (
-                <div className={`mt-3 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
-                  importStatus === 'success' ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-[#FF3F6C]/10 text-[#FF3F6C] border-[#FF3F6C]/20'
-                }`}>
+                <div className={`mt-3 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border ${importStatus === 'success' ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-[#FF3F6C]/10 text-[#FF3F6C] border-[#FF3F6C]/20'
+                  }`}>
                   {importStatus === 'success' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
                   {importMessage}
                 </div>
@@ -1188,11 +1185,10 @@ export const Admin: React.FC = () => {
                         type="button"
                         key={cat}
                         onClick={() => toggleSelection(cat, categories, setCategories)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          isSelected 
-                            ? 'bg-[#7D2AE8] text-white shadow-sm' 
-                            : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
-                        }`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isSelected
+                          ? 'bg-[#7D2AE8] text-white shadow-sm'
+                          : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
+                          }`}
                       >
                         {cat}
                       </button>
@@ -1214,11 +1210,10 @@ export const Admin: React.FC = () => {
                         type="button"
                         key={occ}
                         onClick={() => toggleSelection(occ, occasions, setOccasions)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          isSelected 
-                            ? 'bg-[#7D2AE8] text-white shadow-sm' 
-                            : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
-                        }`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isSelected
+                          ? 'bg-[#7D2AE8] text-white shadow-sm'
+                          : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
+                          }`}
                       >
                         {occ}
                       </button>
@@ -1240,11 +1235,10 @@ export const Admin: React.FC = () => {
                         type="button"
                         key={s}
                         onClick={() => toggleSelection(s, seasons, setSeasons)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          isSelected 
-                            ? 'bg-[#7D2AE8] text-white shadow-sm' 
-                            : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
-                        }`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isSelected
+                          ? 'bg-[#7D2AE8] text-white shadow-sm'
+                          : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
+                          }`}
                       >
                         {s}
                       </button>
@@ -1266,14 +1260,13 @@ export const Admin: React.FC = () => {
                         type="button"
                         key={color.name}
                         onClick={() => toggleSelection(color.name, colors, setColors)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          isSelected 
-                            ? 'bg-[#7D2AE8] text-white shadow-sm ring-2 ring-[#7D2AE8]/20' 
-                            : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
-                        }`}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isSelected
+                          ? 'bg-[#7D2AE8] text-white shadow-sm ring-2 ring-[#7D2AE8]/20'
+                          : 'bg-white text-black/65 border border-black/15 hover:border-[#7D2AE8]/50'
+                          }`}
                       >
-                        <span 
-                          className="w-3.5 h-3.5 rounded-full shadow-inner border border-black/10" 
+                        <span
+                          className="w-3.5 h-3.5 rounded-full shadow-inner border border-black/10"
                           style={{ backgroundColor: color.hex }}
                         />
                         <span>{color.name}</span>
@@ -1289,8 +1282,8 @@ export const Admin: React.FC = () => {
                         onClick={() => toggleSelection(customColor, colors, setColors)}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-[#7D2AE8] text-white shadow-sm ring-2 ring-[#7D2AE8]/20"
                       >
-                        <span 
-                          className="w-3.5 h-3.5 rounded-full shadow-inner border border-black/10 bg-gradient-to-r from-violet-400 to-indigo-500" 
+                        <span
+                          className="w-3.5 h-3.5 rounded-full shadow-inner border border-black/10 bg-gradient-to-r from-violet-400 to-indigo-500"
                         />
                         <span>{customColor}</span>
                         <X className="w-3.5 h-3.5 ml-0.5" />
@@ -1360,7 +1353,7 @@ export const Admin: React.FC = () => {
                 <h3 className="text-xs font-black uppercase tracking-wider text-black/60">
                   Image Source &amp; Management
                 </h3>
-                
+
                 <div className="flex rounded-lg border border-black/15 overflow-hidden text-[10px] font-black uppercase bg-white">
                   <button
                     type="button"
@@ -1422,12 +1415,12 @@ export const Admin: React.FC = () => {
                   <span className="text-[10px] text-black/45 block font-bold uppercase tracking-wider">
                     Garment Image Catalog ({images.length} Images - first image is primary showcase)
                   </span>
-                  
+
                   <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
                     {images.map((img, idx) => (
                       <div key={img + idx} className="group aspect-[3/4] bg-white border border-black/10 rounded-xl overflow-hidden relative shadow-sm hover:shadow-md transition">
                         <img src={img} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        
+
                         {/* Hover Overlay Controls */}
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
                           <div className="flex items-center justify-between">
@@ -1488,14 +1481,14 @@ export const Admin: React.FC = () => {
                     🏆 TALL FIT CURATION ENGINE
                   </h3>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] text-black/55 font-black uppercase tracking-wider">
                     Tall Friendly Selection:
                   </span>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={tallFriendly}
                       onChange={(e) => setTallFriendly(e.target.checked)}
                       className="sr-only peer"
@@ -1593,11 +1586,10 @@ export const Admin: React.FC = () => {
                         type="button"
                         key={sz}
                         onClick={() => toggleSelection(sz, sizes, setSizes)}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${
-                          isChecked 
-                            ? 'bg-[#7D2AE8] text-white border-[#7D2AE8]' 
-                            : 'bg-white text-black/60 border-black/15 hover:border-[#7D2AE8]/50'
-                        }`}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${isChecked
+                          ? 'bg-[#7D2AE8] text-white border-[#7D2AE8]'
+                          : 'bg-white text-black/60 border-black/15 hover:border-[#7D2AE8]/50'
+                          }`}
                       >
                         {sz}
                       </button>
@@ -1611,40 +1603,40 @@ export const Admin: React.FC = () => {
                 <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
                   Anatomical Height-Band Fit Verdict Notes
                 </label>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'0"–6'1" Verdict Note</label>
-                    <input 
-                      type="text" 
-                      value={verdict0_1_Note} 
+                    <input
+                      type="text"
+                      value={verdict0_1_Note}
                       onChange={(e) => setVerdict0_1_Note(e.target.value)}
                       className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
                     />
                   </div>
                   <div>
                     <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'2"–6'3" Verdict Note</label>
-                    <input 
-                      type="text" 
-                      value={verdict2_3_Note} 
+                    <input
+                      type="text"
+                      value={verdict2_3_Note}
                       onChange={(e) => setVerdict2_3_Note(e.target.value)}
                       className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
                     />
                   </div>
                   <div>
                     <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'4"–6'5" Verdict Note</label>
-                    <input 
-                      type="text" 
-                      value={verdict4_5_Note} 
+                    <input
+                      type="text"
+                      value={verdict4_5_Note}
                       onChange={(e) => setVerdict4_5_Note(e.target.value)}
                       className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
                     />
                   </div>
                   <div>
                     <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'6"+ Verdict Note</label>
-                    <input 
-                      type="text" 
-                      value={verdict6_plus_Note} 
+                    <input
+                      type="text"
+                      value={verdict6_plus_Note}
                       onChange={(e) => setVerdict6_plus_Note(e.target.value)}
                       className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
                     />
@@ -1755,11 +1747,10 @@ export const Admin: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleToggleLinkSelection('original')}
-                          className={`px-3 py-1.5 transition-all ${
-                            linkSelection === 'original' 
-                              ? 'bg-[#7D2AE8] text-white' 
-                              : 'hover:bg-black/5 text-black/60'
-                          }`}
+                          className={`px-3 py-1.5 transition-all ${linkSelection === 'original'
+                            ? 'bg-[#7D2AE8] text-white'
+                            : 'hover:bg-black/5 text-black/60'
+                            }`}
                         >
                           Original Link
                         </button>
@@ -1767,11 +1758,10 @@ export const Admin: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleToggleLinkSelection('affiliate')}
-                            className={`px-3 py-1.5 transition-all ${
-                              linkSelection === 'affiliate' 
-                                ? 'bg-[#7D2AE8] text-white' 
-                                : 'hover:bg-black/5 text-black/60'
-                            }`}
+                            className={`px-3 py-1.5 transition-all ${linkSelection === 'affiliate'
+                              ? 'bg-[#7D2AE8] text-white'
+                              : 'hover:bg-black/5 text-black/60'
+                              }`}
                           >
                             Affiliate Link
                           </button>
@@ -1855,133 +1845,132 @@ export const Admin: React.FC = () => {
         <>
           {/* FILTER & SEARCH PANEL */}
           <div className="bg-[#FAF9F6] border border-black/10 rounded-2xl p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by title, brand, ID..."
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white focus:ring-2 focus:ring-[#7D2AE8]"
-          />
-        </div>
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-black/35" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by title, brand, ID..."
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white focus:ring-2 focus:ring-[#7D2AE8]"
+              />
+            </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white"
-          >
-            <option value="All">All Categories</option>
-            {BROAD_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-          </select>
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white"
+              >
+                <option value="All">All Categories</option>
+                {BROAD_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
 
-          <select
-            value={stockFilter}
-            onChange={(e) => setStockFilter(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white"
-          >
-            <option value="All">All Stock Status</option>
-            <option value="In Stock">In Stock Only</option>
-            <option value="Out of Stock">Out of Stock Only</option>
-          </select>
-        </div>
-      </div>
+              <select
+                value={stockFilter}
+                onChange={(e) => setStockFilter(e.target.value)}
+                className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white"
+              >
+                <option value="All">All Stock Status</option>
+                <option value="In Stock">In Stock Only</option>
+                <option value="Out of Stock">Out of Stock Only</option>
+              </select>
+            </div>
+          </div>
 
-      {/* PRODUCTS TABLE LIST */}
-      <div className="bg-white border border-[#112133]/15 rounded-3xl overflow-hidden shadow-sm">
-        <div className="p-4 md:p-6 border-b border-[#112133]/10 bg-[#FAF9F6] flex justify-between items-center">
-          <h2 className="font-display text-lg uppercase font-black text-black/75">
-            Curated Garments Catalogue ({filteredProducts.length})
-          </h2>
-          <span className="text-[10px] bg-black/10 text-black/60 px-2.5 py-1 rounded-full font-mono font-bold">
-            Total active DB count: {products.length}
-          </span>
-        </div>
+          {/* PRODUCTS TABLE LIST */}
+          <div className="bg-white border border-[#112133]/15 rounded-3xl overflow-hidden shadow-sm">
+            <div className="p-4 md:p-6 border-b border-[#112133]/10 bg-[#FAF9F6] flex justify-between items-center">
+              <h2 className="font-display text-lg uppercase font-black text-black/75">
+                Curated Garments Catalogue ({filteredProducts.length})
+              </h2>
+              <span className="text-[10px] bg-black/10 text-black/60 px-2.5 py-1 rounded-full font-mono font-bold">
+                Total active DB count: {products.length}
+              </span>
+            </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
-            <thead>
-              <tr className="bg-black/5 text-[9px] font-black uppercase tracking-widest text-black/45 border-b border-[#112133]/10">
-                <th className="py-3 px-6">Product Image</th>
-                <th className="py-3 px-6">ID / Brand</th>
-                <th className="py-3 px-6">Title</th>
-                <th className="py-3 px-6">Segment / Type</th>
-                <th className="py-3 px-6">Price</th>
-                <th className="py-3 px-6">Availability</th>
-                <th className="py-3 px-6 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#112133]/5 text-xs font-bold">
-              {filteredProducts.map(p => (
-                <tr key={p.id} className="hover:bg-black/3 transition-colors">
-                  <td className="py-4 px-6">
-                    <img 
-                      src={p.images[0]} 
-                      alt="" 
-                      className="w-12 h-16 object-cover rounded-lg border border-black/10 shadow-inner" 
-                      referrerPolicy="no-referrer"
-                    />
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="text-[10px] font-mono block text-black/45">{p.id}</span>
-                    <span className="text-xs font-black uppercase text-[#7D2AE8]">{p.brand}</span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="line-clamp-2 max-w-xs">{p.title}</span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="block text-[10px] text-black/55">{p.productSegment}</span>
-                    <span className="block font-black text-[#00C4CC]">{p.productType}</span>
-                  </td>
-                  <td className="py-4 px-6 font-mono text-sm text-[#7D2AE8]">
-                    ₹{p.priceAtRetailer.toLocaleString('en-IN')}
-                  </td>
-                  <td className="py-4 px-6">
-                    <button
-                      onClick={() => handleToggleStock(p)}
-                      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border ${
-                        p.outOfStock 
-                          ? 'bg-red-500/10 text-red-700 border-red-500/20' 
-                          : 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
-                      }`}
-                    >
-                      {p.outOfStock ? '✕ Out of Stock' : '✓ In Stock'}
-                    </button>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleOpenEditForm(p)}
-                        className="p-2 bg-[#FAF9F6] border border-black/15 text-[#112133] hover:text-[#7D2AE8] hover:border-[#7D2AE8]/30 rounded-xl transition"
-                        title="Edit Entry"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteItem(p)}
-                        className="p-2 bg-red-500/5 border border-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition"
-                        title="Delete Entry"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="bg-black/5 text-[9px] font-black uppercase tracking-widest text-black/45 border-b border-[#112133]/10">
+                    <th className="py-3 px-6">Product Image</th>
+                    <th className="py-3 px-6">ID / Brand</th>
+                    <th className="py-3 px-6">Title</th>
+                    <th className="py-3 px-6">Segment / Type</th>
+                    <th className="py-3 px-6">Price</th>
+                    <th className="py-3 px-6">Availability</th>
+                    <th className="py-3 px-6 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#112133]/5 text-xs font-bold">
+                  {filteredProducts.map(p => (
+                    <tr key={p.id} className="hover:bg-black/3 transition-colors">
+                      <td className="py-4 px-6">
+                        <img
+                          src={p.images[0]}
+                          alt=""
+                          className="w-12 h-16 object-cover rounded-lg border border-black/10 shadow-inner"
+                          referrerPolicy="no-referrer"
+                        />
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="text-[10px] font-mono block text-black/45">{p.id}</span>
+                        <span className="text-xs font-black uppercase text-[#7D2AE8]">{p.brand}</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="line-clamp-2 max-w-xs">{p.title}</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="block text-[10px] text-black/55">{p.productSegment}</span>
+                        <span className="block font-black text-[#00C4CC]">{p.productType}</span>
+                      </td>
+                      <td className="py-4 px-6 font-mono text-sm text-[#7D2AE8]">
+                        ₹{p.priceAtRetailer.toLocaleString('en-IN')}
+                      </td>
+                      <td className="py-4 px-6">
+                        <button
+                          onClick={() => handleToggleStock(p)}
+                          className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border ${p.outOfStock
+                            ? 'bg-red-500/10 text-red-700 border-red-500/20'
+                            : 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
+                            }`}
+                        >
+                          {p.outOfStock ? '✕ Out of Stock' : '✓ In Stock'}
+                        </button>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleOpenEditForm(p)}
+                            className="p-2 bg-[#FAF9F6] border border-black/15 text-[#112133] hover:text-[#7D2AE8] hover:border-[#7D2AE8]/30 rounded-xl transition"
+                            title="Edit Entry"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(p)}
+                            className="p-2 bg-red-500/5 border border-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition"
+                            title="Delete Entry"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
 
-              {filteredProducts.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#112133]/50 italic">
-                    No curated products matching filter query.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      </>
+                  {filteredProducts.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-[#112133]/50 italic">
+                        No curated products matching filter query.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* CATALOG CATEGORIES TAB CONTENT */}
