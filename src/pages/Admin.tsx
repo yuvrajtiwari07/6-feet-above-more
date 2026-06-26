@@ -1675,6 +1675,26 @@ export const Admin: React.FC = () => {
                         })}
                       </div>
 
+                      {/* Recommendation Dropdown */}
+                      <div className="col-span-1 md:col-span-3">
+                        <div className="relative">
+                          <select
+                            value={row.fitRecommendation}
+                            onChange={(e) => handleUpdateHeightBand(idx, 'fitRecommendation', e.target.value)}
+                            className="w-full px-3 py-2.5 border border-black/15 rounded-xl text-xs font-bold bg-white focus:outline-none focus:border-[#7D2AE8] appearance-none"
+                          >
+                            {FIT_RECOMMENDATION_OPTIONS.map(opt => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-black/45 text-[10px]">
+                            ▼
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Remove Action */}
                       <div className="col-span-1 md:col-span-1 flex justify-end">
                         <button
