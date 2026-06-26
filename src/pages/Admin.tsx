@@ -169,6 +169,12 @@ export const Admin: React.FC = () => {
   const [affiliateLoading, setAffiliateLoading] = useState(false);
   const [affiliateError, setAffiliateError] = useState('');
 
+  // Anatomical Height-Band Fit Verdict Notes
+  const [verdict0_1_Note, setVerdict0_1_Note] = useState('');
+  const [verdict2_3_Note, setVerdict2_3_Note] = useState('');
+  const [verdict4_5_Note, setVerdict4_5_Note] = useState('');
+  const [verdict6_plus_Note, setVerdict6_plus_Note] = useState('');
+
   const generateAffiliateLink = async (urlToConvert: string) => {
     if (!urlToConvert.trim()) return;
     setAffiliateLoading(true);
@@ -683,6 +689,12 @@ export const Admin: React.FC = () => {
     setGeneratedAffiliateUrl('');
     setLinkSelection('custom');
     setAffiliateError('');
+
+    // Reset verdict notes
+    setVerdict0_1_Note('');
+    setVerdict2_3_Note('');
+    setVerdict4_5_Note('');
+    setVerdict6_plus_Note('');
   };
 
   const handleOpenEditForm = (p: Product) => {
@@ -719,17 +731,42 @@ export const Admin: React.FC = () => {
     setTallFriendly(p.tallFriendly !== false);
     setSizes(p.sizes || []);
 
+    let note0_1 = '';
+    let note2_3 = '';
+    let note4_5 = '';
+    let note6_plus = '';
+
     const parsedVerdicts: FitVerdict[] = [];
     if (p.verdicts && p.verdicts.length > 0) {
       p.verdicts.forEach((v: any) => {
+        const noteVal = v.note || '';
         if ('heightRange' in v) {
           parsedVerdicts.push(v);
+          const range = v.heightRange || '';
+          if (range.includes("6'0") || range.includes("6'1")) {
+            note0_1 = noteVal;
+          } else if (range.includes("6'2") || range.includes("6'3")) {
+            note2_3 = noteVal;
+          } else if (range.includes("6'4") || range.includes("6'5")) {
+            note4_5 = noteVal;
+          } else if (range.includes("6'6") || range.includes("6'7") || range.includes("6'8") || range.includes("6'9") || range.includes("6'8+")) {
+            note6_plus = noteVal;
+          }
         } else {
           // Map legacy verdict
           let heightRange = "6'0\" - 6'2\"";
-          if (v.band === '6_2_6_3') heightRange = "6'2\" - 6'4\"";
-          else if (v.band === '6_4_6_5') heightRange = "6'4\" - 6'6\"";
-          else if (v.band === '6_6_plus') heightRange = "6'8\"+";
+          if (v.band === '6_2_6_3') {
+            heightRange = "6'2\" - 6'4\"";
+            note2_3 = noteVal;
+          } else if (v.band === '6_4_6_5') {
+            heightRange = "6'4\" - 6'6\"";
+            note4_5 = noteVal;
+          } else if (v.band === '6_6_plus') {
+            heightRange = "6'8\"+";
+            note6_plus = noteVal;
+          } else if (v.band === '6_0_6_1') {
+            note0_1 = noteVal;
+          }
 
           let fitRecommendation = 'Good Fit';
           if (v.status === 'verified') fitRecommendation = 'Highly Recommended';
@@ -746,7 +783,8 @@ export const Admin: React.FC = () => {
           parsedVerdicts.push({
             heightRange,
             bodyTypes: bodyTypes.length > 0 ? bodyTypes : ['Athletic'],
-            fitRecommendation
+            fitRecommendation,
+            note: noteVal
           });
         }
       });
@@ -764,6 +802,10 @@ export const Admin: React.FC = () => {
     }
 
     setAdminVerdicts(parsedVerdicts);
+    setVerdict0_1_Note(note0_1);
+    setVerdict2_3_Note(note2_3);
+    setVerdict4_5_Note(note4_5);
+    setVerdict6_plus_Note(note6_plus);
     setMerchantLinks(p.merchantLinks || []);
 
     // Initialize affiliate states for editing
@@ -806,6 +848,21 @@ export const Admin: React.FC = () => {
       return;
     }
 
+    const updatedVerdicts = adminVerdicts.map(v => {
+      let note = v.note || '';
+      const range = v.heightRange || '';
+      if (range.includes("6'0") || range.includes("6'1")) {
+        note = verdict0_1_Note;
+      } else if (range.includes("6'2") || range.includes("6'3")) {
+        note = verdict2_3_Note;
+      } else if (range.includes("6'4") || range.includes("6'5")) {
+        note = verdict4_5_Note;
+      } else if (range.includes("6'6") || range.includes("6'7") || range.includes("6'8") || range.includes("6'9") || range.includes("6'8+")) {
+        note = verdict6_plus_Note;
+      }
+      return { ...v, note };
+    });
+
     const finalProduct: Product = {
       id,
       brand,
@@ -825,7 +882,7 @@ export const Admin: React.FC = () => {
       seasons,
       colors,
       sizes,
-      verdicts: adminVerdicts,
+      verdicts: updatedVerdicts,
       outOfStock,
       merchantLinks,
       material,

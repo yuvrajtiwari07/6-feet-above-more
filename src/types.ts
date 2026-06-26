@@ -14,9 +14,15 @@ export interface MerchantOutlet {
 export type VerdictStatus = 'verified' | 'friendly' | 'community' | 'runs_short';
 
 export interface FitVerdict {
-  heightRange: string;
-  bodyTypes: ('Slim' | 'Athletic' | 'Broad' | 'Overweight')[];
-  fitRecommendation: string;
+  // New fitEngine fields
+  heightRange?: string;
+  bodyTypes?: ('Slim' | 'Athletic' | 'Broad' | 'Overweight')[];
+  fitRecommendation?: string;
+  note?: string;
+
+  // Legacy fields
+  band?: HeightBand;
+  status?: VerdictStatus;
 }
 
 export interface Product {

@@ -7,6 +7,7 @@ import {
   Ruler, Layers, Tag, Star, ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getProductRecommendation, isPositiveRecommendation } from '../../utils/fitEngine';
 
 interface Props {
   product: Product;
