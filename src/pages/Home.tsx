@@ -80,9 +80,9 @@ export const Home: React.FC = () => {
             {/* Model Background Image (absolute right-0) */}
             <div className="absolute right-0 top-0 bottom-0 w-full md:w-[45%] h-full z-0 pointer-events-none">
               <img 
-                src="https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&auto=format&fit=crop" 
+                src="assets/model.png" 
                 alt="Tall Model" 
-                className="w-full h-full object-cover object-top opacity-55 md:opacity-90 group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover object-top opacity-55 md:opacity-90"
               />
               <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#0F0F10] via-[#0F0F10]/80 to-transparent" />
             </div>
