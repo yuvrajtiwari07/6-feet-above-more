@@ -27,7 +27,7 @@ const CatalogList: React.FC = () => {
   if (loadingCatalogs) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-[#FF3F6C]" />
+        <Loader2 size={32} className="animate-spin text-[#D5A021]" />
       </div>
     );
   }
@@ -51,11 +51,11 @@ const CatalogList: React.FC = () => {
             className="flex items-end justify-between gap-4"
           >
             <div>
-              <span className="text-[#FF3F6C] text-[10px] font-black uppercase tracking-widest bg-[#FF3F6C]/10 px-3 py-1 rounded-full">
+              <span className="text-[#D5A021] text-[10px] font-black uppercase tracking-widest bg-[#FFD43B] text-black/10 px-3 py-1 rounded-full">
                 {categoryName}
               </span>
               <h1 className="font-display text-3xl md:text-5xl font-black uppercase tracking-tighter mt-2">
-                {categoryName} <span className="text-[#FF3F6C]">Catalogs</span>
+                {categoryName} <span className="text-[#D5A021]">Catalogs</span>
               </h1>
               <p className="text-black/50 text-sm mt-1">
                 {filteredCatalogs.length} {filteredCatalogs.length === 1 ? 'catalog' : 'catalogs'} curated for tall fits

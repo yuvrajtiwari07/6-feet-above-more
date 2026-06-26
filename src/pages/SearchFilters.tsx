@@ -265,9 +265,9 @@ export const SearchFilters: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center bg-[#112133]/5 border border-[#112133]/5 p-3 rounded-3xl px-4 gap-4">
             <div className="text-xs font-sans text-black/60 text-left flex flex-col justify-center">
               <span>
-                We found <strong className="text-[#FF3F6C] font-black">{filteredProducts.length}</strong> tall-friendly garments matching criteria.
+                We found <strong className="text-[#D5A021] font-black">{filteredProducts.length}</strong> tall-friendly garments matching criteria.
               </span>
-              <span className="text-[9px] uppercase font-black tracking-wider text-[#FF3F6C] mt-0.5">
+              <span className="text-[9px] uppercase font-black tracking-wider text-[#D5A021] mt-0.5">
                 Default-Sorted by user height: {height}
               </span>
             </div>

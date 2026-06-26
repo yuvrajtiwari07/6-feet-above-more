@@ -394,7 +394,7 @@ export const ProductDetail: React.FC = () => {
                 {recommendation ? (
                   <span className={`font-black text-[10px] tracking-wide px-3 py-1 rounded-full shadow-sm uppercase ${
                     recommendation.fitRecommendation.includes('Highly')
-                      ? 'bg-[#FF3F6C] text-white'
+                      ? 'bg-[#FFD43B] text-black text-white'
                       : isPositiveRecommendation(recommendation.fitRecommendation)
                         ? 'bg-[#00C4CC] text-white'
                         : 'bg-amber-500 text-white'

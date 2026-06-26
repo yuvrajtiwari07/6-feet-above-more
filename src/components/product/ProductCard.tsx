@@ -88,8 +88,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     let badgeStyleClass = "";
     if (recText.includes("HIGHLY RECOMMENDED")) {
       badgeStyleClass = isSm
-        ? "bg-[#FF3F6C] text-white text-[8px] px-2 py-0.5 rounded-md"
-        : "bg-[#FF3F6C] text-white text-[10px] px-3 py-1.5 rounded-full";
+        ? "bg-[#FFD43B] text-black text-[8px] px-2 py-0.5 rounded-md"
+        : "bg-[#FFD43B] text-black text-[10px] px-3 py-1.5 rounded-full";
     } else if (isPositive) {
       badgeStyleClass = isSm
         ? "bg-[#00C4CC] text-white text-[8px] px-2 py-0.5 rounded-md"
@@ -103,7 +103,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     return (
       <div className={`flex items-center gap-1 font-grotesk font-black tracking-wider uppercase shadow-md ${badgeStyleClass}`}>
         {recText.includes("HIGHLY") || recText.includes("RECOMMENDED") ? (
-          <CheckCircle2 size={isSm ? 9 : 11} strokeWidth={isSm ? 2.5 : 3} className="text-white" />
+          <CheckCircle2 size={isSm ? 9 : 11} strokeWidth={isSm ? 2.5 : 3} className={recText.includes("HIGHLY RECOMMENDED") ? "text-black" : "text-white"} />
         ) : (
           <Ruler size={isSm ? 9 : 11} className="text-white" />
         )}
@@ -168,7 +168,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 e.stopPropagation();
                 setActiveImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
               }}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-white/85 text-black hover:bg-[#FF3F6C] hover:text-white p-1 rounded-full border border-black/10 shadow-sm z-30 transition opacity-0 group-hover/img:opacity-100 hidden md:flex"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-white/85 text-black hover:bg-[#FFD43B] hover:text-black p-1 rounded-full border border-black/10 shadow-sm z-30 transition opacity-0 group-hover/img:opacity-100 hidden md:flex"
             >
               <ChevronLeft size={14} />
             </button>
@@ -178,7 +178,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 e.stopPropagation();
                 setActiveImageIndex((prev) => (prev + 1) % product.images.length);
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-white/85 text-black hover:bg-[#FF3F6C] hover:text-white p-1 rounded-full border border-black/10 shadow-sm z-30 transition opacity-0 group-hover/img:opacity-100 hidden md:flex"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-white/85 text-black hover:bg-[#FFD43B] hover:text-black p-1 rounded-full border border-black/10 shadow-sm z-30 transition opacity-0 group-hover/img:opacity-100 hidden md:flex"
             >
               <ChevronRight size={14} />
             </button>
@@ -203,10 +203,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             isSm 
               ? 'top-2 right-2 p-1.5' 
               : 'top-3.5 right-3.5 p-2.5'
-          } bg-white hover:bg-[#FF3F6C] hover:text-white text-black rounded-full border border-black/10 shadow-sm z-30 transition hover:scale-110 active:scale-95`}
+          } bg-white hover:bg-[#FFD43B] hover:text-black text-black rounded-full border border-black/10 shadow-sm z-30 transition hover:scale-110 active:scale-95`}
           id={`save-btn-${product.id}`}
         >
-          <Heart size={isSm ? 12 : 15} className={isSaved ? 'fill-[#FF3F6C] text-[#FF3F6C] group-hover:text-white' : ''} />
+          <Heart size={isSm ? 12 : 15} className={isSaved ? 'fill-[#FFD43B] text-[#FFD43B] group-hover:text-black' : ''} />
         </button>
  
         {/* Retailer sticker corner */}
@@ -234,10 +234,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </span>
           </div>
  
-          <h3 className={`text-black font-grotesk font-black line-clamp-1 group-hover:text-[#FF3F6C] transition-colors ${isSm ? 'text-xs mb-1.5' : 'text-base mb-2'}`}>
+          <h3 className={`text-black font-grotesk font-black line-clamp-1 group-hover:text-[#D5A021] transition-colors ${isSm ? 'text-xs mb-1.5' : 'text-base mb-2'}`}>
             {product.title}
           </h3>
-
+ 
           {/* Pricing Row */}
           <div className={`flex flex-col gap-0.5 ${isSm ? 'mb-2' : 'mb-3.5'}`}>
             <div className="flex items-baseline gap-1.5 flex-wrap">
@@ -247,12 +247,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <span className="text-black/40 text-[10px] font-sans line-through">
                 ₹{Math.floor(product.priceAtRetailer * 1.3).toLocaleString('en-IN')}
               </span>
-              <span className="text-[#FF3F6C] text-[10px] font-black">
+              <span className="text-[#D5A021] text-[10px] font-black">
                 (23%)
               </span>
             </div>
             {/* The Club Price Strip */}
-            <div className={`uppercase font-black text-[#FF3F6C] bg-[#FF3F6C]/5 rounded border border-[#FF3F6C]/10 flex items-center justify-between ${isSm ? 'text-[8px] p-0.5 mt-0.5 px-1' : 'text-[10px] p-1'}`}>
+            <div className={`uppercase font-black text-[#D5A021] bg-[#FFD43B]/10 rounded border border-[#FFD43B]/20 flex items-center justify-between ${isSm ? 'text-[8px] p-0.5 mt-0.5 px-1' : 'text-[10px] p-1'}`}>
               <span>Club:</span>
               <span className={`font-mono font-bold text-black ${isSm ? 'text-[9.5px]' : 'text-[11px]'}`}>₹{memberPrice.toLocaleString('en-IN')}</span>
             </div>
@@ -260,8 +260,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
  
           {/* Dynamic Verdict text strip */}
           <div className={`bg-[#FAF9F6] border border-black/5 ${isSm ? 'rounded-xl p-1.5 mb-2.5' : 'rounded-2xl p-3 mb-4'}`}>
-            <div className="flex items-center gap-1.5 text-[#FF3F6C] text-[9px] font-black font-grotesk mb-0.5">
-              <div className="w-1 h-1 rounded-full bg-[#FF3F6C]" />
+            <div className="flex items-center gap-1.5 text-[#D5A021] text-[9px] font-black font-grotesk mb-0.5">
+              <div className="w-1 h-1 rounded-full bg-[#D5A021]" />
               <span>{isSm ? `${height} FIT` : `${height} TALL VERDICT`}</span>
             </div>
             <p className={`text-black/70 font-sans ${isSm ? 'text-[9.5px] leading-snug line-clamp-1' : 'text-xs leading-relaxed line-clamp-2'}`}>
@@ -286,7 +286,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {/* Shop Affiliate Link */}
           <button
             onClick={handleShopRedirect}
-            className={`col-span-3 flex items-center justify-center gap-0.5 bg-black hover:bg-[#FF3F6C] text-white font-black font-grotesk transition-all duration-300 shadow-sm border border-black shadow-[#FF3F6C]/5 hover:scale-[1.02] ${isSm ? 'py-1.5 text-[9px] rounded-xl' : 'py-3 text-xs rounded-2xl'}`}
+            className={`col-span-3 flex items-center justify-center gap-0.5 bg-black hover:bg-[#FFD43B] hover:text-black text-white font-black font-grotesk transition-all duration-300 shadow-sm border border-black shadow-[#FFD43B]/5 hover:scale-[1.02] ${isSm ? 'py-1.5 text-[9px] rounded-xl' : 'py-3 text-xs rounded-2xl'}`}
             id={`shop-btn-${product.id}`}
           >
             <span>Shop</span>

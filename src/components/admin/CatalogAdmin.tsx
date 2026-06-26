@@ -243,7 +243,7 @@ export const CatalogAdmin: React.FC<Props> = ({ onOpenImportModal }) => {
           </h3>
 
           {error && (
-            <div className="p-3 bg-[#FF3F6C]/10 text-[#FF3F6C] text-xs font-bold rounded-xl border border-[#FF3F6C]/20">
+            <div className="p-3 bg-[#FFD43B] text-black/10 text-[#D5A021] text-xs font-bold rounded-xl border border-[#FFD43B]/20">
               {error}
             </div>
           )}
@@ -475,7 +475,7 @@ export const CatalogAdmin: React.FC<Props> = ({ onOpenImportModal }) => {
                         </button>
                         <button
                           onClick={() => handleDelete(c.id)}
-                          className="p-1.5 hover:bg-[#FF3F6C]/10 rounded text-black/60 hover:text-[#FF3F6C] transition"
+                          className="p-1.5 hover:bg-[#FFD43B] text-black/10 rounded text-black/60 hover:text-[#D5A021] transition"
                         >
                           <Trash2 size={12} />
                         </button>

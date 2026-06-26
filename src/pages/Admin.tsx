@@ -948,7 +948,7 @@ export const Admin: React.FC = () => {
     return (
       <div className="min-h-screen py-24 px-4 bg-off-white flex items-center justify-center">
         <div className="max-w-md w-full bg-white border border-[#112133]/15 rounded-3xl p-8 text-center space-y-6 shadow-sm">
-          <div className="w-16 h-16 bg-[#FF3F6C]/10 rounded-full flex items-center justify-center mx-auto text-[#FF3F6C]">
+          <div className="w-16 h-16 bg-[#FFD43B] text-black/10 rounded-full flex items-center justify-center mx-auto text-[#D5A021]">
             <BadgeAlert size={36} />
           </div>
           <h2 className="text-[#112133] font-display text-2xl uppercase tracking-wider">Restricted Entry</h2>
@@ -1105,7 +1105,7 @@ export const Admin: React.FC = () => {
               )}
 
               {importMessage && (
-                <div className={`mt-3 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border ${importStatus === 'success' ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-[#FF3F6C]/10 text-[#FF3F6C] border-[#FF3F6C]/20'
+                <div className={`mt-3 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border ${importStatus === 'success' ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' : 'bg-[#FFD43B] text-black/10 text-[#D5A021] border-[#FFD43B]/20'
                   }`}>
                   {importStatus === 'success' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
                   {importMessage}
@@ -1116,7 +1116,7 @@ export const Admin: React.FC = () => {
 
           <form onSubmit={handleSubmitForm} className="space-y-8">
             {formError && (
-              <div className="p-4 bg-[#FF3F6C]/10 text-[#FF3F6C] font-bold text-xs rounded-xl flex items-center gap-2 border border-[#FF3F6C]/20">
+              <div className="p-4 bg-[#FFD43B] text-black/10 text-[#D5A021] font-bold text-xs rounded-xl flex items-center gap-2 border border-[#FFD43B]/20">
                 <AlertTriangle size={16} /> <span>{formError}</span>
               </div>
             )}

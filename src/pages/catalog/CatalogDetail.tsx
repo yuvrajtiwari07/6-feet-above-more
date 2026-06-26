@@ -59,7 +59,7 @@ const CatalogDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 size={36} className="animate-spin text-[#FF3F6C]" />
+        <Loader2 size={36} className="animate-spin text-[#D5A021]" />
       </div>
     );
   }

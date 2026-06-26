@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { COMPLETE_FITS } from '../data/mockData';
 import { ProductCard } from '../components/product/ProductCard';
 import { GridDensitySelector } from '../components/layout/GridDensitySelector';
-import { ArrowRight, Sparkles, Sliders, Shield, Shirt, Sparkle, Ruler } from 'lucide-react';
+import { ArrowRight, Sparkles, Sliders, Shield, Shirt, Sparkle, Ruler, ShieldCheck, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 
 import { getProductRecommendation } from '../utils/fitEngine';
@@ -37,7 +37,7 @@ export const Home: React.FC = () => {
       cover: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&auto=format&fit=crop', 
       span: 'md:col-span-3 lg:col-span-3',
       cardClass: 'bg-white text-black border-2 border-black hover:scale-[1.01]',
-      tagColor: 'text-[#FF3F6C] font-black'
+      tagColor: 'text-[#FFD43B] font-black'
     },
     { 
       name: 'Ethnic Wear', 
@@ -45,8 +45,8 @@ export const Home: React.FC = () => {
       desc: 'Symmetrical Chikankari talls, elegant sherwanis & wedding sets', 
       cover: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&auto=format&fit=crop', 
       span: 'md:col-span-2 lg:col-span-2',
-      cardClass: 'bg-[#FF3F6C] text-white border-2 border-black hover:scale-[1.01]',
-      tagColor: 'text-[#FFCC00] font-extrabold'
+      cardClass: 'bg-[#FFD43B] text-black border-2 border-black hover:scale-[1.01]',
+      tagColor: 'text-black font-extrabold'
     },
     { 
       name: 'Summer', 
@@ -64,7 +64,7 @@ export const Home: React.FC = () => {
       cover: 'https://images.unsplash.com/photo-1544923246-77307dd654cb?w=600&auto=format&fit=crop', 
       span: 'md:col-span-2 lg:col-span-2',
       cardClass: 'bg-black text-white border-2 border-black hover:scale-[1.01]',
-      tagColor: 'text-[#FF3F6C]'
+      tagColor: 'text-[#FFD43B]'
     }
   ];
 
@@ -76,100 +76,140 @@ export const Home: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Bento Block 1: Hero Accent (col-span-8) */}
-          <div className="lg:col-span-8 bg-black text-white rounded-[36px] p-8 md:p-12 relative overflow-hidden group border-2 border-black pop-shadow-lg flex flex-col justify-between min-h-[480px]">
-            {/* Visual backdrop patterns */}
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-black/10 to-[#FF3F6C]/10 z-10 pointer-events-none"></div>
-            <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none opacity-5">
-              <div className="absolute text-[8vw] font-black select-none leading-none tracking-tighter" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                LIMITLESS CURATION
-              </div>
+          <div className="lg:col-span-8 bg-[#0F0F10] text-white rounded-[40px] p-8 md:p-12 relative overflow-hidden group border-2 border-black pop-shadow-lg flex flex-col justify-between min-h-[560px]">
+            {/* Model Background Image (absolute right-0) */}
+            <div className="absolute right-0 top-0 bottom-0 w-full md:w-[45%] h-full z-0 pointer-events-none">
+              <img 
+                src="https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&auto=format&fit=crop" 
+                alt="Tall Model" 
+                className="w-full h-full object-cover object-top opacity-55 md:opacity-90 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#0F0F10] via-[#0F0F10]/80 to-transparent" />
             </div>
 
-            {/* Top Row: Sparkle sticker */}
-            <div className="z-20 self-start">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="inline-flex items-center gap-2 bg-[#FFCC00] text-black border-2 border-black px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest mb-4 shadow"
-              >
-                <Sparkle size={12} className="text-[#FF3F6C] fill-[#FF3F6C]" />
-                <span>{"INDIA'S EXCLUSIVE COOPERATIVE FIT FOR >= 6'0\""}</span>
-              </motion.div>
-            </div>
-
-            {/* Bottom Row: Text content & CTA */}
-            <div className="z-20 text-left mt-8">
-              <h1 className="text-4xl md:text-6xl font-black text-white leading-[0.95] tracking-tighter mb-4" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                CLOTHES THAT <br />
-                <span className="text-[#FF3F6C]">FINALLY</span> FIT.
-              </h1>
-              
-              <p className="text-sm md:text-base text-white/80 font-sans leading-relaxed max-w-xl mb-8">
-                Tired of ordering five sizes just to send all back? Enjoy physical specs carefully tape-audited by real partners so long sleeves, inseams and collar widths drape tall statures beautifully with zero standard ride-ups. 
-              </p>
-
-              <div className="flex flex-wrap gap-4 w-full sm:w-auto">
-                <button
-                  onClick={() => navigate('fit-finder')}
-                  className="bg-white hover:bg-[#FF3F6C] hover:text-white border-2 border-black text-black font-grotesk font-black text-xs px-8 py-4 rounded-2xl uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2"
-                  id="hero-fit-finder-btn"
+            {/* Left Content Column */}
+            <div className="z-10 flex flex-col justify-between h-full flex-grow text-left">
+              {/* Top Row: Badge */}
+              <div className="self-start">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="inline-flex items-center gap-2 bg-[#FFD43B] text-black border-2 border-black px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest mb-6 shadow"
                 >
-                  <span>Anatomy Fit Finder</span>
-                  <Ruler size={14} className="text-[#FF3F6C]" />
-                </button>
+                  <Star size={12} className="fill-black text-black" />
+                  <span>EXCLUSIVELY FOR 6FT & ABOVE</span>
+                </motion.div>
+              </div>
+
+              {/* Main Content */}
+              <div className="my-auto max-w-lg pr-4">
+                <h1 className="text-4xl md:text-[54px] font-black text-white leading-[0.95] tracking-tighter mb-4" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                  CLOTHES THAT <br />
+                  <span className="text-[#FFD43B] relative inline-block">
+                    FINALLY
+                    {/* Scribble/underline decoration */}
+                    <span className="absolute bottom-[-6px] left-0 right-0 h-[4px] bg-[#FFD43B] rounded-full opacity-80" />
+                  </span> <br />
+                  FIT YOU.
+                </h1>
                 
+                <p className="text-xs md:text-sm text-neutral-300 font-semibold leading-relaxed max-w-md mt-6 mb-8">
+                  Curated clothing and accessories designed for taller frames. Better proportions, better comfort, <span className="text-[#FFD43B] font-bold">better you.</span>
+                </p>
+
+                {/* Bottom Inline Badges */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 mb-8">
+                  {[
+                    { label: 'TALL FIT', desc: 'Proportions that suit you', icon: '👖' },
+                    { label: 'BETTER LENGTH', desc: 'Longer sleeves, inseams & more', icon: '📏' },
+                    { label: 'PREMIUM QUALITY', desc: 'Handpicked fabrics & craftsmanship', icon: '👔' },
+                    { label: 'STYLE MEETS FIT', desc: 'Looks that fit. Finally.', icon: '🧥' }
+                  ].map((badge, idx) => (
+                    <div key={idx} className="flex flex-col text-left">
+                      <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-base mb-2 border border-white/5">
+                        {badge.icon}
+                      </div>
+                      <span className="text-[9px] font-black uppercase text-[#FFD43B] tracking-wider">{badge.label}</span>
+                      <span className="text-[8px] text-neutral-400 mt-0.5 leading-snug">{badge.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-4 z-20">
                 <button
                   onClick={() => navigate('search')}
-                  className="bg-[#FF3F6C] border-2 border-black text-white font-grotesk font-black text-xs px-8 py-4 rounded-2xl transition hover:bg-[#e0305a] flex items-center justify-center gap-2"
-                  id="hero-browse-btn"
+                  className="bg-[#FFD43B] hover:bg-[#e6be35] text-black border-2 border-black font-grotesk font-black text-xs px-8 py-4 rounded-2xl uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>Filter Catalogue</span>
+                  <span>Explore Collection</span>
                   <ArrowRight size={14} />
+                </button>
+
+                <button
+                  onClick={() => navigate('fit-finder')}
+                  className="bg-transparent hover:bg-white/5 text-[#FFD43B] border-2 border-[#FFD43B] font-grotesk font-black text-xs px-8 py-4 rounded-2xl uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Find Your Perfect Fit</span>
+                  <span className="text-sm">📏</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Bento Block 2: Tall Verified Trust Ladder (col-span-4) */}
-          <div className="lg:col-span-4 bg-white rounded-[36px] p-8 text-black flex flex-col justify-between border-2 border-black pop-shadow min-h-[480px]">
+          {/* Bento Block 2: Tall Assurance (col-span-4) */}
+          <div className="lg:col-span-4 bg-white rounded-[40px] p-8 text-black flex flex-col justify-between border-2 border-black pop-shadow min-h-[560px]">
             <div>
               <div className="flex items-center gap-3.5 mb-6">
-                <div className="bg-[#FF3F6C] text-white p-3 rounded-2xl border-2 border-black">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2s10 4.48 10 10zM9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                  </svg>
+                <div className="bg-[#FFD43B] text-black p-3.5 rounded-2xl border-2 border-black flex items-center justify-center">
+                  <ShieldCheck size={20} className="text-black" />
                 </div>
-                <h3 className="text-2xl font-black uppercase tracking-tighter text-black" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                  Premium Tall assurance
-                </h3>
+                <div>
+                  <h3 className="text-lg font-black uppercase tracking-tighter text-black leading-tight" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                    TAILORED FOR
+                  </h3>
+                  <h3 className="text-lg font-black uppercase tracking-tighter text-[#FFD43B] leading-tight" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+                    TALLER YOU
+                  </h3>
+                </div>
               </div>
 
-              <p className="font-semibold text-xs leading-relaxed text-black/70 mb-8 font-sans">
-                Our bespoke tape measurement guidelines ensure every single garment matches authentic tall proportions before being curated.
+              <p className="font-semibold text-xs leading-relaxed text-black/60 mb-6 font-sans text-left">
+                Every piece is measured, tested & curated keeping taller proportions in mind.
               </p>
 
-              <div className="space-y-4 font-grotesk font-bold">
-                <div className="flex items-center justify-between border-b border-black/10 pb-3">
-                  <span className="text-[11px] uppercase tracking-wider text-black/50">Trousers Inseam</span>
-                  <span className="text-xs font-mono font-black text-black bg-[#FFCC00] px-2 py-0.5 rounded border border-black/10">34L / 36L / 38L Inches</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-black/10 pb-3">
-                  <span className="text-[11px] uppercase tracking-wider text-black/50">Torso Tail drop</span>
-                  <span className="text-xs font-mono font-black text-black">+8cm extra tuck height</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-black/10 pb-3">
-                  <span className="text-[11px] uppercase tracking-wider text-black/50">Sleeve coverage</span>
-                  <span className="text-xs font-mono font-black text-black">Extended wrist drape</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-black/10 pb-3">
-                  <span className="text-[11px] uppercase tracking-wider text-black/50">Sizing Calibration</span>
-                  <span className="text-xs font-mono font-black text-black">Ergonomic loose gussets</span>
-                </div>
+              {/* Rows */}
+              <div className="space-y-4 font-sans text-left">
+                {[
+                  { label: 'EXTRA INSEAM', pill: '34L / 36L / 38L+', desc: 'Lengths that actually fit.', icon: '👖' },
+                  { label: 'ADDITIONAL LENGTH', pill: '+8cm', desc: 'For sleeves, torso & rise.', icon: '📏' },
+                  { label: 'SMART FIT', pill: 'Ergonomic Cut', desc: 'More room where you need it.', icon: '✂️' },
+                  { label: 'QUALITY ASSURED', pill: 'Premium Materials', desc: 'Built to last. Made to feel good.', icon: '🏅' }
+                ].map((row, idx) => (
+                  <div key={idx} className="flex gap-3.5 items-start py-3 border-t border-black/5">
+                    <div className="w-9 h-9 rounded-xl bg-[#FAF9F6] border border-black/5 flex items-center justify-center text-sm shrink-0">
+                      {row.icon}
+                    </div>
+                    <div className="flex-grow">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-black/80">{row.label}</span>
+                        <span className="text-[9px] font-black text-black bg-[#FFD43B]/20 border border-[#FFD43B]/30 px-2 py-0.5 rounded-full">{row.pill}</span>
+                      </div>
+                      <p className="text-[10px] text-black/50 font-medium mt-1 leading-snug">{row.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="text-[10px] font-black uppercase text-black/60 tracking-widest font-mono mt-6 border-t border-black/15 pt-4 text-left">
-              Calibrated for {height} Active Frame
+            {/* Footer Row */}
+            <div className="flex items-center gap-3 border-t border-black/10 pt-4 mt-6 text-left">
+              <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center text-xs">
+                📏
+              </div>
+              <span className="text-[9px] font-black uppercase text-black/55 tracking-wider font-mono">
+                Crafted using bespoke measurement standards for 6ft & above.
+              </span>
             </div>
           </div>
 
@@ -197,14 +237,14 @@ export const Home: React.FC = () => {
                   onClick={() => setHeight(h)}
                   className={`px-5 py-3 rounded-2xl font-grotesk font-black text-xs md:text-sm tracking-wide transition relative overflow-hidden hover:scale-105 active:scale-95 ${
                     isActive 
-                      ? 'bg-[#FF3F6C] text-white font-extrabold border-2 border-black shadow' 
+                      ? 'bg-[#FFD43B] text-black font-extrabold border-2 border-black shadow' 
                       : 'bg-white text-black border-2 border-black/10 hover:border-black'
                   }`}
                   id={`home-height-btn-${h.replace('+', 'plus')}`}
                 >
                   {h}
                   {isActive && (
-                    <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-4 h-1 bg-white rounded-full" />
+                    <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-4 h-1 bg-black rounded-full" />
                   )}
                 </button>
               );
@@ -213,7 +253,7 @@ export const Home: React.FC = () => {
         </div>
         
         {/* Subtle decorative background vector */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF3F6C]/5 rounded-full filter blur-3xl" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD43B]/5 rounded-full filter blur-3xl" />
       </section>
 
       {/* 3. DYNAMIC "VERIFIED FOR YOUR HEIGHT" RAIL */}
@@ -221,13 +261,13 @@ export const Home: React.FC = () => {
         <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between mb-8 border-b-2 border-black/15 pb-4 gap-4">
           <div className="text-left">
             <div className="flex items-center gap-2 mb-1">
-              <Shield size={14} className="text-[#FF3F6C]" />
+              <Shield size={14} className="text-[#FFD43B]" />
               <span className="text-[10px] text-black/50 font-black uppercase tracking-widest font-sans">
                 Human-Tested Trust
               </span>
             </div>
             <h2 className="font-display text-2xl md:text-4xl uppercase font-black text-black" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-              Verified Fits Configured For <span className="text-[#FF3F6C] underline decoration-black decoration-2">{height}"</span> Frame
+              Verified Fits Configured For <span className="text-[#FFD43B] underline decoration-black decoration-2">{height}"</span> Frame
             </h2>
           </div>
           
@@ -235,7 +275,7 @@ export const Home: React.FC = () => {
             <GridDensitySelector />
             <button 
               onClick={() => navigate('search')}
-              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-black hover:text-[#FF3F6C] font-grotesk transition-colors border-b-2 border-black pb-0.5 shadow-none shrink-0"
+              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-black hover:text-[#FFD43B] font-grotesk transition-colors border-b-2 border-black pb-0.5 shadow-none shrink-0"
               id="see-all-verified-btn"
             >
               <span>See Full Store</span>
@@ -262,7 +302,7 @@ export const Home: React.FC = () => {
       <section className="bg-white py-16 px-4 md:px-8 border-t-2 border-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <span className="text-[#FF3F6C] text-xs font-black uppercase tracking-[0.2em] font-sans bg-[#FF3F6C]/10 px-3 py-1.5 rounded-full">
+            <span className="text-black text-xs font-black uppercase tracking-[0.2em] font-sans bg-[#FFD43B] px-3 py-1.5 rounded-full">
               Themed Portals
             </span>
             <h2 className="text-black font-display text-3xl md:text-5xl uppercase font-black mt-4 mb-2 tracking-tight">
@@ -303,7 +343,7 @@ export const Home: React.FC = () => {
                       {cat.desc}
                     </p>
                     
-                    <div className={`h-1.5 ${isDark ? 'bg-white/25' : 'bg-[#FF3F6C]/25'} w-0 group-hover:w-full transition-all duration-300 mt-4 rounded-full`} />
+                    <div className={`h-1.5 ${isDark ? 'bg-white/25' : 'bg-[#FFD43B]/25'} w-0 group-hover:w-full transition-all duration-300 mt-4 rounded-full`} />
                   </div>
                 </motion.div>
               );

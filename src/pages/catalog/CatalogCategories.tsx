@@ -16,7 +16,7 @@ const CatalogCategories: React.FC = () => {
   if (loadingCatalogs) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-[#FF3F6C]" />
+        <Loader2 size={32} className="animate-spin text-[#D5A021]" />
       </div>
     );
   }
@@ -42,7 +42,7 @@ const CatalogCategories: React.FC = () => {
               </div>
               <h1 className="font-display text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-3">
                 Browse<br />
-                <span className="text-[#FF3F6C]">Catalogs</span>
+                <span className="text-[#D5A021]">Catalogs</span>
               </h1>
               <p className="text-white/60 text-sm max-w-md font-sans leading-relaxed">
                 Expertly curated collections built for tall frames — multiple products, one perfect style story.
@@ -52,7 +52,7 @@ const CatalogCategories: React.FC = () => {
             {isAdmin && (
               <button
                 onClick={() => navigate('admin')}
-                className="flex items-center gap-2 bg-[#FF3F6C] text-white font-black text-xs uppercase tracking-wider px-4 py-3 rounded-xl border-2 border-white/20 hover:bg-[#e0305a] transition shrink-0"
+                className="flex items-center gap-2 bg-[#FFD43B] text-black text-white font-black text-xs uppercase tracking-wider px-4 py-3 rounded-xl border-2 border-white/20 hover:bg-[#e0305a] transition shrink-0"
               >
                 <Sparkles size={14} />
                 Manage Catalogs

@@ -16,9 +16,9 @@ interface Props {
 
 const VERDICT_CONFIG = {
   verified:  { label: 'Tall Verified',  bg: 'bg-black',         text: 'text-white',      border: 'border-black' },
-  friendly:  { label: 'Tall Friendly',  bg: 'bg-[#FF3F6C]',     text: 'text-white',      border: 'border-[#FF3F6C]' },
+  friendly:  { label: 'Tall Friendly',  bg: 'bg-[#FFD43B] text-black',     text: 'text-white',      border: 'border-[#FFD43B]' },
   community: { label: 'Community Pick', bg: 'bg-[#00AFB9]',     text: 'text-white',      border: 'border-[#00AFB9]' },
-  runs_short:{ label: 'Runs Short',     bg: 'bg-white',         text: 'text-[#FF3F6C]',  border: 'border-[#FF3F6C]' },
+  runs_short:{ label: 'Runs Short',     bg: 'bg-white',         text: 'text-[#D5A021]',  border: 'border-[#FFD43B]' },
 };
 
 const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) => {
@@ -123,7 +123,7 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
         >
           <Heart
             size={16}
-            className={isSaved ? 'fill-[#FF3F6C] text-[#FF3F6C]' : 'text-black/50'}
+            className={isSaved ? 'fill-[#FFD43B] text-[#D5A021]' : 'text-black/50'}
           />
         </button>
 
@@ -159,7 +159,7 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
           {memberPrice && memberPrice < product.priceAtRetailer && (
             <>
               <span className="text-xs text-black/40 line-through">₹{product.priceAtRetailer.toLocaleString()}</span>
-              <span className="text-xs font-black text-[#FF3F6C] bg-[#FF3F6C]/10 px-1.5 py-0.5 rounded">
+              <span className="text-xs font-black text-[#D5A021] bg-[#FFD43B] text-black/10 px-1.5 py-0.5 rounded">
                 {product.discountPercent}% off
               </span>
             </>
@@ -217,7 +217,7 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
         <div className="flex-1" />
 
         {/* Affiliate error */}
-        {genError && <p className="text-[10px] text-[#FF3F6C] font-bold">{genError}</p>}
+        {genError && <p className="text-[10px] text-[#D5A021] font-bold">{genError}</p>}
 
         {/* CTAs */}
         <div className="flex flex-col gap-2">
@@ -227,7 +227,7 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
             className={`w-full py-3 text-xs font-black uppercase tracking-wider rounded-xl border-2 transition flex items-center justify-center gap-2 ${
               product.outOfStock
                 ? 'bg-black/10 text-black/30 border-black/10 cursor-not-allowed'
-                : 'bg-black text-white border-black hover:bg-[#FF3F6C] hover:border-[#FF3F6C]'
+                : 'bg-black text-white border-black hover:bg-[#FFD43B] text-black hover:border-[#FFD43B]'
             }`}
           >
             <ExternalLink size={13} />

@@ -12,8 +12,8 @@ interface Props {
 
 const TILE_THEMES = [
   { bg: 'bg-black', text: 'text-white', accent: 'text-[#FFCC00]', hover: 'hover:bg-[#111]' },
-  { bg: 'bg-white', text: 'text-black', accent: 'text-[#FF3F6C]', hover: 'hover:bg-[#FAF9F6]' },
-  { bg: 'bg-[#FF3F6C]', text: 'text-white', accent: 'text-[#FFCC00]', hover: 'hover:bg-[#e0305a]' },
+  { bg: 'bg-white', text: 'text-black', accent: 'text-[#D5A021]', hover: 'hover:bg-[#FAF9F6]' },
+  { bg: 'bg-[#FFD43B] text-black', text: 'text-white', accent: 'text-[#FFCC00]', hover: 'hover:bg-[#e0305a]' },
   { bg: 'bg-[#00AFB9]', text: 'text-white', accent: 'text-white', hover: 'hover:bg-[#009aa3]' },
   { bg: 'bg-[#7D2AE8]', text: 'text-white', accent: 'text-[#FFCC00]', hover: 'hover:bg-[#6922c8]' },
   { bg: 'bg-[#FFCC00]', text: 'text-black', accent: 'text-black', hover: 'hover:bg-[#f5c200]' },
@@ -62,7 +62,7 @@ const CatalogCategoryTile: React.FC<Props> = ({ category, catalogCount, onClick,
           <ArrowRight size={12} />
         </div>
 
-        <div className={`h-1.5 ${isDark ? 'bg-white/25' : 'bg-[#FF3F6C]/25'} w-0 group-hover:w-full transition-all duration-300 mt-3 rounded-full`} />
+        <div className={`h-1.5 ${isDark ? 'bg-white/25' : 'bg-[#FFD43B] text-black/25'} w-0 group-hover:w-full transition-all duration-300 mt-3 rounded-full`} />
       </div>
     </motion.div>
   );

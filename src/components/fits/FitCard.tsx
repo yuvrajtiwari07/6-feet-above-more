@@ -38,7 +38,7 @@ export const FitCard: React.FC<FitCardProps> = ({ fit }) => {
         <div className="relative p-6 bg-gradient-to-br from-[#FAF9F6] to-white border-b-2 border-black">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-[#FF3F6C]" />
+              <Sparkles size={16} className="text-[#D5A021]" />
               <span className="text-black font-black text-[10px] tracking-widest font-grotesk bg-[#FFE600] border border-black/15 px-2.5 py-1 rounded">
                 CURATED LOOKBOOK • {fit.theme.toUpperCase()}
               </span>
@@ -47,10 +47,10 @@ export const FitCard: React.FC<FitCardProps> = ({ fit }) => {
             {/* Save Lookbook Toggle */}
             <button
                onClick={() => toggleSaveFit(fit.id)}
-              className="p-2.5 bg-white hover:bg-[#FF3F6C] text-black hover:text-white rounded-full border border-black shadow z-10 transition hover:scale-110 active:scale-95"
+              className="p-2.5 bg-white hover:bg-[#FFD43B] text-black hover:text-white rounded-full border border-black shadow z-10 transition hover:scale-110 active:scale-95"
               id={`save-fit-btn-${fit.id}`}
             >
-              <Heart size={15} className={isSaved ? 'fill-[#FF3F6C] text-[#FF3F6C]' : ''} />
+              <Heart size={15} className={isSaved ? 'fill-[#FFD43B] text-[#D5A021]' : ''} />
             </button>
           </div>
 
@@ -81,7 +81,7 @@ export const FitCard: React.FC<FitCardProps> = ({ fit }) => {
                     Sizing
                   </div>
                 </div>
-                <span className="text-[9px] font-black text-[#FF3F6C] uppercase tracking-wider block mb-0.5">
+                <span className="text-[9px] font-black text-[#D5A021] uppercase tracking-wider block mb-0.5">
                   {item.role}
                 </span>
                 <span className="text-black font-semibold text-[10px] leading-tight font-sans line-clamp-1">
@@ -99,7 +99,7 @@ export const FitCard: React.FC<FitCardProps> = ({ fit }) => {
           {/* Main Action Group Shopping Drawer */}
           <button
             onClick={() => setShowShopTray(!showShopTray)}
-            className="flex-grow flex items-center justify-center gap-2 bg-[#FF3F6C] text-white text-xs font-grotesk font-black py-3.5 px-4 rounded-xl border border-black shadow-sm hover:scale-[1.02] transform active:scale-95 transition uppercase tracking-wide cursor-pointer"
+            className="flex-grow flex items-center justify-center gap-2 bg-[#FFD43B] text-black text-white text-xs font-grotesk font-black py-3.5 px-4 rounded-xl border border-black shadow-sm hover:scale-[1.02] transform active:scale-95 transition uppercase tracking-wide cursor-pointer"
             id={`shop-the-fit-btn-${fit.id}`}
           >
             <ShoppingBag size={15} />
@@ -146,7 +146,7 @@ export const FitCard: React.FC<FitCardProps> = ({ fit }) => {
                             {item.product!.title}
                           </p>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-white bg-[#FF3F6C] px-2 py-0.5 rounded-full font-black text-[9px] uppercase tracking-wide">
+                            <span className="text-white bg-[#FFD43B] text-black px-2 py-0.5 rounded-full font-black text-[9px] uppercase tracking-wide">
                               {item.product!.retailer}
                             </span>
                             <span className="text-black font-mono font-bold text-xs">
@@ -158,7 +158,7 @@ export const FitCard: React.FC<FitCardProps> = ({ fit }) => {
 
                       <button
                         onClick={() => handleOpenAffiliate(item.product!.id, item.product!.affiliateUrl, item.product!.retailer)}
-                        className="p-2.5 bg-black hover:bg-[#FF3F6C] text-white rounded-xl transition border border-black duration-300"
+                        className="p-2.5 bg-black hover:bg-[#FFD43B] text-black text-white rounded-xl transition border border-black duration-300"
                         title={`Redirect to ${item.product!.retailer}`}
                         id={`open-affiliate-${item.product!.id}`}
                       >

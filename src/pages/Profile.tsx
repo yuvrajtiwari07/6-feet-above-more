@@ -45,8 +45,8 @@ export const Profile: React.FC = () => {
       <div className="border-b border-[#112133]/15 pb-6 mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Ruler size={16} className="text-[#FF3F6C]" />
-            <span className="text-[10px] text-[#FF3F6C] font-black uppercase tracking-[0.2em] font-sans">
+            <Ruler size={16} className="text-[#D5A021]" />
+            <span className="text-[10px] text-[#D5A021] font-black uppercase tracking-[0.2em] font-sans">
               Your Tall Profile Calibration
             </span>
           </div>
@@ -60,7 +60,7 @@ export const Profile: React.FC = () => {
 
         <div className="flex gap-4">
           <div className="bg-white p-4 rounded-3xl border border-[#112133]/15 text-center shadow-sm min-w-24">
-            <div className="text-3xl font-black text-[#FF3F6C] font-grotesk">{savedProductIds.length}</div>
+            <div className="text-3xl font-black text-[#D5A021] font-grotesk">{savedProductIds.length}</div>
             <div className="text-[9px] text-[#112133]/40 font-bold uppercase tracking-wider mt-1">Saved Items</div>
           </div>
           <div className="bg-white p-4 rounded-3xl border border-[#112133]/15 text-center shadow-sm min-w-24">

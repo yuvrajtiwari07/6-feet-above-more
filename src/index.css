@@ -2,13 +2,13 @@
 
 @theme {
   /* Brand Theme Colors Redefined (High-Fashion Fusion: Myntra + AJIO + Souled Store) */
-  --color-lemon: #FF3F6C;             /* Myntra's Iconic fashion-forward pink-pulse! */
+  --color-lemon: #FFD43B;             /* Myntra's Iconic fashion-forward pink-pulse! */
   --color-electric: #111111;          /* AJIO's Sleek high-contract Jet Black! */
   --color-near-black: #141416;        /* Deep high-saturation charcoal text */
   --color-off-white: #F9F8F6;         /* Soft, luxurious creamy clothing-catalog off-white */
   
   /* Accent Shades */
-  --color-accent-coral: #FF3F6C;      /* Myntra Rose */
+  --color-accent-coral: #FFD43B;      /* Myntra Rose */
   --color-accent-purple: #FF2E93;     /* Myntra Accent Pink */
   --color-accent-neon: #FFCC00;       /* Souled Store Joyful Yellow */
   --color-accent-pink: #E11B22;       /* Souled Store signature Pop Comic Red */

@@ -73,7 +73,7 @@ const CatalogCard: React.FC<Props> = ({ catalog, products, onClick }) => {
 
         {/* Published indicator */}
         {!catalog.isPublished && (
-          <div className="absolute bottom-3 left-3 bg-[#FF3F6C] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase">
+          <div className="absolute bottom-3 left-3 bg-[#FFD43B] text-black text-white text-[9px] font-black px-2 py-0.5 rounded uppercase">
             Draft
           </div>
         )}
@@ -81,7 +81,7 @@ const CatalogCard: React.FC<Props> = ({ catalog, products, onClick }) => {
 
       {/* Info block */}
       <div className="p-4">
-        <h3 className="font-display font-black text-base text-black group-hover:text-[#FF3F6C] transition-colors line-clamp-1 mb-1">
+        <h3 className="font-display font-black text-base text-black group-hover:text-[#D5A021] transition-colors line-clamp-1 mb-1">
           {catalog.title}
         </h3>
         {catalog.description && (
@@ -116,7 +116,7 @@ const CatalogCard: React.FC<Props> = ({ catalog, products, onClick }) => {
               ) : null
             ))}
           </div>
-          <button className="flex items-center gap-1.5 text-xs font-black text-black group-hover:text-[#FF3F6C] uppercase tracking-wider transition border-b-2 border-black pb-0.5">
+          <button className="flex items-center gap-1.5 text-xs font-black text-black group-hover:text-[#D5A021] uppercase tracking-wider transition border-b-2 border-black pb-0.5">
             View Catalog <ArrowRight size={12} />
           </button>
         </div>

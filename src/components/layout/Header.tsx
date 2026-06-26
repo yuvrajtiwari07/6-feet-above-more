@@ -22,16 +22,16 @@ export const Header: React.FC = () => {
           {/* Logo Icon representation of 6FEETABOVE (Styled from uploaded assets) */}
           <div className="relative w-10 h-10 flex items-center justify-center bg-black border border-black rounded-xl shadow-sm group-hover:scale-105 transition-transform duration-300">
             <svg viewBox="0 0 100 100" className="w-7 h-7 text-white fill-none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="50" cy="65" r="20" className="stroke-[#FF3F6C]" fill="none" />
-              <path d="M30 65 C30 44, 44 24, 62 24" className="stroke-[#FF3F6C]" />
+              <circle cx="50" cy="65" r="20" className="stroke-[#FFD43B]" fill="none" />
+              <path d="M30 65 C30 44, 44 24, 62 24" className="stroke-[#FFD43B]" />
               <path d="M48 24 L62 24 L62 38" className="stroke-[#FFCC00]" strokeWidth="8" />
-              <path d="M78 12 L81 19 L88 22 L81 25 L78 32 L75 25 L68 22 L75 19 Z" fill="#FF3F6C" stroke="none" />
+              <path d="M78 12 L81 19 L88 22 L81 25 L78 32 L75 25 L68 22 L75 19 Z" fill="#FFD43B" stroke="none" />
             </svg>
           </div>
           
           <div className="flex flex-col text-left">
             <span className="font-extrabold tracking-tighter text-md md:text-xl leading-none select-none font-display text-black">
-              6Feet<span className="text-[#FF3F6C] font-extrabold">n</span>Above
+              6Feet<span className="text-[#D5A021] font-extrabold">n</span>Above
             </span>
             <span className="text-[8px] uppercase tracking-[0.2em] text-black/40 font-black font-grotesk mt-0.5 leading-none">
               Clothes that finally fit
@@ -43,7 +43,7 @@ export const Header: React.FC = () => {
         <div className="hidden md:flex items-center gap-6">
           <button 
             onClick={() => navigate('search')}
-            className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#FF3F6C] transition ${route.current === 'search' ? 'text-[#FF3F6C]' : ''}`}
+            className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#D5A021] transition ${route.current === 'search' ? 'text-[#D5A021]' : ''}`}
             id="desktop-search-btn"
           >
             <Search size={15} />
@@ -52,7 +52,7 @@ export const Header: React.FC = () => {
           
           <button 
             onClick={() => navigate('catalog-categories')}
-            className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#FF3F6C] transition ${route.current === 'catalog-categories' || route.current === 'catalog-list' || route.current === 'catalog-detail' ? 'text-[#FF3F6C]' : ''}`}
+            className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#D5A021] transition ${route.current === 'catalog-categories' || route.current === 'catalog-list' || route.current === 'catalog-detail' ? 'text-[#D5A021]' : ''}`}
             id="desktop-catalogs-btn"
           >
             <Sparkles size={15} />
@@ -67,7 +67,7 @@ export const Header: React.FC = () => {
           <div className="relative">
             <button
                onClick={() => setShowHeightMenu(!showHeightMenu)}
-              className="flex items-center gap-1.5 bg-black hover:bg-[#FF3F6C] text-white font-grotesk font-black text-xs px-3 py-2 rounded-xl transition border border-black shadow"
+              className="flex items-center gap-1.5 bg-black hover:bg-[#FFD43B] text-black text-white font-grotesk font-black text-xs px-3 py-2 rounded-xl transition border border-black shadow"
               id="global-height-pill"
             >
               <Ruler size={13} className="text-[#FFCC00]" />
@@ -95,7 +95,7 @@ export const Header: React.FC = () => {
                       }}
                       className={`w-full text-left px-3 py-2 text-xs rounded-xl font-grotesk font-bold transition uppercase ${
                         height === opt 
-                          ? 'bg-[#FF3F6C] text-white font-black shadow-sm' 
+                          ? 'bg-[#FFD43B] text-black text-white font-black shadow-sm' 
                           : 'text-black hover:bg-black/5'
                       }`}
                     >
@@ -110,7 +110,7 @@ export const Header: React.FC = () => {
           {/* Quick Fit Finder CTA */}
           <button
             onClick={() => navigate('fit-finder')}
-            className={`hidden md:flex items-center gap-1.5 bg-[#FF3F6C] text-white text-xs font-grotesk font-black tracking-wide uppercase px-4 py-2.5 rounded-xl border border-black shadow-sm hover:scale-102 transition ${route.current === 'fit-finder' ? 'ring-2 ring-black' : ''}`}
+            className={`hidden md:flex items-center gap-1.5 bg-[#FFD43B] text-black text-white text-xs font-grotesk font-black tracking-wide uppercase px-4 py-2.5 rounded-xl border border-black shadow-sm hover:scale-102 transition ${route.current === 'fit-finder' ? 'ring-2 ring-black' : ''}`}
             id="header-fitfinder-btn"
           >
             Fit Finder (99% Match)
@@ -123,9 +123,9 @@ export const Header: React.FC = () => {
             title="Saved wardrobes"
             id="header-saved-btn"
           >
-            <Heart size={18} className={totalSaved > 0 ? 'fill-[#FF3F6C] text-[#FF3F6C]' : ''} />
+            <Heart size={18} className={totalSaved > 0 ? 'fill-[#FFD43B] text-[#D5A021]' : ''} />
             {totalSaved > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#FF3F6C] text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce border border-white">
+              <span className="absolute -top-1 -right-1 bg-[#FFD43B] text-black text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce border border-white">
                 {totalSaved}
               </span>
             )}
@@ -134,7 +134,7 @@ export const Header: React.FC = () => {
           {/* User profile button */}
           <button
             onClick={() => navigate('profile')}
-            className={`p-0.5 bg-black/5 hover:bg-black/10 rounded-full transition text-black overflow-hidden flex items-center justify-center ${route.current === 'profile' ? 'ring-2 ring-[#FF3F6C]' : ''}`}
+            className={`p-0.5 bg-black/5 hover:bg-black/10 rounded-full transition text-black overflow-hidden flex items-center justify-center ${route.current === 'profile' ? 'ring-2 ring-[#FFD43B]' : ''}`}
             id="header-profile-btn"
           >
             {user && user.photoURL ? (
