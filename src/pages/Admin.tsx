@@ -60,11 +60,30 @@ const COLORS = [
   { name: 'Red', hex: '#FF0000' }
 ];
 
-const HEIGHT_RANGES = ["6'0–6'2", "6'2–6'4", "6'4–6'6", "6'6+"];
-const BODY_TYPES = ['Slim', 'Athletic', 'Broad', 'Heavy Build'];
-const FIT_HIGHLIGHTS = [
-  'Long Sleeves', 'Long Inseam', 'Broad Shoulder Friendly', 
-  'Extended Torso Fit', 'Extra Leg Room', 'Long Rise'
+const DEFAULT_HEIGHT_BANDS = [
+  "6'0\" - 6'2\"",
+  "6'2\" - 6'4\"",
+  "6'4\" - 6'6\"",
+  "6'6\" - 6'8\"",
+  "6'8\"+"
+];
+
+const BODY_TYPE_CARDS = [
+  { name: 'Slim', icon: '👤' },
+  { name: 'Athletic', icon: '🏋️' },
+  { name: 'Broad', icon: '🧍' },
+  { name: 'Overweight', icon: '⚪' }
+] as const;
+
+const FIT_RECOMMENDATION_OPTIONS = [
+  'Highly Recommended',
+  'Recommended',
+  'Good Fit',
+  'Relaxed Fit',
+  'Oversized Fit',
+  'Slightly Small',
+  'Tight Fit',
+  'Not Recommended'
 ];
 
 export const Admin: React.FC = () => {
@@ -348,18 +367,7 @@ export const Admin: React.FC = () => {
     // Seasons suggestion
     setSeasons(combinedText.match(/winter|jacket|wool|hood/) ? ['Winter'] : ['All Season']);
 
-    // Height & Body suggestions for tall-fit curation
-    if (detectedSegment === 'Upperwear' || detectedSegment === 'Outerwear') {
-      setSelectedFitHighlights(['Long Sleeves', 'Extended Torso Fit']);
-    } else if (detectedSegment === 'Bottomwear') {
-      setSelectedFitHighlights(['Long Inseam', 'Long Rise']);
-    } else {
-      setSelectedFitHighlights(['Extra Leg Room']);
-    }
 
-    // Default height ranges
-    setSelectedHeightRanges(["6'2–6'4", "6'4–6'6"]);
-    setSelectedBodyTypes(['Slim', 'Athletic']);
 
     // Populate sizes
     if (data.sizes && data.sizes.length > 0) {
@@ -506,23 +514,8 @@ export const Admin: React.FC = () => {
         setTallFriendly(!!data.tallFit.tallFriendly);
       }
       
-      // Height Ranges
-      if (data.tallFit.recommendedHeightRanges && Array.isArray(data.tallFit.recommendedHeightRanges)) {
-        const matchedHeights = data.tallFit.recommendedHeightRanges
-          .map((h: string) => {
-            if (h.includes('6\'0') || h.includes('6\'1') || h.includes('6.0') || h.includes('6.1')) return "6'0–6'2";
-            if (h.includes('6\'2') || h.includes('6\'3') || h.includes('6.2') || h.includes('6.3')) return "6'2–6'4";
-            if (h.includes('6\'4') || h.includes('6\'5') || h.includes('6.4') || h.includes('6.5')) return "6'4–6'6";
-            if (h.includes('6\'6') || h.includes('6.6') || h.includes('+')) return "6'6+";
-            return null;
-          })
-          .filter(Boolean) as string[];
-        if (matchedHeights.length > 0) {
-          setSelectedHeightRanges([...new Set(matchedHeights)]);
-        }
-      }
-
       // Body Types
+      const scrapedBodyTypes: ('Slim' | 'Athletic' | 'Broad' | 'Overweight')[] = [];
       if (data.tallFit.bodyTypes && Array.isArray(data.tallFit.bodyTypes)) {
         data.tallFit.bodyTypes.forEach((b: string) => {
           const lower = b.toLowerCase();
@@ -1551,12 +1544,11 @@ export const Admin: React.FC = () => {
                 </div>
               </div>
 
-                <div className="flex items-center gap-3 bg-[#7D2AE8]/5 border border-[#7D2AE8]/10 p-3 rounded-2xl max-w-md">
-                  <span className="text-xs text-[#7D2AE8]">ℹ️</span>
-                  <p className="text-[11px] font-medium text-[#7D2AE8]/80 leading-relaxed">
-                    This data powers fit recommendations and filters across the website.
-                  </p>
-                </div>
+              <div className="flex items-center gap-3 bg-[#7D2AE8]/5 border border-[#7D2AE8]/10 p-3 rounded-2xl max-w-md">
+                <span className="text-xs text-[#7D2AE8]">ℹ️</span>
+                <p className="text-[11px] font-medium text-[#7D2AE8]/80 leading-relaxed">
+                  This data powers fit recommendations and filters across the website.
+                </p>
               </div>
 
               {/* Table headers */}
@@ -1626,25 +1618,40 @@ export const Admin: React.FC = () => {
                         })}
                       </div>
 
-                      {/* Recommendation Dropdown */}
-                      <div className="col-span-1 md:col-span-3">
-                        <div className="relative">
-                          <select
-                            value={row.fitRecommendation}
-                            onChange={(e) => handleUpdateHeightBand(idx, 'fitRecommendation', e.target.value)}
-                            className="w-full px-3 py-2.5 border border-black/15 rounded-xl text-xs font-bold bg-white focus:outline-none focus:border-[#7D2AE8] appearance-none"
-                          >
-                            {FIT_RECOMMENDATION_OPTIONS.map(opt => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-black/45 text-[10px]">
-                            ▼
-                          </div>
-                        </div>
+                      {/* Remove Action */}
+                      <div className="col-span-1 md:col-span-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveHeightBand(idx)}
+                          className="p-2.5 text-black/40 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add Range row button */}
+              <button
+                type="button"
+                onClick={handleAddHeightBand}
+                className="w-full py-3.5 border-2 border-dashed border-[#7D2AE8]/30 hover:border-[#7D2AE8] rounded-2xl text-xs font-black text-[#7D2AE8] hover:bg-[#7D2AE8]/5 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus size={16} /> Add Height Range
+              </button>
+
+              {/* How it works banner */}
+              <div className="flex items-center gap-3 bg-black/[0.02] p-4 rounded-2xl border border-black/5">
+                <span className="text-base">💡</span>
+                <div>
+                  <span className="text-[10px] font-black uppercase text-[#7D2AE8]">How it works</span>
+                  <p className="text-[11px] font-semibold text-black/60 mt-0.5">
+                    Customers enter their height and body type → We show the best fit recommendation based on your data.
+                  </p>
+                </div>
+              </div>
 
               {/* Sizes list (Dynamic based on Segment) */}
               <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
