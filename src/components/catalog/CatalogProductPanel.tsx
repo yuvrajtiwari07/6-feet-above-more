@@ -21,15 +21,15 @@ const VERDICT_CONFIG = {
 };
 
 const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) => {
-  const { heightBand, savedProductIds, toggleSaveProduct, trackAffiliateClick } = useApp();
+  const { height, bodyType, savedProductIds, toggleSaveProduct, trackAffiliateClick } = useApp();
   const [imgIdx, setImgIdx] = useState(0);
   const [affiliateUrl, setAffiliateUrl] = useState(product.affiliateUrl || '');
   const [genLoading, setGenLoading] = useState(false);
   const [genError, setGenError] = useState('');
   const isSaved = savedProductIds.includes(product.id);
 
-  const verdict: FitVerdict | undefined = product.verdicts.find(v => v.band === heightBand);
-  const verdictCfg = verdict ? VERDICT_CONFIG[verdict.status] : null;
+  const recommendation = getProductRecommendation(product.verdicts, height, bodyType);
+  const verdictCfg = recommendation ? VERDICT_CONFIG[recommendation.status as keyof typeof VERDICT_CONFIG] : null;
 
   const images = product.images.length > 0 ? product.images : ['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&auto=format&fit=crop'];
 
@@ -127,10 +127,10 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
         </button>
 
         {/* Verdict badge */}
-        {verdictCfg && (
-          <div className={`absolute top-3 left-3 flex items-center gap-1.5 ${verdictCfg.bg} ${verdictCfg.text} text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border ${verdictCfg.border}`}>
-            <ShieldCheck size={10} />
-            {verdictCfg.label}
+        {recommendation && (
+          <div className={`absolute top-3 left-3 flex items-center gap-1.5 bg-white text-black text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border border-black/10 shadow-sm`}>
+            <ShieldCheck size={10} className={isPositiveRecommendation(recommendation.fitRecommendation) ? "text-[#00C4CC]" : "text-amber-500"} />
+            {recommendation.fitRecommendation}
           </div>
         )}
 
@@ -166,13 +166,15 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
         </div>
 
         {/* Verdict note for user's height */}
-        {verdict?.note && (
-          <div className="bg-black/4 rounded-xl p-3 border border-black/8">
+        {recommendation && (
+          <div className="bg-black/[0.02] rounded-xl p-3 border border-black/5">
             <div className="flex items-center gap-1.5 mb-1">
-              <Ruler size={10} className="text-[#FF3F6C]" />
-              <span className="text-[9px] font-black uppercase tracking-widest text-black/40">Tall Fit Note</span>
+              <Ruler size={10} className="text-[#7D2AE8]" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-black/45">Tall Fit Verdict</span>
             </div>
-            <p className="text-[11px] font-sans leading-relaxed text-black/70">{verdict.note}</p>
+            <p className="text-[11px] font-medium leading-relaxed text-black/70">
+              Verified as <span className="text-[#7D2AE8] font-black">{recommendation.fitRecommendation}</span> for your profile.
+            </p>
           </div>
         )}
 

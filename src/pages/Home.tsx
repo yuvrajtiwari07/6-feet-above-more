@@ -6,13 +6,15 @@ import { GridDensitySelector } from '../components/layout/GridDensitySelector';
 import { ArrowRight, Sparkles, Sliders, Shield, Shirt, Sparkle, Ruler } from 'lucide-react';
 import { motion } from 'motion/react';
 
+import { getProductRecommendation } from '../utils/fitEngine';
+
 export const Home: React.FC = () => {
-  const { height, setHeight, heightBand, navigate, cardSize, products } = useApp();
+  const { height, bodyType, setHeight, navigate, cardSize, products } = useApp();
 
   // Filter 4 products that have solid verified status for the active height band
   const verifiedProducts = products.filter(p => {
-    const verdict = p.verdicts.find(v => v.band === heightBand);
-    return verdict?.status === 'verified' && !p.outOfStock;
+    const rec = getProductRecommendation(p.verdicts, height, bodyType);
+    return rec && (rec.fitRecommendation === 'Highly Recommended' || rec.fitRecommendation === 'Recommended') && !p.outOfStock;
   }).slice(0, 4);
 
   // Fallback: if no active verified items, show first 4 items of catalog

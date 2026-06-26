@@ -3,13 +3,14 @@ import { Product } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { Heart, ExternalLink, Ruler, CheckCircle2, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
+import { getProductRecommendation, isPositiveRecommendation } from '../../utils/fitEngine';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { height, heightBand, toggleSaveProduct, savedProductIds, navigate, trackAffiliateClick, cardSize } = useApp();
+  const { height, bodyType, toggleSaveProduct, savedProductIds, navigate, trackAffiliateClick, cardSize } = useApp();
 
   const isSaved = savedProductIds.includes(product.id);
 
@@ -64,62 +65,51 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     navigate('product', { productId: product.id });
   };
 
-  // Safely find the verdict configured for the user's current height band
-  const verdict = product.verdicts.find(v => v.band === heightBand) || {
-    status: 'community' as const,
-    note: 'Generous fabric proportions for tall shoulders and torsos.'
-  };
+  const recommendation = getProductRecommendation(product.verdicts, height, bodyType);
 
   // Helper method to display badges with high editorial styling
   const renderDifferentiatorBadge = () => {
     const isSm = cardSize === 'small';
-    const badgeClass = isSm
-      ? "flex items-center gap-1 bg-[#FF3F6C] text-white font-grotesk font-black text-[8px] tracking-wide uppercase px-2 py-0.5 rounded-md shadow-sm border-b border-black/10"
-      : "flex items-center gap-1.5 bg-[#FF3F6C] text-white font-grotesk font-black text-[10px] tracking-wider uppercase px-3 py-1.5 rounded-full shadow-md border-b-2 border-black/20";
-    
-    const friendlyClass = isSm
-      ? "flex items-center gap-1 bg-[#FFCC00] text-black font-grotesk font-black text-[8px] tracking-wide uppercase px-2 py-0.5 rounded-md shadow-sm border border-black/10"
-      : "flex items-center gap-1.5 bg-[#FFCC00] text-black font-grotesk font-black text-[10px] tracking-wider uppercase px-3 py-1.5 rounded-full shadow-sm border border-black/15";
-
-    const communityClass = isSm
-      ? "flex items-center gap-1 bg-black text-white font-grotesk font-bold text-[8px] tracking-wider uppercase px-2 py-0.5 rounded-md"
-      : "flex items-center gap-1.5 bg-black text-white font-grotesk font-bold text-[9px] tracking-widest uppercase px-3 py-1 rounded-full";
-
-    const shortClass = isSm
-      ? "flex items-center gap-1 bg-[#E11B22] text-white font-grotesk font-black text-[8px] tracking-wider uppercase px-2 py-0.5 rounded-md shadow-sm"
-      : "flex items-center gap-1 bg-[#E11B22] text-white font-grotesk font-black text-[9px] tracking-wider uppercase px-2.5 py-1.5 rounded-lg shadow-sm";
-
-    switch (verdict.status) {
-      case 'verified':
-        return (
-          <div className={badgeClass}>
-            <CheckCircle2 size={isSm ? 9 : 11} strokeWidth={isSm ? 2.5 : 3} className="text-white" />
-            TALL VERIFIED
-          </div>
-        );
-      case 'friendly':
-        return (
-          <div className={friendlyClass}>
-            <Ruler size={isSm ? 9 : 11} className="text-black" />
-            TALL FRIENDLY
-          </div>
-        );
-      case 'community':
-        return (
-          <div className={communityClass}>
-            <HelpCircle size={isSm ? 8 : 10} className="text-white/70" />
-            COMMUNITY OK
-          </div>
-        );
-      case 'runs_short':
-        return (
-          <div className={shortClass}>
-            RUNS CUT SHORT
-          </div>
-        );
-      default:
-        return null;
+    if (!recommendation) {
+      return (
+        <div className={
+          isSm
+            ? "flex items-center gap-1 bg-black text-white font-grotesk font-bold text-[8px] tracking-wider uppercase px-2 py-0.5 rounded-md"
+            : "flex items-center gap-1.5 bg-black text-white font-grotesk font-bold text-[9px] tracking-widest uppercase px-3 py-1 rounded-full"
+        }>
+          TALL FRIENDLY
+        </div>
+      );
     }
+
+    const recText = recommendation.fitRecommendation.toUpperCase();
+    const isPositive = isPositiveRecommendation(recommendation.fitRecommendation);
+
+    let badgeStyleClass = "";
+    if (recText.includes("HIGHLY RECOMMENDED")) {
+      badgeStyleClass = isSm
+        ? "bg-[#FF3F6C] text-white text-[8px] px-2 py-0.5 rounded-md"
+        : "bg-[#FF3F6C] text-white text-[10px] px-3 py-1.5 rounded-full";
+    } else if (isPositive) {
+      badgeStyleClass = isSm
+        ? "bg-[#00C4CC] text-white text-[8px] px-2 py-0.5 rounded-md"
+        : "bg-[#00C4CC] text-white text-[10px] px-3 py-1.5 rounded-full";
+    } else {
+      badgeStyleClass = isSm
+        ? "bg-amber-500 text-white text-[8px] px-2 py-0.5 rounded-md"
+        : "bg-amber-500 text-white text-[10px] px-3 py-1.5 rounded-full";
+    }
+
+    return (
+      <div className={`flex items-center gap-1 font-grotesk font-black tracking-wider uppercase shadow-md ${badgeStyleClass}`}>
+        {recText.includes("HIGHLY") || recText.includes("RECOMMENDED") ? (
+          <CheckCircle2 size={isSm ? 9 : 11} strokeWidth={isSm ? 2.5 : 3} className="text-white" />
+        ) : (
+          <Ruler size={isSm ? 9 : 11} className="text-white" />
+        )}
+        <span>{recText}</span>
+      </div>
+    );
   };
 
   const handleShopRedirect = (e: React.MouseEvent) => {
@@ -275,7 +265,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <span>{isSm ? `${height} FIT` : `${height} TALL VERDICT`}</span>
             </div>
             <p className={`text-black/70 font-sans ${isSm ? 'text-[9.5px] leading-snug line-clamp-1' : 'text-xs leading-relaxed line-clamp-2'}`}>
-              {verdict.note || "Optimized torso length & wide shoulder-cuts prevent standard ride-up."}
+              {recommendation 
+                ? `Verified as ${recommendation.fitRecommendation} for your profile.` 
+                : "Optimized torso length & wide shoulder-cuts prevent standard ride-up."}
             </p>
           </div>
         </div>

@@ -8,11 +8,13 @@ import {
 } from 'lucide-react';
 import { getAccessToken } from '../supabase';
 import type { UserReview } from '../types';
+import { getProductRecommendation, isPositiveRecommendation, isHeightInBand } from '../utils/fitEngine';
 
 export const ProductDetail: React.FC = () => {
   const { 
     route, 
     height, 
+    bodyType,
     heightBand, 
     toggleSaveProduct, 
     savedProductIds, 
@@ -133,11 +135,31 @@ export const ProductDetail: React.FC = () => {
     .filter(p => p.category === product.category && p.id !== product.id && !p.outOfStock)
     .slice(0, 4);
 
-  // Retrieve verdict for user selected tall selection
-  const userVerdict = product.verdicts.find(v => v.band === heightBand) || {
-    status: 'community' as const,
-    note: 'Generous sizing proportions calculated perfectly for larger statures.'
-  };
+  // Retrieve recommendation for user selected tall selection
+  const recommendation = getProductRecommendation(product.verdicts, height, bodyType);
+
+  // Normalize and map legacy verdicts on the fly
+  const normalizedVerdicts = (product.verdicts || []).map(v => {
+    if (v.heightRange && v.fitRecommendation) return v;
+    // Map legacy verdict
+    const band = (v as any).band;
+    const status = (v as any).status;
+    let fitRecommendation = 'Good Fit';
+    if (status === 'verified') fitRecommendation = 'Highly Recommended';
+    else if (status === 'friendly') fitRecommendation = 'Recommended';
+    else if (status === 'runs_short') fitRecommendation = 'Not Recommended';
+
+    let heightRange = "6'0\" - 6'2\"";
+    if (band === '6_2_6_3') heightRange = "6'2\" - 6'4\"";
+    else if (band === '6_4_6_5') heightRange = "6'4\" - 6'6\"";
+    else if (band === '6_6_plus') heightRange = "6'8\"+";
+
+    return {
+      heightRange,
+      bodyTypes: (v as any).bodyTypes || ['Slim', 'Athletic', 'Broad', 'Overweight'],
+      fitRecommendation
+    };
+  });
 
   // Convert height selections to estimate human proportions to contrast against
   const estimateAnatomy = (hStr: string) => {
@@ -363,36 +385,37 @@ export const ProductDetail: React.FC = () => {
 
             {/* Prominent Sizing Verdict indicator */}
             <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm">
-              <div className="flex items-center justify-between mb-3 border-b border-[#112133]/10 pb-3">
-                <span className="font-grotesk font-black text-[11px] uppercase tracking-wider text-[#112133]/50">
-                  VERDICT FOR YOUR ACTIVE HEIGHT Band
+              <div className="flex items-center justify-between mb-3 border-b border-black/5 pb-3">
+                <span className="font-grotesk font-black text-[10px] uppercase tracking-wider text-[#112133]/50">
+                  VERDICT FOR YOUR PROFILE
                 </span>
                 
                 {/* Visual badge */}
-                {userVerdict.status === 'verified' && (
-                  <span className="bg-[#7D2AE8] text-white font-black text-[10px] tracking-wide px-3 py-1 rounded shadow-md shadow-[#7D2AE8]/10">
-                    TALL VERIFIED
+                {recommendation ? (
+                  <span className={`font-black text-[10px] tracking-wide px-3 py-1 rounded-full shadow-sm uppercase ${
+                    recommendation.fitRecommendation.includes('Highly')
+                      ? 'bg-[#FF3F6C] text-white'
+                      : isPositiveRecommendation(recommendation.fitRecommendation)
+                        ? 'bg-[#00C4CC] text-white'
+                        : 'bg-amber-500 text-white'
+                  }`}>
+                    {recommendation.fitRecommendation}
                   </span>
-                )}
-                {userVerdict.status === 'friendly' && (
-                  <span className="border border-[#7D2AE8] text-[#7D2AE8] font-bold text-[10px] tracking-wide px-3 py-0.8 rounded">
+                ) : (
+                  <span className="bg-[#112133]/5 text-[#112133] font-semibold text-[10px] tracking-wide px-2.5 py-1 rounded-full uppercase">
                     TALL FRIENDLY
-                  </span>
-                )}
-                {userVerdict.status === 'community' && (
-                  <span className="bg-[#112133]/5 text-[#112133] font-semibold text-[10px] tracking-wide px-2.5 py-1 rounded-full">
-                    COMMUNITY APPROVED
-                  </span>
-                )}
-                {userVerdict.status === 'runs_short' && (
-                  <span className="bg-accent-coral text-white font-bold text-[9px] tracking-wider px-2.5 py-1 rounded">
-                    RUNS CUT SHORT
                   </span>
                 )}
               </div>
 
-              <p className="text-[#112133]/90 text-sm leading-relaxed mb-4">
-                "{userVerdict.note || 'No compromises. Designed with a longer drop that perfectly sits around tall frames without standard riding.'}"
+              <p className="text-[#112133]/90 text-xs font-semibold leading-relaxed mb-4">
+                {recommendation ? (
+                  <>
+                    Based on fit curation data, this garment is rated <strong className="text-[#7D2AE8] font-black">{recommendation.fitRecommendation}</strong> for individuals measuring <strong className="font-black">{recommendation.heightRange}</strong> with a <strong className="font-black">{bodyType}</strong> build.
+                  </>
+                ) : (
+                  "Optimized tall specifications with extended torso/inseam cuts suited for heights starting at 6'0\"."
+                )}
               </p>
 
               {/* Full height multi-band matrix */}
@@ -401,21 +424,28 @@ export const ProductDetail: React.FC = () => {
                   Fits Verdict Across Tall Statures
                 </p>
                 
-                <div className="grid grid-cols-4 gap-2">
-                  {product.verdicts.map((v) => {
-                    const isUserBand = v.band === heightBand;
-                    const bandLabel = v.band === '6_0_6_1' ? "6'0-6'1" : v.band === '6_2_6_3' ? "6'2-6'3" : v.band === '6_4_6_5' ? "6'4-6'5" : "6'6+";
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {normalizedVerdicts.map((v, i) => {
+                    const isUserBand = isHeightInBand(height, v.heightRange);
+                    const isPositive = isPositiveRecommendation(v.fitRecommendation);
                     return (
                       <div 
-                        key={v.band}
-                        className={`text-center rounded p-2 border transition ${isUserBand ? 'border-[#7D2AE8] bg-[#7D2AE8]/5' : 'border-[#112133]/10 bg-[#112133]/5'}`}
+                        key={i}
+                        className={`text-center rounded-xl p-2.5 border transition ${isUserBand ? 'border-[#7D2AE8] bg-[#7D2AE8]/5 shadow-sm' : 'border-[#112133]/10 bg-white'}`}
                       >
-                        <span className="text-[10px] block font-bold text-[#112133]/55">{bandLabel}</span>
-                        <span className={`text-[10px] block font-black uppercase mt-0.5 ${
-                          v.status === 'verified' ? 'text-[#7D2AE8]' : v.status === 'friendly' ? 'text-[#00C4CC]' : 'text-[#112133]/40'
+                        <span className="text-[10px] block font-black text-[#112133]">{v.heightRange}</span>
+                        <span className={`text-[9px] block font-black uppercase mt-1 ${
+                          isPositive ? 'text-[#7D2AE8]' : 'text-amber-600'
                         }`}>
-                          {v.status.replace('_', ' ')}
+                          {v.fitRecommendation}
                         </span>
+                        <div className="flex flex-wrap gap-1 justify-center mt-1.5 border-t border-black/5 pt-1.5">
+                          {(v.bodyTypes || []).map(bt => (
+                            <span key={bt} className="bg-black/[0.04] text-black/60 text-[8px] font-bold px-1 py-0.2 rounded">
+                              {bt}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     );
                   })}

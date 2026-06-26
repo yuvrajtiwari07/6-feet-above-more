@@ -63,7 +63,7 @@ const COLORS = [
 const HEIGHT_RANGES = ["6'0–6'2", "6'2–6'4", "6'4–6'6", "6'6+"];
 const BODY_TYPES = ['Slim', 'Athletic', 'Broad', 'Heavy Build'];
 const FIT_HIGHLIGHTS = [
-  'Long Sleeves', 'Long Inseam', 'Broad Shoulder Friendly',
+  'Long Sleeves', 'Long Inseam', 'Broad Shoulder Friendly', 
   'Extended Torso Fit', 'Extra Leg Room', 'Long Rise'
 ];
 
@@ -137,16 +137,8 @@ export const Admin: React.FC = () => {
 
   // Tall Fit Curation (Hero Section)
   const [tallFriendly, setTallFriendly] = useState(true);
-  const [selectedHeightRanges, setSelectedHeightRanges] = useState<string[]>(["6'2–6'4"]);
-  const [selectedBodyTypes, setSelectedBodyTypes] = useState<string[]>(['Athletic']);
-  const [selectedFitHighlights, setSelectedFitHighlights] = useState<string[]>(['Extended Torso Fit']);
   const [sizes, setSizes] = useState<string[]>(['L', 'XL', 'XXL']);
-
-  // Verdicts (kept for compatibility, generated based on selection or simple inputs)
-  const [verdict0_1_Note, setVerdict0_1_Note] = useState('Hits exactly right at waistline.');
-  const [verdict2_3_Note, setVerdict2_3_Note] = useState('Tested and perfect for 6\'3" limbs.');
-  const [verdict4_5_Note, setVerdict4_5_Note] = useState('Adequate tuck-in height.');
-  const [verdict6_plus_Note, setVerdict6_plus_Note] = useState('Dignified but may terminate slightly high.');
+  const [adminVerdicts, setAdminVerdicts] = useState<FitVerdict[]>([]);
 
   // Affiliate Outlets
   const [merchantLinks, setMerchantLinks] = useState<{ store: string; url: string; price: number }[]>([]);
@@ -513,7 +505,7 @@ export const Admin: React.FC = () => {
       if (data.tallFit.tallFriendly !== undefined) {
         setTallFriendly(!!data.tallFit.tallFriendly);
       }
-
+      
       // Height Ranges
       if (data.tallFit.recommendedHeightRanges && Array.isArray(data.tallFit.recommendedHeightRanges)) {
         const matchedHeights = data.tallFit.recommendedHeightRanges
@@ -532,38 +524,24 @@ export const Admin: React.FC = () => {
 
       // Body Types
       if (data.tallFit.bodyTypes && Array.isArray(data.tallFit.bodyTypes)) {
-        const matchedBody = data.tallFit.bodyTypes
-          .map((b: string) => {
-            if (b.toLowerCase().includes('slim')) return 'Slim';
-            if (b.toLowerCase().includes('athletic')) return 'Athletic';
-            if (b.toLowerCase().includes('broad')) return 'Broad';
-            if (b.toLowerCase().includes('heavy')) return 'Heavy Build';
-            return null;
-          })
-          .filter(Boolean) as string[];
-        if (matchedBody.length > 0) {
-          setSelectedBodyTypes([...new Set(matchedBody)]);
-        }
+        data.tallFit.bodyTypes.forEach((b: string) => {
+          const lower = b.toLowerCase();
+          if (lower.includes('slim') || lower.includes('lean')) scrapedBodyTypes.push('Slim');
+          if (lower.includes('athletic')) scrapedBodyTypes.push('Athletic');
+          if (lower.includes('broad')) scrapedBodyTypes.push('Broad');
+          if (lower.includes('heavy') || lower.includes('overweight')) scrapedBodyTypes.push('Overweight');
+        });
+      }
+      if (scrapedBodyTypes.length === 0) {
+        scrapedBodyTypes.push('Athletic');
       }
 
-      // Tall Fit Highlights
-      if (data.tallFit.highlights && Array.isArray(data.tallFit.highlights)) {
-        const matchedHighlights = data.tallFit.highlights
-          .map((hl: string) => {
-            const lower = hl.toLowerCase();
-            if (lower.includes('sleeve')) return 'Long Sleeves';
-            if (lower.includes('inseam')) return 'Long Inseam';
-            if (lower.includes('shoulder')) return 'Broad Shoulder Friendly';
-            if (lower.includes('torso') || lower.includes('length')) return 'Extended Torso Fit';
-            if (lower.includes('leg') || lower.includes('room')) return 'Extra Leg Room';
-            if (lower.includes('rise')) return 'Long Rise';
-            return null;
-          })
-          .filter(Boolean) as string[];
-        if (matchedHighlights.length > 0) {
-          setSelectedFitHighlights([...new Set(matchedHighlights)]);
-        }
-      }
+      const defaultBands = DEFAULT_HEIGHT_BANDS.map(range => ({
+        heightRange: range,
+        bodyTypes: [...new Set(scrapedBodyTypes)],
+        fitRecommendation: 'Good Fit'
+      }));
+      setAdminVerdicts(defaultBands);
     }
 
     // Images
@@ -699,14 +677,12 @@ export const Admin: React.FC = () => {
     setMaterial('');
     setImages([]);
     setTallFriendly(true);
-    setSelectedHeightRanges(["6'2–6'4"]);
-    setSelectedBodyTypes(['Athletic']);
-    setSelectedFitHighlights(['Extended Torso Fit']);
     setSizes(['L', 'XL', 'XXL']);
-    setVerdict0_1_Note('Hits exactly right at waistline.');
-    setVerdict2_3_Note('Tested and perfect for 6\'3" limbs.');
-    setVerdict4_5_Note('Adequate tuck-in height.');
-    setVerdict6_plus_Note('Dignified but may terminate slightly high.');
+    setAdminVerdicts(DEFAULT_HEIGHT_BANDS.map(range => ({
+      heightRange: range,
+      bodyTypes: [],
+      fitRecommendation: 'Good Fit'
+    })));
     setMerchantLinks([]);
 
     // Reset affiliate states
@@ -748,21 +724,53 @@ export const Admin: React.FC = () => {
 
     // Curation tall fields
     setTallFriendly(p.tallFriendly !== false);
-    setSelectedHeightRanges(p.heightRanges || ["6'2–6'4"]);
-    setSelectedBodyTypes(p.bodyTypes || ['Athletic']);
-    setSelectedFitHighlights(p.fitHighlights || []);
     setSizes(p.sizes || []);
 
-    // Verdict notes load
-    const v0_1 = p.verdicts.find(v => v.band === '6_0_6_1');
-    if (v0_1) setVerdict0_1_Note(v0_1.note || '');
-    const v2_3 = p.verdicts.find(v => v.band === '6_2_6_3');
-    if (v2_3) setVerdict2_3_Note(v2_3.note || '');
-    const v4_5 = p.verdicts.find(v => v.band === '6_4_6_5');
-    if (v4_5) setVerdict4_5_Note(v4_5.note || '');
-    const v6_un = p.verdicts.find(v => v.band === '6_6_plus');
-    if (v6_un) setVerdict6_plus_Note(v6_un.note || '');
+    const parsedVerdicts: FitVerdict[] = [];
+    if (p.verdicts && p.verdicts.length > 0) {
+      p.verdicts.forEach((v: any) => {
+        if ('heightRange' in v) {
+          parsedVerdicts.push(v);
+        } else {
+          // Map legacy verdict
+          let heightRange = "6'0\" - 6'2\"";
+          if (v.band === '6_2_6_3') heightRange = "6'2\" - 6'4\"";
+          else if (v.band === '6_4_6_5') heightRange = "6'4\" - 6'6\"";
+          else if (v.band === '6_6_plus') heightRange = "6'8\"+";
 
+          let fitRecommendation = 'Good Fit';
+          if (v.status === 'verified') fitRecommendation = 'Highly Recommended';
+          else if (v.status === 'friendly') fitRecommendation = 'Recommended';
+          else if (v.status === 'runs_short') fitRecommendation = 'Not Recommended';
+
+          const bodyTypes: ('Slim' | 'Athletic' | 'Broad' | 'Overweight')[] = (p.bodyTypes || []).map((bt: string) => {
+            if (bt === 'Slim' || bt === 'Athletic' || bt === 'Broad' || bt === 'Overweight') return bt;
+            if (bt === 'Lean') return 'Slim';
+            if (bt === 'Heavy Build' || bt === 'Heavy') return 'Overweight';
+            return 'Athletic';
+          }) as any;
+
+          parsedVerdicts.push({
+            heightRange,
+            bodyTypes: bodyTypes.length > 0 ? bodyTypes : ['Athletic'],
+            fitRecommendation
+          });
+        }
+      });
+    }
+
+    // Fallback if no verdicts
+    if (parsedVerdicts.length === 0) {
+      DEFAULT_HEIGHT_BANDS.forEach(range => {
+        parsedVerdicts.push({
+          heightRange: range,
+          bodyTypes: [],
+          fitRecommendation: 'Good Fit'
+        });
+      });
+    }
+
+    setAdminVerdicts(parsedVerdicts);
     setMerchantLinks(p.merchantLinks || []);
 
     // Initialize affiliate states for editing
@@ -772,19 +780,38 @@ export const Admin: React.FC = () => {
     setAffiliateError('');
   };
 
+  const handleAddHeightBand = () => {
+    setAdminVerdicts(prev => [
+      ...prev,
+      { heightRange: "6'2\" - 6'4\"", bodyTypes: [], fitRecommendation: 'Good Fit' }
+    ]);
+  };
+
+  const handleRemoveHeightBand = (idx: number) => {
+    setAdminVerdicts(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleUpdateHeightBand = (idx: number, field: keyof FitVerdict, val: any) => {
+    setAdminVerdicts(prev => prev.map((v, i) => i === idx ? { ...v, [field]: val } : v));
+  };
+
+  const handleToggleBodyTypeInBand = (idx: number, bt: 'Slim' | 'Athletic' | 'Broad' | 'Overweight') => {
+    setAdminVerdicts(prev => prev.map((v, i) => {
+      if (i !== idx) return v;
+      const exists = v.bodyTypes.includes(bt);
+      const nextBodyTypes = exists
+        ? v.bodyTypes.filter(x => x !== bt)
+        : [...v.bodyTypes, bt];
+      return { ...v, bodyTypes: nextBodyTypes };
+    }));
+  };
+
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !brand || !title || !priceAtRetailer) {
       setFormError('Please fill out all required fields: ID, Brand, Title, and Price.');
       return;
     }
-
-    const verdicts: FitVerdict[] = [
-      { band: '6_0_6_1', status: selectedHeightRanges.includes("6'0–6'2") ? 'friendly' : 'community', note: verdict0_1_Note },
-      { band: '6_2_6_3', status: selectedHeightRanges.includes("6'2–6'4") ? 'verified' : 'friendly', note: verdict2_3_Note },
-      { band: '6_4_6_5', status: selectedHeightRanges.includes("6'4–6'6") ? 'verified' : 'friendly', note: verdict4_5_Note },
-      { band: '6_6_plus', status: selectedHeightRanges.includes("6'6+") ? 'friendly' : 'runs_short', note: verdict6_plus_Note },
-    ];
 
     const finalProduct: Product = {
       id,
@@ -805,7 +832,7 @@ export const Admin: React.FC = () => {
       seasons,
       colors,
       sizes,
-      verdicts,
+      verdicts: adminVerdicts,
       outOfStock,
       merchantLinks,
       material,
@@ -813,9 +840,6 @@ export const Admin: React.FC = () => {
       discountPercent: Number(discountPercent) || 0,
       isFeatured,
       tallFriendly,
-      heightRanges: selectedHeightRanges,
-      bodyTypes: selectedBodyTypes,
-      fitHighlights: selectedFitHighlights,
     };
 
     try {
@@ -1091,6 +1115,32 @@ export const Admin: React.FC = () => {
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* Sizes list (Dynamic based on Segment) */}
+            <div className="bg-[#FAF9F6] p-5 rounded-2xl border border-black/5 space-y-3">
+              <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
+                Select Curated Sizes Available (Tailored Proportions)
+              </label>
+              <div className="flex flex-wrap gap-2.5">
+                {getSizeOptions(productSegment).map(sz => {
+                  const isChecked = sizes.includes(sz);
+                  return (
+                    <button
+                      type="button"
+                      key={sz}
+                      onClick={() => toggleSelection(sz, sizes, setSizes)}
+                      className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${
+                        isChecked 
+                          ? 'bg-[#7D2AE8] text-white border-[#7D2AE8]' 
+                          : 'bg-white text-black/60 border-black/15 hover:border-[#7D2AE8]/50'
+                      }`}
+                    >
+                      {sz}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -1481,14 +1531,14 @@ export const Admin: React.FC = () => {
                     🏆 TALL FIT CURATION ENGINE
                   </h3>
                 </div>
-
+                
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] text-black/55 font-black uppercase tracking-wider">
                     Tall Friendly Selection:
                   </span>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
+                    <input 
+                      type="checkbox" 
                       checked={tallFriendly}
                       onChange={(e) => setTallFriendly(e.target.checked)}
                       className="sr-only peer"
@@ -1501,77 +1551,100 @@ export const Admin: React.FC = () => {
                 </div>
               </div>
 
-              {/* Checkbox Grids */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Recommended Height Range */}
-                <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
-                  <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
-                    Recommended Height Ranges *
-                  </label>
-                  <div className="space-y-2">
-                    {HEIGHT_RANGES.map(range => {
-                      const isChecked = selectedHeightRanges.includes(range);
-                      return (
-                        <label key={range} className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-black/75">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => toggleSelection(range, selectedHeightRanges, setSelectedHeightRanges)}
-                            className="rounded text-[#7D2AE8] focus:ring-[#7D2AE8] w-4 h-4 border-black/15"
-                          />
-                          <span>{range} Tall Bands</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Body Types */}
-                <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
-                  <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
-                    Body Types *
-                  </label>
-                  <div className="space-y-2">
-                    {BODY_TYPES.map(type => {
-                      const isChecked = selectedBodyTypes.includes(type);
-                      return (
-                        <label key={type} className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-black/75">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => toggleSelection(type, selectedBodyTypes, setSelectedBodyTypes)}
-                            className="rounded text-[#7D2AE8] focus:ring-[#7D2AE8] w-4 h-4 border-black/15"
-                          />
-                          <span>{type} Build</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Tall Fit Highlights */}
-                <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
-                  <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
-                    Tall Fit Highlights *
-                  </label>
-                  <div className="space-y-2">
-                    {FIT_HIGHLIGHTS.map(highlight => {
-                      const isChecked = selectedFitHighlights.includes(highlight);
-                      return (
-                        <label key={highlight} className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-black/75">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => toggleSelection(highlight, selectedFitHighlights, setSelectedFitHighlights)}
-                            className="rounded text-[#7D2AE8] focus:ring-[#7D2AE8] w-4 h-4 border-black/15"
-                          />
-                          <span>{highlight}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
+                <div className="flex items-center gap-3 bg-[#7D2AE8]/5 border border-[#7D2AE8]/10 p-3 rounded-2xl max-w-md">
+                  <span className="text-xs text-[#7D2AE8]">ℹ️</span>
+                  <p className="text-[11px] font-medium text-[#7D2AE8]/80 leading-relaxed">
+                    This data powers fit recommendations and filters across the website.
+                  </p>
                 </div>
               </div>
+
+              {/* Table headers */}
+              <div className="hidden md:grid grid-cols-12 gap-4 text-[10px] font-black uppercase tracking-wider text-black/45 px-4">
+                <div className="col-span-3">Height Range</div>
+                <div className="col-span-5">Body Types (select all that apply)</div>
+                <div className="col-span-3">Fit Recommendation</div>
+                <div className="col-span-1 text-right">Actions</div>
+              </div>
+
+              {/* Rows List */}
+              <div className="space-y-4">
+                {adminVerdicts.map((row, idx) => {
+                  return (
+                    <div 
+                      key={idx}
+                      className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-[#FAF9F6] p-4 rounded-2xl border border-black/5 hover:border-black/10 transition-all"
+                    >
+                      {/* Height Range input */}
+                      <div className="col-span-1 md:col-span-3 flex items-center gap-2">
+                        {/* Drag Handle representation */}
+                        <div className="text-black/20 font-bold select-none cursor-grab text-lg hidden md:block">
+                          ░
+                        </div>
+                        <div className="w-full">
+                          <input 
+                            type="text"
+                            value={row.heightRange}
+                            onChange={(e) => handleUpdateHeightBand(idx, 'heightRange', e.target.value)}
+                            placeholder="e.g. 6'2 - 6'4"
+                            className="w-full px-3 py-2 border border-black/15 rounded-xl text-xs font-bold bg-white focus:outline-none focus:border-[#7D2AE8]"
+                          />
+                          <span className="text-[10px] text-black/40 font-semibold block mt-1 ml-1">
+                            {row.heightRange.includes("6'0") ? '(183 - 188 cm)' : 
+                             row.heightRange.includes("6'2") ? '(188 - 193 cm)' : 
+                             row.heightRange.includes("6'4") ? '(193 - 198 cm)' : 
+                             row.heightRange.includes("6'6") ? '(198 - 203 cm)' : 
+                             row.heightRange.includes("6'8") ? '(203+ cm)' : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Body Types Icon Cards selection */}
+                      <div className="col-span-1 md:col-span-5 grid grid-cols-4 gap-2">
+                        {BODY_TYPE_CARDS.map(card => {
+                          const isSelected = row.bodyTypes.includes(card.name);
+                          return (
+                            <button
+                              type="button"
+                              key={card.name}
+                              onClick={() => handleToggleBodyTypeInBand(idx, card.name)}
+                              className={`relative p-2.5 rounded-xl border-2 flex flex-col items-center justify-center gap-1 transition-all ${
+                                isSelected
+                                  ? 'bg-[#7D2AE8]/5 border-[#7D2AE8] text-[#7D2AE8]'
+                                  : 'bg-white border-black/5 hover:border-black/15 text-black/70'
+                              }`}
+                            >
+                              <span className="text-lg">{card.icon}</span>
+                              <span className="text-[10px] font-bold tracking-tight">{card.name}</span>
+                              {isSelected && (
+                                <span className="absolute top-1 right-1 bg-[#7D2AE8] text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-black">
+                                  ✓
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Recommendation Dropdown */}
+                      <div className="col-span-1 md:col-span-3">
+                        <div className="relative">
+                          <select
+                            value={row.fitRecommendation}
+                            onChange={(e) => handleUpdateHeightBand(idx, 'fitRecommendation', e.target.value)}
+                            className="w-full px-3 py-2.5 border border-black/15 rounded-xl text-xs font-bold bg-white focus:outline-none focus:border-[#7D2AE8] appearance-none"
+                          >
+                            {FIT_RECOMMENDATION_OPTIONS.map(opt => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-black/45 text-[10px]">
+                            ▼
+                          </div>
+                        </div>
+                      </div>
 
               {/* Sizes list (Dynamic based on Segment) */}
               <div className="bg-white p-4 rounded-xl border border-[#7D2AE8]/15 space-y-3">
@@ -1586,10 +1659,11 @@ export const Admin: React.FC = () => {
                         type="button"
                         key={sz}
                         onClick={() => toggleSelection(sz, sizes, setSizes)}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${isChecked
-                          ? 'bg-[#7D2AE8] text-white border-[#7D2AE8]'
-                          : 'bg-white text-black/60 border-black/15 hover:border-[#7D2AE8]/50'
-                          }`}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${
+                          isChecked 
+                            ? 'bg-[#7D2AE8] text-white border-[#7D2AE8]' 
+                            : 'bg-white text-black/60 border-black/15 hover:border-[#7D2AE8]/50'
+                        }`}
                       >
                         {sz}
                       </button>
@@ -1603,40 +1677,40 @@ export const Admin: React.FC = () => {
                 <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
                   Anatomical Height-Band Fit Verdict Notes
                 </label>
-
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'0"–6'1" Verdict Note</label>
-                    <input
-                      type="text"
-                      value={verdict0_1_Note}
+                    <input 
+                      type="text" 
+                      value={verdict0_1_Note} 
                       onChange={(e) => setVerdict0_1_Note(e.target.value)}
                       className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
                     />
                   </div>
                   <div>
                     <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'2"–6'3" Verdict Note</label>
-                    <input
-                      type="text"
-                      value={verdict2_3_Note}
+                    <input 
+                      type="text" 
+                      value={verdict2_3_Note} 
                       onChange={(e) => setVerdict2_3_Note(e.target.value)}
                       className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
                     />
                   </div>
                   <div>
                     <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'4"–6'5" Verdict Note</label>
-                    <input
-                      type="text"
-                      value={verdict4_5_Note}
+                    <input 
+                      type="text" 
+                      value={verdict4_5_Note} 
                       onChange={(e) => setVerdict4_5_Note(e.target.value)}
                       className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
                     />
                   </div>
                   <div>
                     <label className="text-[9px] uppercase tracking-wider text-black/45 block mb-1 font-bold">6'6"+ Verdict Note</label>
-                    <input
-                      type="text"
-                      value={verdict6_plus_Note}
+                    <input 
+                      type="text" 
+                      value={verdict6_plus_Note} 
                       onChange={(e) => setVerdict6_plus_Note(e.target.value)}
                       className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-semibold"
                     />

@@ -741,6 +741,393 @@ router2.put("/profile", requireAuth, async (req, res) => {
 });
 var userController_default = router2;
 
+// src/controllers/catalogController.ts
+import { Router as Router3 } from "express";
+
+// src/repositories/catalogCategoryRepository.ts
+function rowToCategory(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    coverImage: row.cover_image,
+    sortOrder: row.sort_order ?? 0,
+    isActive: row.is_active,
+    createdAt: row.created_at
+  };
+}
+var catalogCategoryRepository = {
+  async findAll() {
+    const rows = await query("SELECT * FROM catalog_categories ORDER BY sort_order ASC, name ASC");
+    return rows.map(rowToCategory);
+  },
+  async findById(id) {
+    const row = await queryOne("SELECT * FROM catalog_categories WHERE id = $1", [id]);
+    return row ? rowToCategory(row) : null;
+  },
+  async create(data) {
+    const rows = await query(
+      `INSERT INTO catalog_categories (name, slug, description, cover_image, sort_order, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+      [data.name, data.slug, data.description ?? null, data.coverImage ?? null, data.sortOrder, data.isActive]
+    );
+    return rowToCategory(rows[0]);
+  },
+  async update(id, data) {
+    const fieldMap = {
+      name: "name",
+      slug: "slug",
+      description: "description",
+      coverImage: "cover_image",
+      sortOrder: "sort_order",
+      isActive: "is_active"
+    };
+    const setClauses = [];
+    const params = [];
+    let idx = 1;
+    for (const [key, col] of Object.entries(fieldMap)) {
+      if (key in data) {
+        setClauses.push(`${col} = $${idx++}`);
+        params.push(data[key]);
+      }
+    }
+    if (setClauses.length === 0) return this.findById(id);
+    params.push(id);
+    const rows = await query(
+      `UPDATE catalog_categories SET ${setClauses.join(", ")} WHERE id = $${idx} RETURNING *`,
+      params
+    );
+    return rows.length > 0 ? rowToCategory(rows[0]) : null;
+  },
+  async delete(id) {
+    const rows = await query("DELETE FROM catalog_categories WHERE id = $1 RETURNING id", [id]);
+    return rows.length > 0;
+  }
+};
+
+// src/services/catalogCategoryService.ts
+function toSlug(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+function validate(data) {
+  if (!data.name?.trim()) return "Category name is required";
+  if (data.name.trim().length > 80) return "Name must be 80 characters or less";
+  return null;
+}
+var catalogCategoryService = {
+  async getAll() {
+    return catalogCategoryRepository.findAll();
+  },
+  async getById(id) {
+    return catalogCategoryRepository.findById(id);
+  },
+  async create(data) {
+    const err = validate(data);
+    if (err) return { error: err };
+    const slug = data.slug?.trim() || toSlug(data.name.trim());
+    return {
+      category: await catalogCategoryRepository.create({
+        name: data.name.trim(),
+        slug,
+        description: data.description?.trim(),
+        coverImage: data.coverImage?.trim(),
+        sortOrder: data.sortOrder ?? 0,
+        isActive: data.isActive ?? true
+      })
+    };
+  },
+  async update(id, data) {
+    const existing = await catalogCategoryRepository.findById(id);
+    if (!existing) return { error: "Catalog category not found" };
+    if (data.name !== void 0 && !data.name.trim()) return { error: "Name cannot be empty" };
+    const updates = {};
+    if (data.name !== void 0) updates.name = data.name.trim();
+    if (data.slug !== void 0) updates.slug = data.slug.trim() || toSlug(data.name?.trim() || existing.name);
+    if (data.description !== void 0) updates.description = data.description;
+    if (data.coverImage !== void 0) updates.coverImage = data.coverImage;
+    if (data.sortOrder !== void 0) updates.sortOrder = data.sortOrder;
+    if (data.isActive !== void 0) updates.isActive = data.isActive;
+    return { category: await catalogCategoryRepository.update(id, updates) };
+  },
+  async delete(id) {
+    const existing = await catalogCategoryRepository.findById(id);
+    if (!existing) return { success: false, error: "Catalog category not found" };
+    const deleted = await catalogCategoryRepository.delete(id);
+    return { success: deleted };
+  }
+};
+
+// src/repositories/catalogRepository.ts
+function rowToCatalog(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    description: row.description,
+    categoryId: row.category_id,
+    categoryName: row.category_name,
+    coverImage: row.cover_image,
+    productIds: row.product_ids ?? [],
+    affiliateUrl: row.affiliate_url,
+    isPublished: row.is_published,
+    sortOrder: row.sort_order ?? 0,
+    tags: row.tags ?? [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+var catalogRepository = {
+  async findAll(filters) {
+    let text = "SELECT * FROM catalogs WHERE 1=1";
+    const params = [];
+    let idx = 1;
+    if (filters?.category) {
+      text += ` AND LOWER(category_name) = LOWER($${idx++})`;
+      params.push(filters.category);
+    }
+    if (filters?.publishedOnly !== false) {
+      text += ` AND is_published = true`;
+    }
+    text += " ORDER BY sort_order ASC, created_at DESC";
+    const rows = await query(text, params);
+    return rows.map(rowToCatalog);
+  },
+  async findById(id) {
+    const row = await queryOne("SELECT * FROM catalogs WHERE id = $1", [id]);
+    return row ? rowToCatalog(row) : null;
+  },
+  async create(data) {
+    const rows = await query(
+      `INSERT INTO catalogs
+         (title, slug, description, category_id, category_name, cover_image,
+          product_ids, affiliate_url, is_published, sort_order, tags)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+       RETURNING *`,
+      [
+        data.title,
+        data.slug,
+        data.description ?? null,
+        data.categoryId ?? null,
+        data.categoryName,
+        data.coverImage ?? null,
+        data.productIds ?? [],
+        data.affiliateUrl ?? null,
+        data.isPublished ?? true,
+        data.sortOrder ?? 0,
+        data.tags ?? []
+      ]
+    );
+    return rowToCatalog(rows[0]);
+  },
+  async update(id, partial) {
+    const fieldMap = {
+      title: "title",
+      slug: "slug",
+      description: "description",
+      categoryId: "category_id",
+      categoryName: "category_name",
+      coverImage: "cover_image",
+      productIds: "product_ids",
+      affiliateUrl: "affiliate_url",
+      isPublished: "is_published",
+      sortOrder: "sort_order",
+      tags: "tags"
+    };
+    const setClauses = [];
+    const params = [];
+    let idx = 1;
+    for (const [key, col] of Object.entries(fieldMap)) {
+      if (key in partial) {
+        setClauses.push(`${col} = $${idx++}`);
+        params.push(partial[key]);
+      }
+    }
+    if (setClauses.length === 0) return this.findById(id);
+    setClauses.push(`updated_at = NOW()`);
+    params.push(id);
+    const rows = await query(
+      `UPDATE catalogs SET ${setClauses.join(", ")} WHERE id = $${idx} RETURNING *`,
+      params
+    );
+    return rows.length > 0 ? rowToCatalog(rows[0]) : null;
+  },
+  async delete(id) {
+    const rows = await query("DELETE FROM catalogs WHERE id = $1 RETURNING id", [id]);
+    return rows.length > 0;
+  }
+};
+
+// src/services/catalogService.ts
+function toSlug2(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+}
+function validate2(data) {
+  if (!data.title?.trim()) return "Catalog title is required";
+  if (!data.categoryName?.trim()) return "Category name is required";
+  return null;
+}
+var catalogService = {
+  async getAll(filters) {
+    return catalogRepository.findAll({ category: filters?.category, publishedOnly: true });
+  },
+  async getAllForAdmin() {
+    return catalogRepository.findAll({ publishedOnly: false });
+  },
+  async getById(id) {
+    const catalog = await catalogRepository.findById(id);
+    if (!catalog) return { error: "Catalog not found" };
+    const products = await Promise.all(
+      catalog.productIds.map((pid) => productRepository.findById(pid))
+    );
+    return { catalog, products: products.filter(Boolean) };
+  },
+  async create(data) {
+    const err = validate2(data);
+    if (err) return { error: err };
+    const slug = data.slug?.trim() || toSlug2(data.title.trim());
+    if (data.productIds && data.productIds.length > 0) {
+      const checks = await Promise.all(data.productIds.map((id) => productRepository.findById(id)));
+      const missing = data.productIds.filter((id, i) => !checks[i]);
+      if (missing.length > 0) return { error: `Products not found: ${missing.join(", ")}` };
+    }
+    const catalog = await catalogRepository.create({
+      title: data.title.trim(),
+      slug,
+      description: data.description?.trim(),
+      categoryId: data.categoryId,
+      categoryName: data.categoryName.trim(),
+      coverImage: data.coverImage?.trim(),
+      productIds: data.productIds ?? [],
+      affiliateUrl: data.affiliateUrl?.trim(),
+      isPublished: data.isPublished ?? true,
+      sortOrder: data.sortOrder ?? 0,
+      tags: data.tags ?? []
+    });
+    return { catalog };
+  },
+  async update(id, data) {
+    const existing = await catalogRepository.findById(id);
+    if (!existing) return { error: "Catalog not found" };
+    if (data.productIds && data.productIds.length > 0) {
+      const checks = await Promise.all(data.productIds.map((pid) => productRepository.findById(pid)));
+      const missing = data.productIds.filter((pid, i) => !checks[i]);
+      if (missing.length > 0) return { error: `Products not found: ${missing.join(", ")}` };
+    }
+    const catalog = await catalogRepository.update(id, data);
+    return { catalog };
+  },
+  async delete(id) {
+    const existing = await catalogRepository.findById(id);
+    if (!existing) return { success: false, error: "Catalog not found" };
+    const deleted = await catalogRepository.delete(id);
+    return { success: deleted };
+  }
+};
+
+// src/controllers/catalogController.ts
+var router3 = Router3();
+router3.get("/categories", async (_req, res) => {
+  try {
+    const categories = await catalogCategoryService.getAll();
+    res.json({ success: true, categories });
+  } catch (err) {
+    console.error("[CatalogController] GET /categories error:", err);
+    res.status(500).json({ error: "Failed to fetch catalog categories" });
+  }
+});
+router3.post("/categories", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { category, error } = await catalogCategoryService.create(req.body);
+    if (error) return res.status(400).json({ error });
+    res.status(201).json({ success: true, category });
+  } catch (err) {
+    console.error("[CatalogController] POST /categories error:", err);
+    res.status(500).json({ error: "Failed to create catalog category" });
+  }
+});
+router3.put("/categories/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { category, error } = await catalogCategoryService.update(req.params.id, req.body);
+    if (error) return res.status(404).json({ error });
+    res.json({ success: true, category });
+  } catch (err) {
+    console.error("[CatalogController] PUT /categories/:id error:", err);
+    res.status(500).json({ error: "Failed to update catalog category" });
+  }
+});
+router3.delete("/categories/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { success, error } = await catalogCategoryService.delete(req.params.id);
+    if (!success) return res.status(404).json({ error });
+    res.json({ success: true, message: "Category deleted" });
+  } catch (err) {
+    console.error("[CatalogController] DELETE /categories/:id error:", err);
+    res.status(500).json({ error: "Failed to delete catalog category" });
+  }
+});
+router3.get("/", async (req, res) => {
+  try {
+    const { category } = req.query;
+    const catalogs = await catalogService.getAll({ category });
+    res.json({ success: true, catalogs });
+  } catch (err) {
+    console.error("[CatalogController] GET /catalogs error:", err);
+    res.status(500).json({ error: "Failed to fetch catalogs" });
+  }
+});
+router3.get("/admin", requireAuth, requireAdmin, async (_req, res) => {
+  try {
+    const catalogs = await catalogService.getAllForAdmin();
+    res.json({ success: true, catalogs });
+  } catch (err) {
+    console.error("[CatalogController] GET /catalogs/admin error:", err);
+    res.status(500).json({ error: "Failed to fetch catalogs" });
+  }
+});
+router3.get("/:id", async (req, res) => {
+  try {
+    const { catalog, products, error } = await catalogService.getById(req.params.id);
+    if (error) return res.status(404).json({ error });
+    res.json({ success: true, catalog, products });
+  } catch (err) {
+    console.error("[CatalogController] GET /catalogs/:id error:", err);
+    res.status(500).json({ error: "Failed to fetch catalog" });
+  }
+});
+router3.post("/", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { catalog, error } = await catalogService.create(req.body);
+    if (error) return res.status(400).json({ error });
+    res.status(201).json({ success: true, catalog });
+  } catch (err) {
+    console.error("[CatalogController] POST /catalogs error:", err);
+    res.status(500).json({ error: "Failed to create catalog" });
+  }
+});
+router3.put("/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { catalog, error } = await catalogService.update(req.params.id, req.body);
+    if (error) return res.status(404).json({ error });
+    res.json({ success: true, catalog });
+  } catch (err) {
+    console.error("[CatalogController] PUT /catalogs/:id error:", err);
+    res.status(500).json({ error: "Failed to update catalog" });
+  }
+});
+router3.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { success, error } = await catalogService.delete(req.params.id);
+    if (!success) return res.status(404).json({ error });
+    res.json({ success: true, message: "Catalog deleted" });
+  } catch (err) {
+    console.error("[CatalogController] DELETE /catalogs/:id error:", err);
+    res.status(500).json({ error: "Failed to delete catalog" });
+  }
+});
+var catalogController_default = router3;
+
 // src/lib/importers/MyntraImporter.ts
 import * as cheerio2 from "cheerio";
 
@@ -1911,6 +2298,7 @@ app.post("/api/track", (_req, res) => {
   res.redirect(307, "/api/products/track");
 });
 app.use("/api/users", userController_default);
+app.use("/api/catalogs", catalogController_default);
 app.post(
   "/api/admin/import-product",
   requireAuth,

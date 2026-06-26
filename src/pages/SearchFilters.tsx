@@ -4,9 +4,10 @@ import { ProductCard } from '../components/product/ProductCard';
 import { GridDensitySelector } from '../components/layout/GridDensitySelector';
 import { Search as SearchIcon, Sliders, X, Check, Grid, Sparkles, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getProductRecommendation, isPositiveRecommendation } from '../utils/fitEngine';
 
 export const SearchFilters: React.FC = () => {
-  const { height, setHeight, heightBand, cardSize, products } = useApp();
+  const { height, bodyType, setHeight, cardSize, products } = useApp();
 
   // Search input state
   const [query, setQuery] = useState<string>('');
@@ -56,9 +57,13 @@ export const SearchFilters: React.FC = () => {
         if (!matchesText) return false;
       }
 
-      // 2. Main Category tag
-      if (selectedCategory !== 'All' && product.category !== selectedCategory) {
-        return false;
+      // 2. Main Category tag (Checks both category and categories array for robustness)
+      if (selectedCategory !== 'All') {
+        const selCat = selectedCategory.toLowerCase();
+        const matchesCategory = 
+          product.category?.toLowerCase() === selCat ||
+          (product.categories && product.categories.some(c => c.toLowerCase() === selCat));
+        if (!matchesCategory) return false;
       }
 
       // 3. Occasion matching array
@@ -90,12 +95,14 @@ export const SearchFilters: React.FC = () => {
 
       return true;
     }).sort((a, b) => {
-      // Sort priority: Tall verify status for active height band
-      const av = a.verdicts.find(v => v.band === heightBand)?.status === 'verified' ? 1 : 0;
-      const bv = b.verdicts.find(v => v.band === heightBand)?.status === 'verified' ? 1 : 0;
-      return bv - av;
+      // Sort priority: Tall verify status for active height and bodyType
+      const recA = getProductRecommendation(a.verdicts, height, bodyType);
+      const recB = getProductRecommendation(b.verdicts, height, bodyType);
+      const scoreA = recA && recA.fitRecommendation.includes('Highly') ? 2 : (recA && isPositiveRecommendation(recA.fitRecommendation) ? 1 : 0);
+      const scoreB = recB && recB.fitRecommendation.includes('Highly') ? 2 : (recB && isPositiveRecommendation(recB.fitRecommendation) ? 1 : 0);
+      return scoreB - scoreA;
     });
-  }, [query, selectedCategory, selectedOccasion, selectedBrand, selectedColor, selectedSeason, selectedSilhouette, heightBand]);
+  }, [query, selectedCategory, selectedOccasion, selectedBrand, selectedColor, selectedSeason, selectedSilhouette, height, bodyType]);
 
   return (
     <div className="pb-24 pt-10 text-[#112133] max-w-7xl mx-auto px-4 md:px-8 text-left">
