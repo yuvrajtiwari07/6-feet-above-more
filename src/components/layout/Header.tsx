@@ -11,7 +11,7 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 text-near-black backdrop-blur-xl border-b border-near-black/5 px-4 md:px-8 py-3 transition-all shadow-sm">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="w-full max-w-none mx-auto flex items-center justify-between">
         
         {/* Brand Block */}
         <div 

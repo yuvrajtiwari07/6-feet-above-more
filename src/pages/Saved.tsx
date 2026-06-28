@@ -15,7 +15,7 @@ export const Saved: React.FC = () => {
   const countTotal = savedProducts.length + savedFits.length;
 
   return (
-    <div className="pb-24 pt-10 text-[#112133] max-w-7xl mx-auto px-4 md:px-8 text-left">
+    <div className="pb-24 pt-10 text-[#112133] w-full max-w-none mx-auto px-4 md:px-8 text-left">
       
       {/* Editorial Title */}
       <div className="border-b border-[#112133]/15 pb-6 mb-10">

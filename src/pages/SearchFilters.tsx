@@ -108,7 +108,7 @@ export const SearchFilters: React.FC = () => {
   }, [query, selectedCategory, selectedOccasion, selectedBrand, selectedColor, selectedSeason, selectedSilhouette, height, bodyType]);
 
   return (
-    <div className="pb-24 pt-10 text-[#112133] max-w-7xl mx-auto px-4 md:px-8 text-left">
+    <div className="pb-24 pt-10 text-[#112133] w-full max-w-none mx-auto px-4 md:px-8 text-left">
       
       {/* 1. FILTER CORE COLUMN FOR ASYMMETRIC CONTROLS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

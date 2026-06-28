@@ -73,7 +73,7 @@ export const Home: React.FC = () => {
     <div className="pb-24 bg-[#F9F8F6]">
       
       {/* 1. EDITORIAL BENTO GRID HERO & TRUST CORNER */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-12">
+      <section className="w-full max-w-none mx-auto px-4 md:px-8 pt-8 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Bento Block 1: Hero Accent (col-span-12) */}
@@ -163,7 +163,7 @@ export const Home: React.FC = () => {
 
       {/* 2. IMMERSIVE CATEGORY PORTALS (Theme swap teasers) */}
       <section className="bg-white py-16 px-4 md:px-8 border-t-2 border-black">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full max-w-none mx-auto">
           <div className="text-center mb-12">
             <span className="text-black text-xs font-black uppercase tracking-[0.2em] font-sans bg-[#FFD43B] px-3 py-1.5 rounded-full">
               Themed Portals
@@ -216,7 +216,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 3. DYNAMIC CURATED RAIL */}
-      <section className="py-16 px-4 md:px-8 max-w-7xl mx-auto">
+      <section className="py-16 px-4 md:px-8 w-full max-w-none mx-auto">
         <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between mb-8 border-b-2 border-black/15 pb-4 gap-4">
           <div className="text-left">
             <div className="flex items-center gap-2 mb-1">
@@ -259,7 +259,7 @@ export const Home: React.FC = () => {
 
       {/* 4. BRAND CONFIDENCE STRIP */}
       <section className="py-12 bg-white border-y-2 border-black text-center px-4 md:px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full max-w-none mx-auto">
           <p className="text-[10px] text-[#112133]/40 font-black uppercase tracking-[0.25em] mb-6">
             Curated affiliate partnerships with international & premium Indian retail brands
           </p>

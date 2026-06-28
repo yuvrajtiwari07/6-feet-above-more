@@ -134,7 +134,7 @@ export const Category: React.FC = () => {
     <div className={`min-h-screen py-10 transition-colors duration-700 ${theme.bg}`}>
       
       {/* 1. IMMERSIVE CATEGORY SELECTOR HEAD - Sticky Row */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mb-10 overflow-x-auto scroller-hide">
+      <div className="w-full max-w-none mx-auto px-4 md:px-8 mb-10 overflow-x-auto scroller-hide">
         <div className="flex bg-[#112133]/5 border border-[#112133]/10 rounded-full p-2 w-max mx-auto backdrop-blur-2xl">
           {navigationBubbles.map((cat) => {
             const isSel = cat.name.toLowerCase() === activeCategory.toLowerCase();
@@ -157,7 +157,7 @@ export const Category: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+      <div className="w-full max-w-none mx-auto px-4 md:px-8">
         
         {/* 2. EDITORIAL MAGAZINE HEADER */}
         <div className="border-b border-[#112133]/15 pb-6 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">

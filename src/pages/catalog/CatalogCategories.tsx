@@ -28,7 +28,7 @@ const CatalogCategories: React.FC = () => {
         <div className="absolute inset-0 opacity-5 pointer-events-none select-none flex items-center justify-center">
           <span className="text-[10vw] font-black uppercase tracking-tighter">CURATED</span>
         </div>
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="w-full max-w-none mx-auto relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,7 +63,7 @@ const CatalogCategories: React.FC = () => {
       </section>
 
       {/* Categories grid */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+      <section className="w-full max-w-none mx-auto px-4 md:px-8 py-12">
         {activeCategories.length === 0 ? (
           <div className="text-center py-24">
             <LayoutGrid size={48} className="mx-auto text-black/20 mb-4" />

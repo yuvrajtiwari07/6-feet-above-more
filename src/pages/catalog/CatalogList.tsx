@@ -36,7 +36,7 @@ const CatalogList: React.FC = () => {
     <div className="pb-28 bg-[#F9F8F6]">
       {/* Header */}
       <section className="bg-white border-b-2 border-black px-4 md:px-8 pt-6 pb-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full max-w-none mx-auto">
           <button
             onClick={() => navigate('catalog-categories')}
             className="flex items-center gap-1.5 text-black/40 hover:text-black text-xs font-black uppercase tracking-wider mb-4 transition"
@@ -66,7 +66,7 @@ const CatalogList: React.FC = () => {
       </section>
 
       {/* Grid */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+      <section className="w-full max-w-none mx-auto px-4 md:px-8 py-10">
         {catalogsWithProducts.length === 0 ? (
           <div className="text-center py-24">
             <BookOpen size={48} className="mx-auto text-black/20 mb-4" />

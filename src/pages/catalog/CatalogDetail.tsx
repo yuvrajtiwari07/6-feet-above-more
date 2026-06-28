@@ -83,7 +83,7 @@ const CatalogDetail: React.FC = () => {
     <div className="pb-28 bg-[#F9F8F6]">
       {/* Sticky header */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b-2 border-black px-4 md:px-8 py-4">
-        <div className="max-w-7xl mx-auto flex items-start md:items-center justify-between gap-4">
+        <div className="w-full max-w-none mx-auto flex items-start md:items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <button
               onClick={() => navigate('catalog-list', { categoryName: catalog.categoryName })}
@@ -172,7 +172,7 @@ const CatalogDetail: React.FC = () => {
 
       {/* ── DESKTOP: Side-by-side panels ──────────────────────────── */}
       <div className="hidden md:block px-4 md:px-8 py-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full max-w-none mx-auto">
           {catalog.description && (
             <p className="text-black/60 text-sm mb-6 max-w-2xl font-sans leading-relaxed">{catalog.description}</p>
           )}

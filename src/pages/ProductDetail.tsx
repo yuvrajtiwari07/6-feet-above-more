@@ -231,7 +231,7 @@ export const ProductDetail: React.FC = () => {
   };
 
   return (
-    <div className="pb-24 pt-8 max-w-7xl mx-auto px-4 md:px-8 text-left text-[#112133]">
+    <div className="pb-24 pt-8 w-full max-w-none mx-auto px-4 md:px-8 text-left text-[#112133]">
       
       {/* 1. BREADCRUMBS RAIL */}
       <div className="flex items-center gap-1.5 text-xs text-[#112133]/50 mb-8 font-grotesk font-bold">
@@ -541,7 +541,7 @@ export const ProductDetail: React.FC = () => {
           <div>
             <h2 className="font-display text-2xl uppercase font-black text-[#112133] flex items-center gap-2">
               <MessageSquare size={20} className="text-[#7D2AE8]" />
-              <span>CITIZEN FIT REVIEWS ({reviewsCount})</span>
+              <span>REVIEWS ({reviewsCount})</span>
             </h2>
             <div className="flex items-center gap-1.5 mt-1.5 text-xs text-black/55 font-bold">
               <div className="flex text-amber-500">
