@@ -86,8 +86,26 @@ export const Category: React.FC = () => {
   // Track subCategory filter chips
   const [selectedSubCat, setSelectedSubCat] = useState<string>('All');
 
-  // Filter products by main category first (and exclude out of stock entries)
-  const baseProducts = products.filter(p => p.category.toLowerCase() === categoryKey && !p.outOfStock);
+  // Filter products by main category (supporting both primary category and categories array with string normalization)
+  const baseProducts = products.filter(p => {
+    if (p.outOfStock) return false;
+    
+    const normalize = (name: string) => {
+      if (!name) return '';
+      return name.toLowerCase()
+        .replace(/[^a-z0-9]/g, '') // remove spaces, hyphens, etc.
+        .replace(/s$/, '') // singularize (e.g., formals -> formal)
+        .replace(/wear$/, ''); // remove 'wear' (e.g., streetwear -> street)
+    };
+
+    const normKey = normalize(categoryKey);
+    if (!normKey) return false;
+
+    const matchPrimary = p.category && normalize(p.category).includes(normKey);
+    const matchSecondary = Array.isArray(p.categories) && p.categories.some(c => c && normalize(c).includes(normKey));
+    
+    return matchPrimary || matchSecondary;
+  });
 
   // Derive unique subcategories from the filtered range
   const subCategories: string[] = ['All', ...Array.from(new Set(baseProducts.map(p => p.subCategory).filter(Boolean) as string[]))];

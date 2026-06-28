@@ -161,89 +161,7 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. PERSISTENT CONTOURED HEIGHT SELECTOR STRIP */}
-      <section className="bg-white text-near-black py-10 px-4 md:px-8 border-y border-[#112133]/5 relative overflow-hidden" id="height-selector-strip">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="text-center lg:text-left">
-            <h2 className="text-[#112133] font-display text-2xl uppercase tracking-tight font-extrabold mb-1">
-              Refine Fit Verdicts
-            </h2>
-            <p className="text-[#112133]/60 text-xs font-sans">
-              Adjusting your stats immediately adapts all item suitability ratings across the platform.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-2">
-            {["6'0", "6'1", "6'2", "6'3", "6'4", "6'5", "6'6+"].map((h) => {
-              const isActive = height === h;
-              return (
-                <button
-                  key={h}
-                  onClick={() => setHeight(h)}
-                  className={`px-5 py-3 rounded-2xl font-grotesk font-black text-xs md:text-sm tracking-wide transition relative overflow-hidden hover:scale-105 active:scale-95 ${
-                    isActive 
-                      ? 'bg-[#FFD43B] text-black font-extrabold border-2 border-black shadow' 
-                      : 'bg-white text-black border-2 border-black/10 hover:border-black'
-                  }`}
-                  id={`home-height-btn-${h.replace('+', 'plus')}`}
-                >
-                  {h}
-                  {isActive && (
-                    <span className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-4 h-1 bg-black rounded-full" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        
-        {/* Subtle decorative background vector */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD43B]/5 rounded-full filter blur-3xl" />
-      </section>
-
-      {/* 3. DYNAMIC "VERIFIED FOR YOUR HEIGHT" RAIL */}
-      <section className="py-16 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between mb-8 border-b-2 border-black/15 pb-4 gap-4">
-          <div className="text-left">
-            <div className="flex items-center gap-2 mb-1">
-              <Shield size={14} className="text-[#FFD43B]" />
-              <span className="text-[10px] text-black/50 font-black uppercase tracking-widest font-sans">
-                Human-Tested Trust
-              </span>
-            </div>
-            <h2 className="font-display text-2xl md:text-4xl uppercase font-black text-black" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-              Verified Fits Configured For <span className="text-[#FFD43B] underline decoration-black decoration-2">{height}"</span> Frame
-            </h2>
-          </div>
-          
-          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
-            <GridDensitySelector />
-            <button 
-              onClick={() => navigate('search')}
-              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-black hover:text-[#FFD43B] font-grotesk transition-colors border-b-2 border-black pb-0.5 shadow-none shrink-0"
-              id="see-all-verified-btn"
-            >
-              <span>See Full Store</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-
-        {/* Horizontal scrollable / responsive product layout */}
-        <div className={
-          cardSize === 'small'
-            ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5 md:gap-4"
-            : cardSize === 'large'
-              ? "grid grid-cols-1 md:grid-cols-2 gap-8"
-              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-        }>
-          {heightRailProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* 4. IMMERSIVE CATEGORY PORTALS (Theme swap teasers) */}
+      {/* 2. IMMERSIVE CATEGORY PORTALS (Theme swap teasers) */}
       <section className="bg-white py-16 px-4 md:px-8 border-t-2 border-black">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -297,7 +215,49 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. BRAND CONFIDENCE STRIP */}
+      {/* 3. DYNAMIC CURATED RAIL */}
+      <section className="py-16 px-4 md:px-8 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between mb-8 border-b-2 border-black/15 pb-4 gap-4">
+          <div className="text-left">
+            <div className="flex items-center gap-2 mb-1">
+              <Shield size={14} className="text-[#FFD43B]" />
+              <span className="text-[10px] text-black/50 font-black uppercase tracking-widest font-sans">
+                Human-Tested Trust
+              </span>
+            </div>
+            <h2 className="font-display text-2xl md:text-4xl uppercase font-black text-black" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
+              Handpicked Outfits & Curated Fits
+            </h2>
+          </div>
+          
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            <GridDensitySelector />
+            <button 
+              onClick={() => navigate('search')}
+              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-black hover:text-[#FFD43B] font-grotesk transition-colors border-b-2 border-black pb-0.5 shadow-none shrink-0"
+              id="see-all-verified-btn"
+            >
+              <span>See Full Store</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Horizontal scrollable / responsive product layout */}
+        <div className={
+          cardSize === 'small'
+            ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5 md:gap-4"
+            : cardSize === 'large'
+              ? "grid grid-cols-1 md:grid-cols-2 gap-8"
+              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        }>
+          {heightRailProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      {/* 4. BRAND CONFIDENCE STRIP */}
       <section className="py-12 bg-white border-y-2 border-black text-center px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           <p className="text-[10px] text-[#112133]/40 font-black uppercase tracking-[0.25em] mb-6">

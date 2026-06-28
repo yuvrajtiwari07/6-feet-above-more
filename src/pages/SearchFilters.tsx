@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { ProductCard } from '../components/product/ProductCard';
 import { GridDensitySelector } from '../components/layout/GridDensitySelector';
-import { Search as SearchIcon, Sliders, X, Check, Grid, Sparkles, Filter } from 'lucide-react';
+import { Search as SearchIcon, Sliders, X, Check, Grid, Sparkles, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getProductRecommendation, isPositiveRecommendation } from '../utils/fitEngine';
 
@@ -19,6 +19,9 @@ export const SearchFilters: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<string>('All');
   const [selectedSeason, setSelectedSeason] = useState<string>('All');
   const [selectedSilhouette, setSelectedSilhouette] = useState<string>('All');
+
+  // Mobile filters expansion state
+  const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState<boolean>(false);
 
   // Derive unique values directly from live products database to stay robust and zero-maintenance
   const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.category)))], [products]);
@@ -111,125 +114,142 @@ export const SearchFilters: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Left Side: Interactive Filtering console */}
-        <div className="lg:col-span-3 bg-white border border-[#112133]/10 rounded-3xl p-6 space-y-6 shadow-sm">
-          <div className="flex items-center justify-between border-b border-[#112133]/10 pb-4">
+        <div className={`lg:col-span-3 bg-white border border-[#112133]/10 rounded-3xl shadow-sm transition-all duration-300 ${
+          isMobileFiltersExpanded ? 'p-6 space-y-6' : 'p-4 lg:p-6 space-y-0 lg:space-y-6'
+        }`}>
+          <div 
+            onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
+            className={`flex items-center justify-between cursor-pointer lg:cursor-default select-none ${
+              isMobileFiltersExpanded 
+                ? 'border-b border-[#112133]/10 pb-4' 
+                : 'border-b-0 pb-0 lg:border-b lg:border-[#112133]/10 lg:pb-4'
+            }`}
+          >
             <h3 className="font-display font-black text-lg uppercase tracking-wider flex items-center gap-1.5 text-[#112133]">
               <Filter size={16} className="text-[#7D2AE8]" />
               <span>Personalizers</span>
+              <span className="lg:hidden text-[#7D2AE8] ml-1">
+                {isMobileFiltersExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              </span>
             </h3>
             
             <button 
-              onClick={handleResetFilters}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleResetFilters();
+              }}
               className="text-[10px] font-bold text-[#112133]/50 hover:text-[#7D2AE8] uppercase tracking-wider transition"
             >
               Reset All
             </button>
           </div>
 
-          {/* Sizing Height calibrator inside filter pane */}
-          <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-[#7D2AE8] mb-3 font-grotesk">
-              Height Calibrator
-            </h4>
-            <div className="grid grid-cols-3 gap-1.5">
-              {["6'0", "6'1", "6'2", "6'3", "6'4", "6'5", "6'6+"].map((h) => {
-                const isActive = height === h;
-                return (
+          <div className={`${isMobileFiltersExpanded ? 'space-y-6 block' : 'hidden lg:block lg:space-y-6'}`}>
+            {/* Sizing Height calibrator inside filter pane */}
+            <div>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-[#7D2AE8] mb-3 font-grotesk">
+                Height Calibrator
+              </h4>
+              <div className="grid grid-cols-3 gap-1.5">
+                {["6'0", "6'1", "6'2", "6'3", "6'4", "6'5", "6'6+"].map((h) => {
+                  const isActive = height === h;
+                  return (
+                    <button
+                      key={h}
+                      onClick={() => setHeight(h)}
+                      className={`px-2 py-1.5 text-xs rounded-xl font-grotesk font-semibold transition ${
+                        isActive ? 'bg-[#7D2AE8] text-white font-extrabold shadow-sm' : 'bg-[#112133]/5 text-[#112133]/70 hover:bg-[#112133]/10'
+                      }`}
+                    >
+                      {h}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Category selection */}
+            <div>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2.5">
+                By Category
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {categories.map((cat) => (
                   <button
-                    key={h}
-                    onClick={() => setHeight(h)}
-                    className={`px-2 py-1.5 text-xs rounded-xl font-grotesk font-semibold transition ${
-                      isActive ? 'bg-[#7D2AE8] text-white font-extrabold shadow-sm' : 'bg-[#112133]/5 text-[#112133]/70 hover:bg-[#112133]/10'
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3 py-1.5 text-[11px] rounded-lg transition font-sans font-bold uppercase tracking-wide ${
+                      selectedCategory === cat ? 'bg-[#7D2AE8] text-white' : 'bg-[#112133]/5 text-[#112133]/65 hover:bg-[#112133]/10'
                     }`}
                   >
-                    {h}
+                    {cat === 'All' ? 'All Curations' : cat}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Category selection */}
-          <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2.5">
-              By Category
-            </h4>
-            <div className="flex flex-wrap gap-1.5">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 text-[11px] rounded-lg transition font-sans font-bold uppercase tracking-wide ${
-                    selectedCategory === cat ? 'bg-[#7D2AE8] text-white' : 'bg-[#112133]/5 text-[#112133]/65 hover:bg-[#112133]/10'
-                  }`}
-                >
-                  {cat === 'All' ? 'All Curations' : cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Occasions selection */}
-          <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2.5">
-              By Occasion
-            </h4>
-            <div className="flex flex-wrap gap-1.5">
-              {occasions.map((occ) => (
-                <button
-                  key={occ}
-                  onClick={() => setSelectedOccasion(occ)}
-                  className={`px-3 py-1.5 text-[11px] rounded-lg transition font-sans font-bold uppercase tracking-wide ${
-                    selectedOccasion === occ ? 'bg-[#00C4CC] text-white font-extrabold' : 'bg-[#112133]/5 text-[#112133]/65 hover:bg-[#112133]/10'
-                  }`}
-                >
-                  {occ}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Brand select */}
-          <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2.5">
-              Partnership Brands
-            </h4>
-            <div className="flex flex-wrap gap-1.5">
-              {brands.map((br) => (
-                <button
-                  key={br}
-                  onClick={() => setSelectedBrand(br)}
-                  className={`px-3 py-1 text-[10px] rounded-lg transition font-sans font-bold uppercase tracking-wide ${
-                    selectedBrand === br ? 'bg-[#7D2AE8] text-white' : 'bg-[#112133]/5 text-[#112133]/65 hover:bg-[#112133]/10'
-                  }`}
-                >
-                  {br}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Colour and silhouette filter blocks */}
-          <div className="grid grid-cols-2 gap-4">
+            {/* Occasions selection */}
             <div>
-              <h4 className="text-[9px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">Color Hue</h4>
-              <select 
-                value={selectedColor} 
-                onChange={(e) => setSelectedColor(e.target.value)}
-                className="bg-[#112133]/5 border border-[#112133]/10 rounded-lg p-2.5 text-xs w-full font-sans font-semibold text-[#112133]/80 focus:border-[#7D2AE8] outline-none"
-              >
-                {colors.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2.5">
+                By Occasion
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {occasions.map((occ) => (
+                  <button
+                    key={occ}
+                    onClick={() => setSelectedOccasion(occ)}
+                    className={`px-3 py-1.5 text-[11px] rounded-lg transition font-sans font-bold uppercase tracking-wide ${
+                      selectedOccasion === occ ? 'bg-[#00C4CC] text-white font-extrabold' : 'bg-[#112133]/5 text-[#112133]/65 hover:bg-[#112133]/10'
+                    }`}
+                  >
+                    {occ}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Brand select */}
             <div>
-              <h4 className="text-[9px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">Seasonality</h4>
-              <select 
-                value={selectedSeason} 
-                onChange={(e) => setSelectedSeason(e.target.value)}
-                className="bg-[#112133]/5 border border-[#112133]/10 rounded-lg p-2.5 text-xs w-full font-sans font-semibold text-[#112133]/80 focus:border-[#7D2AE8] outline-none"
-              >
-                {seasons.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2.5">
+                Partnership Brands
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {brands.map((br) => (
+                  <button
+                    key={br}
+                    onClick={() => setSelectedBrand(br)}
+                    className={`px-3 py-1 text-[10px] rounded-lg transition font-sans font-bold uppercase tracking-wide ${
+                      selectedBrand === br ? 'bg-[#7D2AE8] text-white' : 'bg-[#112133]/5 text-[#112133]/65 hover:bg-[#112133]/10'
+                    }`}
+                  >
+                    {br}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Colour and silhouette filter blocks */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-[9px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">Color Hue</h4>
+                <select 
+                  value={selectedColor} 
+                  onChange={(e) => setSelectedColor(e.target.value)}
+                  className="bg-[#112133]/5 border border-[#112133]/10 rounded-lg p-2.5 text-xs w-full font-sans font-semibold text-[#112133]/80 focus:border-[#7D2AE8] outline-none"
+                >
+                  {colors.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <h4 className="text-[9px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">Seasonality</h4>
+                <select 
+                  value={selectedSeason} 
+                  onChange={(e) => setSelectedSeason(e.target.value)}
+                  className="bg-[#112133]/5 border border-[#112133]/10 rounded-lg p-2.5 text-xs w-full font-sans font-semibold text-[#112133]/80 focus:border-[#7D2AE8] outline-none"
+                >
+                  {seasons.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -261,19 +281,15 @@ export const SearchFilters: React.FC = () => {
             )}
           </div>
 
-          {/* Quick info counter */}
-          <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center bg-[#112133]/5 border border-[#112133]/5 p-3 rounded-3xl px-4 gap-4">
-            <div className="text-xs font-sans text-black/60 text-left flex flex-col justify-center">
-              <span>
-                We found <strong className="text-[#D5A021] font-black">{filteredProducts.length}</strong> tall-friendly garments matching criteria.
-              </span>
-              <span className="text-[9px] uppercase font-black tracking-wider text-[#D5A021] mt-0.5">
-                Default-Sorted by user height: {height}
+          <div className="flex flex-row justify-between items-center bg-[#112133]/5 border border-[#112133]/5 p-2 pl-4 pr-2 rounded-2xl min-h-14">
+            <div className="text-xs font-sans text-black/60 flex items-center h-full">
+              <span className="font-black text-sm uppercase tracking-wider text-[#112133]">
+                {filteredProducts.length} Garments Found
               </span>
             </div>
             
             {/* Real-time Layout Density Selector */}
-            <div className="shrink-0 flex justify-end">
+            <div className="shrink-0 flex items-center justify-end">
               <GridDensitySelector />
             </div>
           </div>
