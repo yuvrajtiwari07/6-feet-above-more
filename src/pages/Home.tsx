@@ -5,6 +5,7 @@ import { ProductCard } from '../components/product/ProductCard';
 import { GridDensitySelector } from '../components/layout/GridDensitySelector';
 import { ArrowRight, Sparkles, Sliders, Shield, Shirt, Sparkle, Ruler, ShieldCheck, Star } from 'lucide-react';
 import { motion } from 'motion/react';
+import modelImg from '../../assets/model.png';
 
 import { getProductRecommendation } from '../utils/fitEngine';
 
@@ -75,12 +76,12 @@ export const Home: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 md:px-8 pt-8 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          {/* Bento Block 1: Hero Accent (col-span-8) */}
-          <div className="lg:col-span-8 bg-[#0F0F10] text-white rounded-[40px] p-8 md:p-12 relative overflow-hidden group border-2 border-black pop-shadow-lg flex flex-col justify-between min-h-[560px]">
+          {/* Bento Block 1: Hero Accent (col-span-12) */}
+          <div className="lg:col-span-12 bg-[#0F0F10] text-white rounded-[40px] p-8 md:p-12 relative overflow-hidden group border-2 border-black pop-shadow-lg flex flex-col justify-between min-h-[560px]">
             {/* Model Background Image (absolute right-0) */}
             <div className="absolute right-0 top-0 bottom-0 w-full md:w-[45%] h-full z-0 pointer-events-none">
               <img 
-                src="assets/model.png" 
+                src={modelImg} 
                 alt="Tall Model" 
                 className="w-full h-full object-cover object-top opacity-55 md:opacity-90"
               />
@@ -154,62 +155,6 @@ export const Home: React.FC = () => {
                   <span className="text-sm">📏</span>
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* Bento Block 2: Tall Assurance (col-span-4) */}
-          <div className="lg:col-span-4 bg-white rounded-[40px] p-8 text-black flex flex-col justify-between border-2 border-black pop-shadow min-h-[560px]">
-            <div>
-              <div className="flex items-center gap-3.5 mb-6">
-                <div className="bg-[#FFD43B] text-black p-3.5 rounded-2xl border-2 border-black flex items-center justify-center">
-                  <ShieldCheck size={20} className="text-black" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black uppercase tracking-tighter text-black leading-tight" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                    TAILORED FOR
-                  </h3>
-                  <h3 className="text-lg font-black uppercase tracking-tighter text-[#FFD43B] leading-tight" style={{ fontFamily: '"Space Grotesk", sans-serif' }}>
-                    TALLER YOU
-                  </h3>
-                </div>
-              </div>
-
-              <p className="font-semibold text-xs leading-relaxed text-black/60 mb-6 font-sans text-left">
-                Every piece is measured, tested & curated keeping taller proportions in mind.
-              </p>
-
-              {/* Rows */}
-              <div className="space-y-4 font-sans text-left">
-                {[
-                  { label: 'EXTRA INSEAM', pill: '34L / 36L / 38L+', desc: 'Lengths that actually fit.', icon: '👖' },
-                  { label: 'ADDITIONAL LENGTH', pill: '+8cm', desc: 'For sleeves, torso & rise.', icon: '📏' },
-                  { label: 'SMART FIT', pill: 'Ergonomic Cut', desc: 'More room where you need it.', icon: '✂️' },
-                  { label: 'QUALITY ASSURED', pill: 'Premium Materials', desc: 'Built to last. Made to feel good.', icon: '🏅' }
-                ].map((row, idx) => (
-                  <div key={idx} className="flex gap-3.5 items-start py-3 border-t border-black/5">
-                    <div className="w-9 h-9 rounded-xl bg-[#FAF9F6] border border-black/5 flex items-center justify-center text-sm shrink-0">
-                      {row.icon}
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-black/80">{row.label}</span>
-                        <span className="text-[9px] font-black text-black bg-[#FFD43B]/20 border border-[#FFD43B]/30 px-2 py-0.5 rounded-full">{row.pill}</span>
-                      </div>
-                      <p className="text-[10px] text-black/50 font-medium mt-1 leading-snug">{row.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Footer Row */}
-            <div className="flex items-center gap-3 border-t border-black/10 pt-4 mt-6 text-left">
-              <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center text-xs">
-                📏
-              </div>
-              <span className="text-[9px] font-black uppercase text-black/55 tracking-wider font-mono">
-                Crafted using bespoke measurement standards for 6ft & above.
-              </span>
             </div>
           </div>
 
