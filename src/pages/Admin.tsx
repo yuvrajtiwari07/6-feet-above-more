@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { CatalogCategoryAdmin } from '../components/admin/CatalogCategoryAdmin';
 import { CatalogAdmin } from '../components/admin/CatalogAdmin';
+import { BulkImportModal } from '../components/admin/BulkImportModal';
 
 //name
 
@@ -100,6 +101,48 @@ export const Admin: React.FC = () => {
   // Tab state
   const [activeAdminTab, setActiveAdminTab] = useState<'products' | 'categories' | 'catalogs'>('products');
   const [onImportSuccessCallback, setOnImportSuccessCallback] = useState<((p: Product) => void) | null>(null);
+
+  // Bulk import modal state
+  const [showBulkModal, setShowBulkModal] = useState(false);
+
+  const handleBulkImportComplete = useCallback((results: { url: string; success: boolean; data?: any; error?: string }[]) => {
+    const successfulImports = results.filter(r => r.success && r.data);
+    successfulImports.forEach(r => {
+      const d = r.data;
+      const slugId = (d.title || 'product')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 60);
+
+      const newProduct: Product = {
+        id: `${slugId}-${Date.now().toString().slice(-5)}`,
+        brand: d.brand || 'Brand',
+        title: d.title || 'Imported Product',
+        category: d.category || 'Casuals',
+        categories: [d.category || 'Casual Wear'],
+        subCategory: d.subCategory || '',
+        productSegment: 'Upperwear',
+        productType: 'T-Shirt',
+        images: d.images || [],
+        occasions: d.occasions || ['Daily Wear'],
+        seasons: d.seasons || ['All Season'],
+        colors: d.colors || [],
+        fitType: 'Regular Tall',
+        retailer: d.retailer || '',
+        affiliateUrl: r.url,
+        priceAtRetailer: d.price || 0,
+        verdicts: [],
+        verifiedTier: 'community',
+        description: d.description || '',
+        tags: d.tags || ['tall-friendly'],
+        material: d.material || '',
+        tallFriendly: d.tallFit?.tallFriendly ?? true,
+        isFeatured: false,
+      };
+      addProduct(newProduct);
+    });
+  }, [addProduct]);
 
   const handleOpenImportModal = (onSuccess: (p: Product) => void) => {
     setOnImportSuccessCallback(() => onSuccess);
@@ -987,13 +1030,22 @@ export const Admin: React.FC = () => {
         </div>
 
         {activeAdminTab === 'products' && (
-          <div>
+          <div className="flex items-center gap-3">
             <button
               onClick={handleOpenAddForm}
               className="flex items-center gap-2 px-5 py-3.5 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
+              id="admin-add-product"
             >
               <Plus size={16} />
               <span>Add Curated Product</span>
+            </button>
+            <button
+              onClick={() => setShowBulkModal(true)}
+              className="flex items-center gap-2 px-5 py-3.5 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
+              id="admin-bulk-upload"
+            >
+              <Upload size={15} />
+              <span>Bulk Upload Products</span>
             </button>
           </div>
         )}
@@ -2139,6 +2191,16 @@ export const Admin: React.FC = () => {
       {/* CATALOGS TAB CONTENT */}
       {!showForm && activeAdminTab === 'catalogs' && (
         <CatalogAdmin onOpenImportModal={handleOpenImportModal} />
+      )}
+      {/* BULK IMPORT MODAL */}
+      {showBulkModal && (
+        <BulkImportModal
+          onClose={() => setShowBulkModal(false)}
+          onImportComplete={(results) => {
+            handleBulkImportComplete(results);
+            setShowBulkModal(false);
+          }}
+        />
       )}
     </div>
   );
