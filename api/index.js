@@ -2612,6 +2612,144 @@ function parseMetadataFromUrl(urlStr) {
     return {};
   }
 }
+async function convertUrlToAffiliate(url) {
+  try {
+    const apiToken = process.env.EARNKARO_API_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTMyOWQzNThjNGFjODEyZjMyZmQxZmYiLCJlYXJua2FybyI6IjQ1OTgxNzQiLCJpYXQiOjE3ODE3MDIxOTB9.T3fYYdfW0-K5ttncr7879Ul7PVf0gLAnPoMhRYfADpA";
+    const payload = {
+      deal: url.trim(),
+      convert_option: "convert_only"
+    };
+    const response = await fetch("https://ekaro-api.affiliaters.in/api/converter/public", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (response.ok && data.success && data.data) {
+      return { affiliateUrl: data.data, affiliateGenerated: true };
+    }
+  } catch (err) {
+    console.error("[convertUrlToAffiliate] Error:", err?.message);
+  }
+  return { affiliateUrl: url, affiliateGenerated: false };
+}
+app.post(
+  "/api/admin/bulk-import",
+  requireAuth,
+  requireAdmin,
+  async (req, res) => {
+    const { urls } = req.body;
+    if (!Array.isArray(urls) || urls.length === 0) {
+      return res.status(400).json({ success: false, error: "An array of product URLs is required." });
+    }
+    const MAX_URLS = 30;
+    const urlsToProcess = urls.slice(0, MAX_URLS);
+    const results = [];
+    const apiKey = process.env.GEMINI_API_KEY;
+    for (const rawUrl of urlsToProcess) {
+      const url = rawUrl.trim();
+      if (!url) continue;
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(url);
+      } catch {
+        results.push({ url, success: false, error: "Invalid URL format." });
+        continue;
+      }
+      let scraped = {};
+      let retailerName = "Retailer";
+      try {
+        const importer = ImporterFactory.getImporter(parsedUrl.href);
+        scraped = await importer.importProduct(parsedUrl.href);
+        retailerName = importer.retailerName;
+      } catch (err) {
+        console.warn(`[BulkImport] Scraper failed for ${url}:`, err?.message);
+      }
+      const isBlocked = !scraped.title || scraped.title.toLowerCase().includes("something went wrong") || scraped.title.toLowerCase().includes("oops") || scraped.title.toLowerCase().includes("access denied") || scraped.title.toLowerCase().includes("cloudflare") || scraped.title.toLowerCase().includes("attention required") || scraped.title.toLowerCase().includes("robot check");
+      if (isBlocked) {
+        const urlMetadata = parseMetadataFromUrl(parsedUrl.href);
+        scraped = {
+          ...scraped,
+          title: urlMetadata.title || scraped.title || "Curated Tall Garment",
+          brand: urlMetadata.brand || scraped.brand || "Brand",
+          retailer: retailerName,
+          isScrapeBlocked: true
+        };
+      }
+      if (apiKey) {
+        try {
+          const ai = new GoogleGenAI({ apiKey });
+          const prompt = `You are a fashion AI specialized in sizing, styling, and classifying products for tall men (6ft+).
+Given this scraped raw product metadata:
+${JSON.stringify(scraped)}
+
+And the retailer product URL: ${parsedUrl.href}
+
+Generate a clean, professional, structured curation response matching this JSON schema exactly:
+{
+  "brand": "Inferred fashion brand",
+  "title": "Concise human-friendly display title",
+  "category": "One of: 'Ethnic Wear', 'Formals', 'Streetwear', 'Casuals'",
+  "subCategory": "Garment detailed style",
+  "material": "Material blend breakdown or null if unknown",
+  "price": 1499,
+  "retailer": "Retailer platform name",
+  "occasions": ["Daily Wear"],
+  "seasons": ["All Season"],
+  "colors": ["Navy"],
+  "tags": ["tall-friendly"],
+  "tallFit": {
+    "tallFriendly": true,
+    "recommendedHeightRanges": ["6'2-6'3"],
+    "bodyTypes": ["Athletic"],
+    "highlights": ["Extended Torso Fit"]
+  }
+}
+Strict: respond with a single raw JSON object only.`;
+          const response = await ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: prompt,
+            config: { responseMimeType: "application/json" }
+          });
+          const text = response.text || "";
+          const parsedResult = JSON.parse(text.trim());
+          const affiliateInfo = await convertUrlToAffiliate(url);
+          results.push({
+            url,
+            success: true,
+            affiliateUrl: affiliateInfo.affiliateUrl,
+            affiliateGenerated: affiliateInfo.affiliateGenerated,
+            data: {
+              source: "gemini",
+              ...parsedResult,
+              images: scraped.images && scraped.images.length > 0 ? scraped.images : parsedResult.images || []
+            }
+          });
+          continue;
+        } catch (err) {
+          console.warn(`[BulkImport] Gemini failed for ${url}, using fallback:`, err?.message);
+        }
+      }
+      try {
+        const fallbackResult = runFallbackParser(scraped, parsedUrl.href, retailerName);
+        const affiliateInfo = await convertUrlToAffiliate(url);
+        results.push({
+          url,
+          success: true,
+          affiliateUrl: affiliateInfo.affiliateUrl,
+          affiliateGenerated: affiliateInfo.affiliateGenerated,
+          data: fallbackResult
+        });
+      } catch (err) {
+        results.push({ url, success: false, error: err?.message ?? "Failed to parse product data." });
+      }
+    }
+    return res.json({ success: true, results });
+  }
+);
 var expressApp_default = app;
 
 // api/_index.ts

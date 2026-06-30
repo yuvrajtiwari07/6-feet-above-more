@@ -450,10 +450,38 @@ function parseMetadataFromUrl(urlStr: string): { brand?: string; title?: string;
   }
 }
 
+async function convertUrlToAffiliate(url: string): Promise<{ affiliateUrl: string; affiliateGenerated: boolean }> {
+  try {
+    const apiToken = process.env.EARNKARO_API_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTMyOWQzNThjNGFjODEyZjMyZmQxZmYiLCJlYXJua2FybyI6IjQ1OTgxNzQiLCJpYXQiOjE3ODE3MDIxOTB9.T3fYYdfW0-K5ttncr7879Ul7PVf0gLAnPoMhRYfADpA';
+    
+    const payload = {
+      deal: url.trim(),
+      convert_option: 'convert_only'
+    };
+
+    const response = await fetch('https://ekaro-api.affiliaters.in/api/converter/public', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json() as any;
+    if (response.ok && data.success && data.data) {
+      return { affiliateUrl: data.data, affiliateGenerated: true };
+    }
+  } catch (err: any) {
+    console.error('[convertUrlToAffiliate] Error:', err?.message);
+  }
+  return { affiliateUrl: url, affiliateGenerated: false };
+}
+
 // ─── Admin: Bulk Import Products from URL list ───────────────
 // POST /api/admin/bulk-import
 // Accepts { urls: string[] } — processes each through the Gemini + fallback pipeline.
-// Returns { results: { url, success, data?, error? }[] }
+// Returns { results: { url, success, data?, error?, affiliateUrl?, affiliateGenerated? }[] }
 app.post(
   '/api/admin/bulk-import',
   requireAuth,
@@ -467,7 +495,7 @@ app.post(
 
     const MAX_URLS = 30;
     const urlsToProcess = urls.slice(0, MAX_URLS);
-    const results: { url: string; success: boolean; data?: any; error?: string }[] = [];
+    const results: { url: string; success: boolean; data?: any; error?: string; affiliateUrl?: string; affiliateGenerated?: boolean }[] = [];
 
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -554,9 +582,12 @@ Strict: respond with a single raw JSON object only.`;
 
           const text = response.text || '';
           const parsedResult = JSON.parse(text.trim());
+          const affiliateInfo = await convertUrlToAffiliate(url);
           results.push({
             url,
             success: true,
+            affiliateUrl: affiliateInfo.affiliateUrl,
+            affiliateGenerated: affiliateInfo.affiliateGenerated,
             data: {
               source: 'gemini',
               ...parsedResult,
@@ -572,7 +603,14 @@ Strict: respond with a single raw JSON object only.`;
       // Step 4: Fallback structured parser
       try {
         const fallbackResult = runFallbackParser(scraped, parsedUrl.href, retailerName);
-        results.push({ url, success: true, data: fallbackResult });
+        const affiliateInfo = await convertUrlToAffiliate(url);
+        results.push({
+          url,
+          success: true,
+          affiliateUrl: affiliateInfo.affiliateUrl,
+          affiliateGenerated: affiliateInfo.affiliateGenerated,
+          data: fallbackResult
+        });
       } catch (err: any) {
         results.push({ url, success: false, error: err?.message ?? 'Failed to parse product data.' });
       }

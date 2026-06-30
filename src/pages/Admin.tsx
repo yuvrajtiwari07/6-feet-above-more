@@ -87,6 +87,52 @@ const FIT_RECOMMENDATION_OPTIONS = [
   'Not Recommended'
 ];
 
+function detectSegmentAndType(title: string, category: string, subCategory: string): { productSegment: string; productType: string } {
+  const combinedText = `${title || ''} ${category || ''} ${subCategory || ''}`.toLowerCase();
+  let detectedSegment = 'Upperwear';
+  let detectedType = 'T-Shirt';
+
+  if (combinedText.match(/jeans|trouser|pant|cargo|chino|shorts/)) {
+    detectedSegment = 'Bottomwear';
+    detectedType = combinedText.includes('jeans') ? 'Jeans'
+      : combinedText.includes('cargo') ? 'Cargo Pants'
+        : combinedText.includes('jogger') ? 'Joggers'
+          : combinedText.includes('chino') ? 'Chinos'
+            : combinedText.includes('shorts') ? 'Shorts'
+              : 'Trousers';
+  } else if (combinedText.match(/shoe|sneaker|boot|loafer/)) {
+    detectedSegment = 'Footwear';
+    detectedType = combinedText.includes('sneaker') ? 'Sneakers'
+      : combinedText.includes('boot') ? 'Boots'
+        : combinedText.includes('loafer') ? 'Loafers'
+          : 'Formal Shoes';
+  } else if (combinedText.match(/hoodie|sweatshirt|jacket|overshirt/)) {
+    detectedSegment = 'Outerwear';
+    detectedType = combinedText.includes('hoodie') ? 'Hoodie'
+      : combinedText.includes('sweatshirt') ? 'Sweatshirt'
+        : combinedText.includes('overshirt') ? 'Overshirt'
+          : 'Jacket';
+  } else if (combinedText.match(/kurta|nehru/)) {
+    detectedSegment = 'Ethnic Wear';
+    detectedType = combinedText.includes('set') ? 'Kurta Set'
+      : combinedText.includes('nehru') ? 'Nehru Jacket'
+        : 'Kurta';
+  } else if (combinedText.match(/belt|cap|wallet|socks/)) {
+    detectedSegment = 'Accessories';
+    detectedType = combinedText.includes('belt') ? 'Belt'
+      : combinedText.includes('cap') ? 'Cap'
+        : combinedText.includes('wallet') ? 'Wallet'
+          : 'Socks';
+  } else {
+    detectedType = combinedText.includes('shirt') ? 'Shirt'
+      : combinedText.includes('polo') ? 'Polo'
+        : combinedText.includes('henley') ? 'Henley'
+          : 'T-Shirt';
+  }
+
+  return { productSegment: detectedSegment, productType: detectedType };
+}
+
 export const Admin: React.FC = () => {
   const {
     products,
@@ -105,7 +151,7 @@ export const Admin: React.FC = () => {
   // Bulk import modal state
   const [showBulkModal, setShowBulkModal] = useState(false);
 
-  const handleBulkImportComplete = useCallback((results: { url: string; success: boolean; data?: any; error?: string }[]) => {
+  const handleBulkImportComplete = useCallback((results: { url: string; success: boolean; data?: any; error?: string; affiliateUrl?: string; affiliateGenerated?: boolean }[]) => {
     const successfulImports = results.filter(r => r.success && r.data);
     successfulImports.forEach(r => {
       const d = r.data;
@@ -115,22 +161,39 @@ export const Admin: React.FC = () => {
         .replace(/^-|-$/g, '')
         .slice(0, 60);
 
+      // Broad Category mapping
+      const selectedCats: string[] = [];
+      if (d.category === 'Ethnic Wear') {
+        selectedCats.push('Ethnic Wear');
+      } else if (d.category === 'Formals') {
+        selectedCats.push('Formal Wear', 'Business Casual');
+      } else if (d.category === 'Streetwear') {
+        selectedCats.push('Streetwear', 'Casual Wear');
+      } else if (d.category === 'Casuals') {
+        selectedCats.push('Casual Wear');
+      }
+      const categoriesList = selectedCats.length > 0 ? selectedCats : ['Casual Wear'];
+
+      const { productSegment, productType } = detectSegmentAndType(d.title || '', d.category || '', d.subCategory || '');
+      const sizesList = getSizeOptions(productSegment).slice(1, 5);
+
       const newProduct: Product = {
         id: `${slugId}-${Date.now().toString().slice(-5)}`,
         brand: d.brand || 'Brand',
         title: d.title || 'Imported Product',
         category: d.category || 'Casuals',
-        categories: [d.category || 'Casual Wear'],
+        categories: categoriesList,
         subCategory: d.subCategory || '',
-        productSegment: 'Upperwear',
-        productType: 'T-Shirt',
+        productSegment,
+        productType,
         images: d.images || [],
         occasions: d.occasions || ['Daily Wear'],
         seasons: d.seasons || ['All Season'],
         colors: d.colors || [],
+        sizes: sizesList,
         fitType: 'Regular Tall',
         retailer: d.retailer || '',
-        affiliateUrl: r.url,
+        affiliateUrl: r.affiliateUrl || r.url,
         priceAtRetailer: d.price || 0,
         verdicts: [],
         verifiedTier: 'community',
@@ -510,48 +573,7 @@ export const Admin: React.FC = () => {
 
     // subCategory & segments detection
     if (data.subCategory) {
-      const combinedText = `${data.title || ''} ${data.category || ''} ${data.subCategory || ''}`.toLowerCase();
-      let detectedSegment = 'Upperwear';
-      let detectedType = 'T-Shirt';
-
-      if (combinedText.match(/jeans|trouser|pant|cargo|chino|shorts/)) {
-        detectedSegment = 'Bottomwear';
-        detectedType = combinedText.includes('jeans') ? 'Jeans'
-          : combinedText.includes('cargo') ? 'Cargo Pants'
-            : combinedText.includes('jogger') ? 'Joggers'
-              : combinedText.includes('chino') ? 'Chinos'
-                : combinedText.includes('shorts') ? 'Shorts'
-                  : 'Trousers';
-      } else if (combinedText.match(/shoe|sneaker|boot|loafer/)) {
-        detectedSegment = 'Footwear';
-        detectedType = combinedText.includes('sneaker') ? 'Sneakers'
-          : combinedText.includes('boot') ? 'Boots'
-            : combinedText.includes('loafer') ? 'Loafers'
-              : 'Formal Shoes';
-      } else if (combinedText.match(/hoodie|sweatshirt|jacket|overshirt/)) {
-        detectedSegment = 'Outerwear';
-        detectedType = combinedText.includes('hoodie') ? 'Hoodie'
-          : combinedText.includes('sweatshirt') ? 'Sweatshirt'
-            : combinedText.includes('overshirt') ? 'Overshirt'
-              : 'Jacket';
-      } else if (combinedText.match(/kurta|nehru/)) {
-        detectedSegment = 'Ethnic Wear';
-        detectedType = combinedText.includes('set') ? 'Kurta Set'
-          : combinedText.includes('nehru') ? 'Nehru Jacket'
-            : 'Kurta';
-      } else if (combinedText.match(/belt|cap|wallet|socks/)) {
-        detectedSegment = 'Accessories';
-        detectedType = combinedText.includes('belt') ? 'Belt'
-          : combinedText.includes('cap') ? 'Cap'
-            : combinedText.includes('wallet') ? 'Wallet'
-              : 'Socks';
-      } else {
-        detectedType = combinedText.includes('shirt') ? 'Shirt'
-          : combinedText.includes('polo') ? 'Polo'
-            : combinedText.includes('henley') ? 'Henley'
-              : 'T-Shirt';
-      }
-
+      const { productSegment: detectedSegment, productType: detectedType } = detectSegmentAndType(data.title || '', data.category || '', data.subCategory || '');
       setProductSegment(detectedSegment);
       setProductType(detectedType);
       setSizes(getSizeOptions(detectedSegment).slice(1, 5));

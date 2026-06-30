@@ -198,12 +198,15 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
     }
 
     setRunStatus('done');
-    onImportComplete(allResults);
   };
 
   const successCount = results.filter(r => r.success).length;
   const errorCount = results.filter(r => !r.success).length;
   const urlsReady = activeTab === 'text' ? extractUrlsFromText(textInput) : parsedUrls;
+
+  const successfulResults = results.filter(r => r.success);
+  const missingAffiliates = successfulResults.filter(r => !r.affiliateGenerated);
+  const hasMissingAffiliates = missingAffiliates.length > 0;
 
   // ── Render ───────────────────────────────────────────────────
   return (
@@ -453,11 +456,27 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
                   </p>
                   <p className="text-xs text-black/50 mt-0.5 font-sans">
                     {successCount > 0
-                      ? 'Imported products have been queued for review. Check your product list.'
+                      ? 'Select how you want to proceed with the successfully curated products below.'
                       : 'All URLs failed to import. Check the URLs and try again.'}
                   </p>
                 </div>
               </div>
+
+              {/* Affiliate Warning Banner */}
+              {hasMissingAffiliates && (
+                <div className="flex items-start gap-3 rounded-2xl px-5 py-4 bg-amber-50 border border-amber-200">
+                  <AlertTriangle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-black text-xs text-[#112133] font-grotesk uppercase tracking-wide">
+                      Affiliate Links Not Available
+                    </p>
+                    <p className="text-xs text-black/60 mt-1 font-sans leading-relaxed">
+                      EarnKaro was unable to generate affiliate links for <strong>{missingAffiliates.length}</strong> product{missingAffiliates.length !== 1 ? 's' : ''} (unsupported retailers or API error).
+                      You can choose to proceed with all products anyway, or discard them and only import the rest.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Per-URL results */}
               <div className="rounded-2xl border border-black/10 overflow-hidden">
@@ -482,11 +501,24 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
                           <p className="text-[11px] text-red-400 mt-0.5">{r.error}</p>
                         )}
                       </div>
-                      {r.success && r.data?.brand && (
-                        <span className="text-[10px] font-grotesk font-bold text-[#7D2AE8] bg-[#7D2AE8]/8 px-2 py-0.5 rounded-lg flex-shrink-0">
-                          {r.data.brand}
-                        </span>
-                      )}
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        {r.success && r.data?.brand && (
+                          <span className="text-[10px] font-grotesk font-bold text-[#7D2AE8] bg-[#7D2AE8]/8 px-2 py-0.5 rounded-lg">
+                            {r.data.brand}
+                          </span>
+                        )}
+                        {r.success && (
+                          r.affiliateGenerated ? (
+                            <span className="text-[9px] font-sans font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                              Affiliate Link OK
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-sans font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
+                              No Affiliate Link
+                            </span>
+                          )
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -544,15 +576,52 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
               >
                 Import More
               </button>
-              <button
-                onClick={onClose}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider text-white transition-all font-grotesk shadow-sm"
-                style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
-                id="bulk-import-done"
-              >
-                <CheckCircle2 size={14} />
-                Done
-              </button>
+              
+              {successCount > 0 ? (
+                hasMissingAffiliates ? (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const supported = results.filter(r => !r.success || r.affiliateGenerated);
+                        onImportComplete(supported);
+                      }}
+                      className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
+                      id="bulk-proceed-supported"
+                    >
+                      Import Supported Only ({successCount - missingAffiliates.length})
+                    </button>
+                    <button
+                      onClick={() => {
+                        onImportComplete(results);
+                      }}
+                      className="px-5 py-2.5 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
+                      id="bulk-proceed-all"
+                    >
+                      Import All ({successCount})
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      onImportComplete(results);
+                    }}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider text-white transition-all shadow-sm"
+                    style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
+                    id="bulk-import-done-success"
+                  >
+                    <CheckCircle2 size={14} />
+                    Done (Add {successCount} Product{successCount !== 1 ? 's' : ''})
+                  </button>
+                )
+              ) : (
+                <button
+                  onClick={onClose}
+                  className="px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider text-white bg-red-600 hover:bg-red-700 transition-all font-grotesk shadow-sm"
+                  id="bulk-import-done-fail"
+                >
+                  Close
+                </button>
+              )}
             </>
           )}
         </div>
