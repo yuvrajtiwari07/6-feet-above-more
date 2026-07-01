@@ -102,30 +102,41 @@ function rowToProduct(row) {
 }
 var productRepository = {
   async findAll(filters) {
-    let text = "SELECT * FROM products WHERE 1=1";
+    let where = "WHERE 1=1";
     const params = [];
     let idx = 1;
     if (filters?.category) {
-      text += ` AND (LOWER(category) = LOWER($${idx}) OR $${idx} = ANY(SELECT LOWER(unnest(categories))))`;
+      where += ` AND (LOWER(category) = LOWER($${idx}) OR $${idx} = ANY(SELECT LOWER(unnest(categories))))`;
       params.push(filters.category);
       idx++;
     }
     if (filters?.brand) {
-      text += ` AND LOWER(brand) = LOWER($${idx++})`;
+      where += ` AND LOWER(brand) = LOWER($${idx++})`;
       params.push(filters.brand);
     }
     if (filters?.search) {
-      text += ` AND (LOWER(title) LIKE $${idx} OR LOWER(brand) LIKE $${idx} OR LOWER(category) LIKE $${idx} OR LOWER(product_segment) LIKE $${idx} OR LOWER(product_type) LIKE $${idx})`;
+      where += ` AND (LOWER(title) LIKE $${idx} OR LOWER(brand) LIKE $${idx} OR LOWER(category) LIKE $${idx} OR LOWER(product_segment) LIKE $${idx} OR LOWER(product_type) LIKE $${idx})`;
       params.push(`%${filters.search.toLowerCase()}%`);
       idx++;
     }
     if (filters?.isFeatured !== void 0) {
-      text += ` AND is_featured = $${idx++}`;
+      where += ` AND is_featured = $${idx++}`;
       params.push(filters.isFeatured);
     }
-    text += " ORDER BY created_at DESC";
-    const rows = await query(text, params);
-    return rows.map(rowToProduct);
+    const countRow = await queryOne(`SELECT COUNT(*)::int AS total FROM products ${where}`, params);
+    const total = countRow?.total ?? 0;
+    let text = `SELECT * FROM products ${where} ORDER BY created_at DESC`;
+    const paginationParams = [...params];
+    if (filters?.limit !== void 0) {
+      text += ` LIMIT $${idx++}`;
+      paginationParams.push(filters.limit);
+    }
+    if (filters?.offset !== void 0) {
+      text += ` OFFSET $${idx++}`;
+      paginationParams.push(filters.offset);
+    }
+    const rows = await query(text, paginationParams);
+    return { products: rows.map(rowToProduct), total };
   },
   async findById(id) {
     const row = await queryOne(
@@ -348,7 +359,7 @@ var productService = {
         }
       }
     }
-    const allProducts = await productRepository.findAll();
+    const { products: allProducts } = await productRepository.findAll();
     const cleanTitle = sanitized.title.trim().toLowerCase();
     const cleanBrand = sanitized.brand.trim().toLowerCase();
     const existingTitleBrand = allProducts.find(
@@ -537,14 +548,16 @@ function requireAdmin(req, res, next) {
 var router = Router();
 router.get("/", async (req, res) => {
   try {
-    const { category, brand, search, featured } = req.query;
-    const products = await productService.getAll({
+    const { category, brand, search, featured, limit, offset } = req.query;
+    const { products, total } = await productService.getAll({
       category,
       brand,
       search,
-      isFeatured: featured === "true" ? true : void 0
+      isFeatured: featured === "true" ? true : void 0,
+      limit: limit !== void 0 ? parseInt(limit, 10) : void 0,
+      offset: offset !== void 0 ? parseInt(offset, 10) : void 0
     });
-    res.json({ success: true, count: products.length, products });
+    res.json({ success: true, count: products.length, total, products });
   } catch (err) {
     console.error("[ProductController] GET /products error:", err);
     res.status(500).json({ error: "Failed to fetch products" });

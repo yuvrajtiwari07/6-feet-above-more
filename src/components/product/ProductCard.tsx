@@ -5,11 +5,35 @@ import { Heart, ExternalLink, Ruler, CheckCircle2, HelpCircle, ChevronLeft, Chev
 import { motion } from 'motion/react';
 import { getProductRecommendation, isPositiveRecommendation } from '../../utils/fitEngine';
 
+export const ProductCardSkeleton: React.FC<{ size?: 'small' | 'medium' | 'large' }> = ({ size = 'medium' }) => {
+  const isSm = size === 'small';
+  return (
+    <div className={`relative flex flex-col bg-white border border-black/10 overflow-hidden animate-pulse ${
+      isSm ? 'rounded-2xl' : 'rounded-[28px]'
+    }`}>
+      <div className={`aspect-[3/4] bg-neutral-200 ${isSm ? '' : ''}`} />
+      <div className={`${isSm ? 'p-3' : 'p-5'} flex flex-col gap-3`}>
+        <div className="flex justify-between gap-2">
+          <div className="h-3 w-20 bg-neutral-200 rounded" />
+          <div className="h-3 w-16 bg-neutral-200 rounded" />
+        </div>
+        <div className="h-4 w-full bg-neutral-200 rounded" />
+        <div className="h-4 w-3/4 bg-neutral-200 rounded" />
+        <div className="h-10 w-full bg-neutral-100 rounded-xl" />
+        <div className="grid grid-cols-5 gap-1.5 mt-1">
+          <div className={`col-span-2 ${isSm ? 'h-7' : 'h-10'} bg-neutral-200 rounded-xl`} />
+          <div className={`col-span-3 ${isSm ? 'h-7' : 'h-10'} bg-neutral-200 rounded-2xl`} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface ProductCardProps {
   product: Product;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) => {
   const { height, bodyType, toggleSaveProduct, savedProductIds, navigate, trackAffiliateClick, cardSize } = useApp();
 
   const isSaved = savedProductIds.includes(product.id);
@@ -296,5 +320,5 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </div>
     </motion.div>
   );
-};
+});
 export default ProductCard;

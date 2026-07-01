@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { COMPLETE_FITS } from '../data/mockData';
-import { ProductCard } from '../components/product/ProductCard';
+import { ProductCard, ProductCardSkeleton } from '../components/product/ProductCard';
 import { GridDensitySelector } from '../components/layout/GridDensitySelector';
 import { ArrowRight, Sparkles, Sliders, Shield, Shirt, Sparkle, Ruler, ShieldCheck, Star } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -10,7 +10,7 @@ import modelImg from '../../assets/model.png';
 import { getProductRecommendation } from '../utils/fitEngine';
 
 export const Home: React.FC = () => {
-  const { height, bodyType, setHeight, navigate, cardSize, products } = useApp();
+  const { height, bodyType, setHeight, navigate, cardSize, products, loadingProducts } = useApp();
 
   // Filter 4 products that have solid verified status for the active height band
   const verifiedProducts = products.filter(p => {
@@ -251,9 +251,12 @@ export const Home: React.FC = () => {
               ? "grid grid-cols-1 md:grid-cols-2 gap-8"
               : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         }>
-          {heightRailProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loadingProducts
+            ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} size={cardSize} />)
+            : heightRailProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))
+          }
         </div>
       </section>
 

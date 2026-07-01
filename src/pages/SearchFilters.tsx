@@ -1,13 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
-import { ProductCard } from '../components/product/ProductCard';
+import { ProductCard, ProductCardSkeleton } from '../components/product/ProductCard';
 import { GridDensitySelector } from '../components/layout/GridDensitySelector';
 import { Search as SearchIcon, Sliders, X, Check, Grid, Sparkles, Filter, ChevronDown, ChevronUp } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { getProductRecommendation, isPositiveRecommendation } from '../utils/fitEngine';
 
+const PAGE_SIZE = 24;
+
 export const SearchFilters: React.FC = () => {
-  const { height, bodyType, setHeight, cardSize, products } = useApp();
+  const { height, bodyType, setHeight, cardSize, products, loadingProducts } = useApp();
 
   // Search input state
   const [query, setQuery] = useState<string>('');
@@ -106,6 +108,32 @@ export const SearchFilters: React.FC = () => {
       return scoreB - scoreA;
     });
   }, [query, selectedCategory, selectedOccasion, selectedBrand, selectedColor, selectedSeason, selectedSilhouette, height, bodyType]);
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Reset to first page whenever any filter changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [query, selectedCategory, selectedOccasion, selectedBrand, selectedColor, selectedSeason, selectedSilhouette, height, bodyType]);
+
+  // Auto-load more when sentinel scrolls into view
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && visibleCount < filteredProducts.length) {
+          setVisibleCount((prev: number) => Math.min(prev + PAGE_SIZE, filteredProducts.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [visibleCount, filteredProducts.length]);
+
+  const visibleProducts = filteredProducts.slice(0, visibleCount);
 
   return (
     <div className="pb-24 pt-10 text-[#112133] w-full max-w-none mx-auto px-4 md:px-8 text-left">
@@ -283,11 +311,19 @@ export const SearchFilters: React.FC = () => {
 
           <div className="flex flex-row justify-between items-center bg-[#112133]/5 border border-[#112133]/5 p-2 pl-4 pr-2 rounded-2xl min-h-14">
             <div className="text-xs font-sans text-black/60 flex items-center h-full">
-              <span className="font-black text-sm uppercase tracking-wider text-[#112133]">
-                {filteredProducts.length} Garments Found
-              </span>
+              {loadingProducts ? (
+                <span className="font-black text-sm uppercase tracking-wider text-[#112133]/40 animate-pulse">
+                  Loading...
+                </span>
+              ) : (
+                <span className="font-black text-sm uppercase tracking-wider text-[#112133]">
+                  {visibleCount < filteredProducts.length
+                    ? `Showing ${visibleCount} of ${filteredProducts.length} Garments`
+                    : `${filteredProducts.length} Garments Found`}
+                </span>
+              )}
             </div>
-            
+
             {/* Real-time Layout Density Selector */}
             <div className="shrink-0 flex items-center justify-end">
               <GridDensitySelector />
@@ -295,7 +331,7 @@ export const SearchFilters: React.FC = () => {
           </div>
 
           {/* Results grid */}
-          {filteredProducts.length > 0 ? (
+          {loadingProducts ? (
             <div className={
               cardSize === 'small'
                 ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5 md:gap-4"
@@ -303,19 +339,42 @@ export const SearchFilters: React.FC = () => {
                   ? "grid grid-cols-1 md:grid-cols-2 gap-8"
                   : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             }>
-              <AnimatePresence>
-                {filteredProducts.map((p) => (
+              {Array.from({ length: 12 }).map((_, i) => (
+                <ProductCardSkeleton key={i} size={cardSize} />
+              ))}
+            </div>
+          ) : visibleProducts.length > 0 ? (
+            <>
+              <div className={
+                cardSize === 'small'
+                  ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5 md:gap-4"
+                  : cardSize === 'large'
+                    ? "grid grid-cols-1 md:grid-cols-2 gap-8"
+                    : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              }>
+                {visibleProducts.map((p: (typeof visibleProducts)[0]) => (
                   <motion.div
                     key={p.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
                   >
                     <ProductCard product={p} />
                   </motion.div>
                 ))}
-              </AnimatePresence>
-            </div>
+              </div>
+              {/* Sentinel for infinite scroll */}
+              <div ref={sentinelRef} className="h-10" />
+              {visibleCount < filteredProducts.length && (
+                <div className="flex justify-center py-4">
+                  <button
+                    onClick={() => setVisibleCount((prev: number) => Math.min(prev + PAGE_SIZE, filteredProducts.length))}
+                    className="bg-[#112133] text-white font-grotesk font-black text-xs px-8 py-3 rounded-2xl uppercase tracking-wider hover:bg-[#1e3a5f] transition"
+                  >
+                    Load More ({filteredProducts.length - visibleCount} remaining)
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="bg-[#112133]/5 border border-[#112133]/10 rounded-[30px] p-16 text-center max-w-sm mx-auto my-12">
               <X size={32} className="text-accent-coral mx-auto mb-3" />
@@ -323,7 +382,7 @@ export const SearchFilters: React.FC = () => {
               <p className="text-[#112133]/60 text-xs leading-relaxed mb-6">
                 No garments matched the specific cross-section of colors, brands or sizes. Let's restart our selectors to extend choices.
               </p>
-              <button 
+              <button
                 onClick={handleResetFilters}
                 className="bg-[#7D2AE8] text-white hover:bg-[#6820C4] font-grotesk font-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider shadow-sm"
               >

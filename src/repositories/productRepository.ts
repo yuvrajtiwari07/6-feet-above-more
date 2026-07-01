@@ -63,33 +63,48 @@ export const productRepository = {
     brand?: string;
     search?: string;
     isFeatured?: boolean;
-  }): Promise<Product[]> {
-    let text = 'SELECT * FROM products WHERE 1=1';
+    limit?: number;
+    offset?: number;
+  }): Promise<{ products: Product[]; total: number }> {
+    let where = 'WHERE 1=1';
     const params: any[] = [];
     let idx = 1;
 
     if (filters?.category) {
-      text += ` AND (LOWER(category) = LOWER($${idx}) OR $${idx} = ANY(SELECT LOWER(unnest(categories))))`;
+      where += ` AND (LOWER(category) = LOWER($${idx}) OR $${idx} = ANY(SELECT LOWER(unnest(categories))))`;
       params.push(filters.category);
       idx++;
     }
     if (filters?.brand) {
-      text += ` AND LOWER(brand) = LOWER($${idx++})`;
+      where += ` AND LOWER(brand) = LOWER($${idx++})`;
       params.push(filters.brand);
     }
     if (filters?.search) {
-      text += ` AND (LOWER(title) LIKE $${idx} OR LOWER(brand) LIKE $${idx} OR LOWER(category) LIKE $${idx} OR LOWER(product_segment) LIKE $${idx} OR LOWER(product_type) LIKE $${idx})`;
+      where += ` AND (LOWER(title) LIKE $${idx} OR LOWER(brand) LIKE $${idx} OR LOWER(category) LIKE $${idx} OR LOWER(product_segment) LIKE $${idx} OR LOWER(product_type) LIKE $${idx})`;
       params.push(`%${filters.search.toLowerCase()}%`);
       idx++;
     }
     if (filters?.isFeatured !== undefined) {
-      text += ` AND is_featured = $${idx++}`;
+      where += ` AND is_featured = $${idx++}`;
       params.push(filters.isFeatured);
     }
 
-    text += ' ORDER BY created_at DESC';
-    const rows = await query(text, params);
-    return rows.map(rowToProduct);
+    const countRow = await queryOne(`SELECT COUNT(*)::int AS total FROM products ${where}`, params);
+    const total: number = countRow?.total ?? 0;
+
+    let text = `SELECT * FROM products ${where} ORDER BY created_at DESC`;
+    const paginationParams = [...params];
+    if (filters?.limit !== undefined) {
+      text += ` LIMIT $${idx++}`;
+      paginationParams.push(filters.limit);
+    }
+    if (filters?.offset !== undefined) {
+      text += ` OFFSET $${idx++}`;
+      paginationParams.push(filters.offset);
+    }
+
+    const rows = await query(text, paginationParams);
+    return { products: rows.map(rowToProduct), total };
   },
 
   async findById(id: string): Promise<Product | null> {

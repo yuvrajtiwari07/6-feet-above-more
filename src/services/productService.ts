@@ -60,7 +60,9 @@ export const productService = {
     brand?: string;
     search?: string;
     isFeatured?: boolean;
-  }): Promise<Product[]> {
+    limit?: number;
+    offset?: number;
+  }): Promise<{ products: Product[]; total: number }> {
     return productRepository.findAll(filters);
   },
 
@@ -100,7 +102,7 @@ export const productService = {
     }
 
     // Check for duplicate Title + Brand (case insensitive)
-    const allProducts = await productRepository.findAll();
+    const { products: allProducts } = await productRepository.findAll();
     const cleanTitle = sanitized.title.trim().toLowerCase();
     const cleanBrand = sanitized.brand.trim().toLowerCase();
     const existingTitleBrand = allProducts.find(p =>

@@ -16,14 +16,16 @@ const router = Router();
 // ───────────────────────────────────────────────
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { category, brand, search, featured } = req.query;
-    const products = await productService.getAll({
+    const { category, brand, search, featured, limit, offset } = req.query;
+    const { products, total } = await productService.getAll({
       category:   category as string | undefined,
       brand:      brand as string | undefined,
       search:     search as string | undefined,
       isFeatured: featured === 'true' ? true : undefined,
+      limit:      limit  !== undefined ? parseInt(limit  as string, 10) : undefined,
+      offset:     offset !== undefined ? parseInt(offset as string, 10) : undefined,
     });
-    res.json({ success: true, count: products.length, products });
+    res.json({ success: true, count: products.length, total, products });
   } catch (err: any) {
     console.error('[ProductController] GET /products error:', err);
     res.status(500).json({ error: 'Failed to fetch products' });

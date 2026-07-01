@@ -159,18 +159,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const isDev = (import.meta as any).env?.DEV;
   const isAdmin = isDev || (user ? ADMIN_EMAILS.includes(user.email ?? '') : false);
 
-  // ── Fetch products from REST API ────────────────────────────────────────
-  const fetchProducts = useCallback(async () => {
-    setLoadingProducts(true);
+  // ── Product cache helpers (localStorage, 5-min TTL) ─────────────────────
+  const PRODUCT_CACHE_KEY = 'lamba_products_cache';
+  const PRODUCT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  function readProductCache(): Product[] | null {
     try {
-      const data = await apiFetch('/api/products');
-      setProducts(data.products ?? []);
-    } catch (err) {
-      console.error('[AppContext] Failed to fetch products:', err);
-      setProducts([]);
-    } finally {
-      setLoadingProducts(false);
+      const raw = localStorage.getItem(PRODUCT_CACHE_KEY);
+      if (!raw) return null;
+      const { products: cached, ts } = JSON.parse(raw);
+      if (Date.now() - ts > PRODUCT_CACHE_TTL) return null;
+      return cached as Product[];
+    } catch {
+      return null;
     }
+  }
+
+  function writeProductCache(ps: Product[]) {
+    try {
+      localStorage.setItem(PRODUCT_CACHE_KEY, JSON.stringify({ products: ps, ts: Date.now() }));
+    } catch {
+      // Storage quota exceeded — skip silently
+    }
+  }
+
+  function clearProductCache() {
+    localStorage.removeItem(PRODUCT_CACHE_KEY);
+  }
+
+  // ── Fetch all products from API, cache the result ────────────────────────
+  async function fetchAllFromAPI(): Promise<Product[]> {
+    const first = await apiFetch('/api/products?limit=50&offset=0');
+    const firstProducts: Product[] = first.products ?? [];
+    const total: number = first.total ?? 0;
+
+    if (total <= 50) return firstProducts;
+
+    const rest = await apiFetch(`/api/products?limit=${total - 50}&offset=50`);
+    const restProducts: Product[] = rest.products ?? [];
+    return [...firstProducts, ...restProducts];
+  }
+
+  // ── Stale-while-revalidate fetch ─────────────────────────────────────────
+  const fetchProducts = useCallback(async () => {
+    const cached = readProductCache();
+
+    if (cached && cached.length > 0) {
+      // Serve from cache immediately — no loading state shown to the user
+      setProducts(cached);
+      setLoadingProducts(false);
+
+      // Silently revalidate in background
+      fetchAllFromAPI()
+        .then(fresh => {
+          if (fresh.length !== cached.length) {
+            setProducts(fresh);
+            writeProductCache(fresh);
+          }
+        })
+        .catch(err => console.warn('[AppContext] Background revalidation failed:', err));
+    } else {
+      // Cold start — show skeletons, do two-shot load
+      setLoadingProducts(true);
+      try {
+        const first = await apiFetch('/api/products?limit=50&offset=0');
+        const firstProducts: Product[] = first.products ?? [];
+        setProducts(firstProducts);
+        setLoadingProducts(false);
+
+        const total: number = first.total ?? 0;
+        if (total > 50) {
+          const rest = await apiFetch(`/api/products?limit=${total - 50}&offset=50`);
+          const restProducts: Product[] = rest.products ?? [];
+          const allProducts = [...firstProducts, ...restProducts];
+          setProducts(allProducts);
+          writeProductCache(allProducts);
+        } else {
+          writeProductCache(firstProducts);
+        }
+      } catch (err) {
+        console.error('[AppContext] Failed to fetch products:', err);
+        setProducts([]);
+        setLoadingProducts(false);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -275,7 +348,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       body: JSON.stringify(p),
     });
     if (data.product) {
-      setProducts(prev => [data.product, ...prev.filter(x => x.id !== data.product.id)]);
+      setProducts(prev => {
+        const next = [data.product, ...prev.filter(x => x.id !== data.product.id)];
+        clearProductCache();
+        return next;
+      });
     }
   };
 
@@ -285,13 +362,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       body: JSON.stringify(p),
     });
     if (data.product) {
-      setProducts(prev => prev.map(x => x.id === id ? data.product : x));
+      setProducts(prev => {
+        const next = prev.map(x => x.id === id ? data.product : x);
+        clearProductCache();
+        return next;
+      });
     }
   };
 
   const deleteProduct = async (id: string) => {
     await apiFetch(`/api/products/${id}`, { method: 'DELETE' });
-    setProducts(prev => prev.filter(x => x.id !== id));
+    setProducts(prev => {
+      const next = prev.filter(x => x.id !== id);
+      clearProductCache();
+      return next;
+    });
   };
 
   // ── Catalog state ────────────────────────────────────────────────────────

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { ProductCard } from '../components/product/ProductCard';
+import { ProductCard, ProductCardSkeleton } from '../components/product/ProductCard';
 import { GridDensitySelector } from '../components/layout/GridDensitySelector';
 import { Sparkles, Info, SlidersHorizontal, Shirt, ArrowRight, Compass } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 // Definitions for Category Immersion styling variables
 interface CategoryTheme {
@@ -74,8 +74,10 @@ const DEFAULT_THEME: CategoryTheme = {
   tagline: 'Proportional tall designs for everyday life in the subcontinent.'
 };
 
+const PAGE_SIZE = 24;
+
 export const Category: React.FC = () => {
-  const { route, height, heightBand, navigate, cardSize, products } = useApp();
+  const { route, height, heightBand, navigate, cardSize, products, loadingProducts } = useApp();
 
   const activeCategory = route.params?.categoryName || 'Streetwear';
   const categoryKey = activeCategory.toLowerCase();
@@ -116,9 +118,35 @@ export const Category: React.FC = () => {
   }, [activeCategory]);
 
   // Final filtered list based on subcategory chip selection
-  const displayedProducts = selectedSubCat === 'All' 
-    ? baseProducts 
+  const displayedProducts = selectedSubCat === 'All'
+    ? baseProducts
     : baseProducts.filter(p => p.subCategory === selectedSubCat);
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Reset page when category or sub-filter changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeCategory, selectedSubCat]);
+
+  // Auto-load more on scroll
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && visibleCount < displayedProducts.length) {
+          setVisibleCount((prev: number) => Math.min(prev + PAGE_SIZE, displayedProducts.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [visibleCount, displayedProducts.length]);
+
+  const visibleProducts = displayedProducts.slice(0, visibleCount);
 
   // Render Category switching pills to stay highly immersive
   const navigationBubbles = [
@@ -214,14 +242,18 @@ export const Category: React.FC = () => {
 
           <div className="flex items-center justify-between lg:justify-end gap-3.5 w-full lg:w-auto mt-2 lg:mt-0 px-2 lg:px-0">
             <span className="text-[11px] font-sans opacity-60 text-[#112133]">
-              Showing {displayedProducts.length} items
+              {loadingProducts
+                ? 'Loading...'
+                : visibleCount < displayedProducts.length
+                  ? `Showing ${visibleCount} of ${displayedProducts.length} items`
+                  : `${displayedProducts.length} items`}
             </span>
             <GridDensitySelector />
           </div>
         </div>
 
         {/* 4. PRODUCT MATRIX */}
-        {displayedProducts.length > 0 ? (
+        {loadingProducts ? (
           <div className={
             cardSize === 'small'
               ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5 md:gap-4"
@@ -229,21 +261,42 @@ export const Category: React.FC = () => {
                 ? "grid grid-cols-1 md:grid-cols-2 gap-8"
                 : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           }>
-            <AnimatePresence mode="popLayout">
-              {displayedProducts.map((product) => (
+            {Array.from({ length: 12 }).map((_, i) => (
+              <ProductCardSkeleton key={i} size={cardSize} />
+            ))}
+          </div>
+        ) : visibleProducts.length > 0 ? (
+          <>
+            <div className={
+              cardSize === 'small'
+                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5 md:gap-4"
+                : cardSize === 'large'
+                  ? "grid grid-cols-1 md:grid-cols-2 gap-8"
+                  : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            }>
+              {visibleProducts.map((product) => (
                 <motion.div
                   key={product.id}
-                  layout
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <ProductCard product={product} />
                 </motion.div>
               ))}
-            </AnimatePresence>
-          </div>
+            </div>
+            <div ref={sentinelRef} className="h-10" />
+            {visibleCount < displayedProducts.length && (
+              <div className="flex justify-center py-4">
+                <button
+                  onClick={() => setVisibleCount((prev: number) => Math.min(prev + PAGE_SIZE, displayedProducts.length))}
+                  className="bg-[#112133] text-white font-grotesk font-black text-xs px-8 py-3 rounded-2xl uppercase tracking-wider hover:bg-[#1e3a5f] transition"
+                >
+                  Load More ({displayedProducts.length - visibleCount} remaining)
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="bg-[#112133]/5 border border-[#112133]/10 rounded-[30px] p-16 text-center max-w-lg mx-auto my-12">
             <Shirt size={48} className="text-[#112133]/20 mx-auto mb-4 animate-bounce" />
