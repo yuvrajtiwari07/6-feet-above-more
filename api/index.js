@@ -50,6 +50,17 @@ async function queryOne(text, params) {
 }
 
 // src/repositories/productRepository.ts
+function cleanUrl(urlStr) {
+  if (!urlStr) return "";
+  try {
+    const url = new URL(urlStr);
+    let host = url.hostname.toLowerCase().replace(/^www\./, "");
+    let path2 = url.pathname.toLowerCase().replace(/\/$/, "");
+    return `${host}${path2}`;
+  } catch {
+    return urlStr.toLowerCase().trim().replace(/^(https?:\/\/)?(www\.)?/, "").replace(/\/$/, "");
+  }
+}
 function rowToProduct(row) {
   return {
     id: row.id,
@@ -238,6 +249,21 @@ var productRepository = {
   async delete(id) {
     const rows = await query("DELETE FROM products WHERE id = $1 RETURNING id", [id]);
     return rows.length > 0;
+  },
+  async findByUrl(urlStr) {
+    const cleanTargetUrl = cleanUrl(urlStr);
+    const rows = await query("SELECT id, affiliate_url, merchant_links FROM products");
+    const found = rows.find((row) => {
+      if (cleanUrl(row.affiliate_url) === cleanTargetUrl) return true;
+      if (row.merchant_links && Array.isArray(row.merchant_links)) {
+        return row.merchant_links.some((m) => cleanUrl(m.url) === cleanTargetUrl);
+      }
+      return false;
+    });
+    if (found) {
+      return this.findById(found.id);
+    }
+    return null;
   }
 };
 
@@ -305,6 +331,31 @@ var productService = {
     const existing = await productRepository.findById(sanitized.id);
     if (existing) {
       return { error: `Product with ID "${sanitized.id}" already exists. Use update instead.` };
+    }
+    if (sanitized.affiliateUrl) {
+      const existingUrl = await productRepository.findByUrl(sanitized.affiliateUrl);
+      if (existingUrl) {
+        return { error: `Product with this URL already exists (ID: "${existingUrl.id}").` };
+      }
+    }
+    if (sanitized.merchantLinks && Array.isArray(sanitized.merchantLinks)) {
+      for (const m of sanitized.merchantLinks) {
+        if (m.url) {
+          const existingUrl = await productRepository.findByUrl(m.url);
+          if (existingUrl) {
+            return { error: `Product with URL "${m.url}" already exists (ID: "${existingUrl.id}").` };
+          }
+        }
+      }
+    }
+    const allProducts = await productRepository.findAll();
+    const cleanTitle = sanitized.title.trim().toLowerCase();
+    const cleanBrand = sanitized.brand.trim().toLowerCase();
+    const existingTitleBrand = allProducts.find(
+      (p) => p.title.trim().toLowerCase() === cleanTitle && p.brand.trim().toLowerCase() === cleanBrand
+    );
+    if (existingTitleBrand) {
+      return { error: `Product with title "${sanitized.title}" and brand "${sanitized.brand}" already exists (ID: "${existingTitleBrand.id}").` };
     }
     const product = await productRepository.create(sanitized);
     return { product };
@@ -2315,6 +2366,14 @@ app.post(
       return res.status(400).json({ success: false, error: "Invalid URL format." });
     }
     try {
+      const existingProduct = await productRepository.findByUrl(url);
+      if (existingProduct) {
+        return res.status(400).json({ success: false, error: "Product already exists in the system." });
+      }
+    } catch (err) {
+      console.warn(`[ImportProduct] Duplicate check failed for ${url}:`, err?.message);
+    }
+    try {
       const importer = ImporterFactory.getImporter(parsedUrl.href);
       const product = await importer.importProduct(parsedUrl.href);
       return res.json({
@@ -2396,6 +2455,14 @@ app.post(
       parsedUrl = new URL(url);
     } catch {
       return res.status(400).json({ success: false, error: "Invalid URL format." });
+    }
+    try {
+      const existingProduct = await productRepository.findByUrl(url);
+      if (existingProduct) {
+        return res.status(400).json({ success: false, error: "Product already exists in the system." });
+      }
+    } catch (err) {
+      console.warn(`[ImportUrl] Duplicate check failed for ${url}:`, err?.message);
     }
     let scraped = {};
     let retailerName = "Retailer";
@@ -2658,6 +2725,15 @@ app.post(
       } catch {
         results.push({ url, success: false, error: "Invalid URL format." });
         continue;
+      }
+      try {
+        const existingProduct = await productRepository.findByUrl(url);
+        if (existingProduct) {
+          results.push({ url, success: false, error: "Product already exists in the system." });
+          continue;
+        }
+      } catch (err) {
+        console.warn(`[BulkImport] Duplicate check failed for ${url}:`, err?.message);
       }
       let scraped = {};
       let retailerName = "Retailer";

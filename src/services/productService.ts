@@ -81,6 +81,36 @@ export const productService = {
       return { error: `Product with ID "${sanitized.id}" already exists. Use update instead.` };
     }
 
+    // Check for duplicate URL
+    if (sanitized.affiliateUrl) {
+      const existingUrl = await productRepository.findByUrl(sanitized.affiliateUrl);
+      if (existingUrl) {
+        return { error: `Product with this URL already exists (ID: "${existingUrl.id}").` };
+      }
+    }
+    if (sanitized.merchantLinks && Array.isArray(sanitized.merchantLinks)) {
+      for (const m of sanitized.merchantLinks) {
+        if (m.url) {
+          const existingUrl = await productRepository.findByUrl(m.url);
+          if (existingUrl) {
+            return { error: `Product with URL "${m.url}" already exists (ID: "${existingUrl.id}").` };
+          }
+        }
+      }
+    }
+
+    // Check for duplicate Title + Brand (case insensitive)
+    const allProducts = await productRepository.findAll();
+    const cleanTitle = sanitized.title.trim().toLowerCase();
+    const cleanBrand = sanitized.brand.trim().toLowerCase();
+    const existingTitleBrand = allProducts.find(p =>
+      p.title.trim().toLowerCase() === cleanTitle &&
+      p.brand.trim().toLowerCase() === cleanBrand
+    );
+    if (existingTitleBrand) {
+      return { error: `Product with title "${sanitized.title}" and brand "${sanitized.brand}" already exists (ID: "${existingTitleBrand.id}").` };
+    }
+
     const product = await productRepository.create(sanitized);
     return { product };
   },

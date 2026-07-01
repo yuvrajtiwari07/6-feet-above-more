@@ -4,6 +4,18 @@
 import { query, queryOne } from '../lib/db';
 import { Product } from '../types';
 
+export function cleanUrl(urlStr: string): string {
+  if (!urlStr) return '';
+  try {
+    const url = new URL(urlStr);
+    let host = url.hostname.toLowerCase().replace(/^www\./, '');
+    let path = url.pathname.toLowerCase().replace(/\/$/, '');
+    return `${host}${path}`;
+  } catch {
+    return urlStr.toLowerCase().trim().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
+  }
+}
+
 // DB row → Product type mapper
 function rowToProduct(row: any): Product {
   return {
@@ -171,5 +183,21 @@ export const productRepository = {
   async delete(id: string): Promise<boolean> {
     const rows = await query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
     return rows.length > 0;
+  },
+
+  async findByUrl(urlStr: string): Promise<Product | null> {
+    const cleanTargetUrl = cleanUrl(urlStr);
+    const rows = await query('SELECT id, affiliate_url, merchant_links FROM products');
+    const found = rows.find(row => {
+      if (cleanUrl(row.affiliate_url) === cleanTargetUrl) return true;
+      if (row.merchant_links && Array.isArray(row.merchant_links)) {
+        return row.merchant_links.some((m: any) => cleanUrl(m.url) === cleanTargetUrl);
+      }
+      return false;
+    });
+    if (found) {
+      return this.findById(found.id);
+    }
+    return null;
   },
 };

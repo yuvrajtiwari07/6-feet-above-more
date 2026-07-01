@@ -195,6 +195,11 @@ export const Admin: React.FC = () => {
         retailer: d.retailer || '',
         affiliateUrl: r.affiliateUrl || r.url,
         priceAtRetailer: d.price || 0,
+        merchantLinks: [{
+          store: d.retailer || 'Retailer',
+          url: r.url,
+          price: d.price || 0
+        }],
         verdicts: [],
         verifiedTier: 'community',
         description: d.description || '',
@@ -407,7 +412,14 @@ export const Admin: React.FC = () => {
     if (data.price) setPriceAtRetailer(data.price);
     if (data.discountPercent !== undefined) setDiscountPercent(String(data.discountPercent));
     if (data.retailer) setRetailer(data.retailer);
-    if (data.retailerUrl) setAffiliateUrl(data.retailerUrl);
+    if (data.retailerUrl) {
+      setAffiliateUrl(data.retailerUrl);
+      setMerchantLinks([{
+        store: data.retailer || 'Retailer',
+        url: data.retailerUrl,
+        price: data.price || 0
+      }]);
+    }
     if (data.images && data.images.length > 0) setImages(data.images);
     if (data.colors && data.colors.length > 0) setColors(data.colors);
     if (data.material) setMaterial(data.material);
@@ -511,6 +523,11 @@ export const Admin: React.FC = () => {
     setPriceAtRetailer(data.price || 0);
     setImages(data.images || []);
     setAffiliateUrl(importUrl.trim());
+    setMerchantLinks([{
+      store: data.retailer || 'Retailer',
+      url: importUrl.trim(),
+      price: data.price || 0
+    }]);
 
     // Broad Category mapping
     const selectedCats: string[] = [];

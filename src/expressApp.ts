@@ -8,6 +8,7 @@ import { requireAuth } from './middleware/authMiddleware';
 import { requireAdmin } from './middleware/adminMiddleware';
 import { ImporterFactory } from './lib/importers/ImporterFactory';
 import { GoogleGenAI } from '@google/genai';
+import { productRepository } from './repositories/productRepository';
 
 
 let __dirname = '';
@@ -92,6 +93,16 @@ app.post(
       parsedUrl = new URL(url);
     } catch {
       return res.status(400).json({ success: false, error: 'Invalid URL format.' });
+    }
+
+    // Check for duplicate URL
+    try {
+      const existingProduct = await productRepository.findByUrl(url);
+      if (existingProduct) {
+        return res.status(400).json({ success: false, error: 'Product already exists in the system.' });
+      }
+    } catch (err: any) {
+      console.warn(`[ImportProduct] Duplicate check failed for ${url}:`, err?.message);
     }
 
     try {
@@ -195,6 +206,16 @@ app.post(
       parsedUrl = new URL(url);
     } catch {
       return res.status(400).json({ success: false, error: 'Invalid URL format.' });
+    }
+
+    // Check for duplicate URL
+    try {
+      const existingProduct = await productRepository.findByUrl(url);
+      if (existingProduct) {
+        return res.status(400).json({ success: false, error: 'Product already exists in the system.' });
+      }
+    } catch (err: any) {
+      console.warn(`[ImportUrl] Duplicate check failed for ${url}:`, err?.message);
     }
 
     let scraped: any = {};
@@ -510,7 +531,16 @@ app.post(
         results.push({ url, success: false, error: 'Invalid URL format.' });
         continue;
       }
-
+      // Check for duplicate URL
+      try {
+        const existingProduct = await productRepository.findByUrl(url);
+        if (existingProduct) {
+          results.push({ url, success: false, error: 'Product already exists in the system.' });
+          continue;
+        }
+      } catch (err: any) {
+        console.warn(`[BulkImport] Duplicate check failed for ${url}:`, err?.message);
+      }
       // Step 1: Scrape with ImporterFactory
       let scraped: any = {};
       let retailerName = 'Retailer';
