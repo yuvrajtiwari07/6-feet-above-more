@@ -128,7 +128,9 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
 
   // ── Run import ───────────────────────────────────────────────
   const handleRunImport = async () => {
-    const urls = activeTab === 'text' ? extractUrlsFromText(textInput) : parsedUrls;
+    const rawUrls = activeTab === 'text' ? extractUrlsFromText(textInput) : parsedUrls;
+    const limit = activeTab === 'text' ? 50 : 300;
+    const urls = rawUrls.slice(0, limit);
     if (urls.length === 0) return;
 
     abortRef.current = false;
@@ -202,7 +204,9 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
 
   const successCount = results.filter(r => r.success).length;
   const errorCount = results.filter(r => !r.success).length;
-  const urlsReady = activeTab === 'text' ? extractUrlsFromText(textInput) : parsedUrls;
+  const maxLimit = activeTab === 'text' ? 50 : 300;
+  const rawUrlsReady = activeTab === 'text' ? extractUrlsFromText(textInput) : parsedUrls;
+  const urlsReady = rawUrlsReady.slice(0, maxLimit);
 
   const successfulResults = results.filter(r => r.success);
   const missingAffiliates = successfulResults.filter(r => !r.affiliateGenerated);
@@ -229,7 +233,7 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
               <h2 className="text-white font-black text-base uppercase tracking-wider font-grotesk">
                 Bulk Upload Products
               </h2>
-              <p className="text-white/65 text-xs font-sans mt-0.5">Import up to 30 product URLs at once</p>
+              <p className="text-white/65 text-xs font-sans mt-0.5">Import up to 50 URLs (text) or 300 URLs (file) at once</p>
             </div>
           </div>
           <button
@@ -363,18 +367,18 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
                 <span className="text-xs font-black uppercase tracking-wider text-[#7D2AE8] font-grotesk">
                   {parsedUrls.length} URL{parsedUrls.length !== 1 ? 's' : ''} detected
                 </span>
-                <span className="text-[10px] text-black/40 font-sans">Max 30 will be processed</span>
+                <span className="text-[10px] text-black/40 font-sans">Max {maxLimit} will be processed</span>
               </div>
               <div className="max-h-36 overflow-y-auto divide-y divide-black/5">
-                {parsedUrls.slice(0, 30).map((url, i) => (
+                {parsedUrls.slice(0, maxLimit).map((url, i) => (
                   <div key={i} className="flex items-center gap-2 px-4 py-2 hover:bg-black/2 transition-all">
                     <Link2 size={11} className="text-black/30 flex-shrink-0" />
                     <span className="text-[11px] font-mono text-black/55 truncate">{url}</span>
                   </div>
                 ))}
-                {parsedUrls.length > 30 && (
+                {parsedUrls.length > maxLimit && (
                   <div className="px-4 py-2 text-[11px] text-black/40 font-sans italic">
-                    +{parsedUrls.length - 30} more URLs (will be skipped — 30 max per batch)
+                    +{parsedUrls.length - maxLimit} more URLs (will be skipped — {maxLimit} max per batch)
                   </div>
                 )}
               </div>
@@ -549,7 +553,7 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
                 id="bulk-import-run"
               >
                 <Upload size={14} />
-                Import {urlsReady.length > 0 ? `${Math.min(urlsReady.length, 30)} Product${urlsReady.length !== 1 ? 's' : ''}` : 'Products'}
+                Import {urlsReady.length > 0 ? `${Math.min(urlsReady.length, maxLimit)} Product${urlsReady.length !== 1 ? 's' : ''}` : 'Products'}
               </button>
             </>
           )}

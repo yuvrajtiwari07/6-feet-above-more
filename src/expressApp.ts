@@ -514,7 +514,7 @@ app.post(
       return res.status(400).json({ success: false, error: 'An array of product URLs is required.' });
     }
 
-    const MAX_URLS = 30;
+    const MAX_URLS = 300;
     const urlsToProcess = urls.slice(0, MAX_URLS);
     const results: { url: string; success: boolean; data?: any; error?: string; affiliateUrl?: string; affiliateGenerated?: boolean }[] = [];
 
