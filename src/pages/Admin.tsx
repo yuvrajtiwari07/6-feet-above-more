@@ -139,6 +139,7 @@ export const Admin: React.FC = () => {
     addProduct,
     updateProduct,
     deleteProduct,
+    refetchProducts,
     isAdmin,
     user,
     loginWithGoogle
@@ -151,66 +152,12 @@ export const Admin: React.FC = () => {
   // Bulk import modal state
   const [showBulkModal, setShowBulkModal] = useState(false);
 
-  const handleBulkImportComplete = useCallback((results: { url: string; success: boolean; data?: any; error?: string; affiliateUrl?: string; affiliateGenerated?: boolean }[]) => {
-    const successfulImports = results.filter(r => r.success && r.data);
-    successfulImports.forEach(r => {
-      const d = r.data;
-      const slugId = (d.title || 'product')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        .slice(0, 60);
-
-      // Broad Category mapping
-      const selectedCats: string[] = [];
-      if (d.category === 'Ethnic Wear') {
-        selectedCats.push('Ethnic Wear');
-      } else if (d.category === 'Formals') {
-        selectedCats.push('Formal Wear', 'Business Casual');
-      } else if (d.category === 'Streetwear') {
-        selectedCats.push('Streetwear', 'Casual Wear');
-      } else if (d.category === 'Casuals') {
-        selectedCats.push('Casual Wear');
-      }
-      const categoriesList = selectedCats.length > 0 ? selectedCats : ['Casual Wear'];
-
-      const { productSegment, productType } = detectSegmentAndType(d.title || '', d.category || '', d.subCategory || '');
-      const sizesList = getSizeOptions(productSegment).slice(1, 5);
-
-      const newProduct: Product = {
-        id: `${slugId}-${Date.now().toString().slice(-5)}`,
-        brand: d.brand || 'Brand',
-        title: d.title || 'Imported Product',
-        category: d.category || 'Casuals',
-        categories: categoriesList,
-        subCategory: d.subCategory || '',
-        productSegment,
-        productType,
-        images: d.images || [],
-        occasions: d.occasions || ['Daily Wear'],
-        seasons: d.seasons || ['All Season'],
-        colors: d.colors || [],
-        sizes: sizesList,
-        fitType: 'Regular Tall',
-        retailer: d.retailer || '',
-        affiliateUrl: r.affiliateUrl || r.url,
-        priceAtRetailer: d.price || 0,
-        merchantLinks: [{
-          store: d.retailer || 'Retailer',
-          url: r.url,
-          price: d.price || 0
-        }],
-        verdicts: [],
-        verifiedTier: 'community',
-        description: d.description || '',
-        tags: d.tags || ['tall-friendly'],
-        material: d.material || '',
-        tallFriendly: d.tallFit?.tallFriendly ?? true,
-        isFeatured: false,
-      };
-      addProduct(newProduct);
-    });
-  }, [addProduct]);
+  const handleBulkSaveDone = useCallback(async (savedCount: number) => {
+    if (savedCount > 0) {
+      await refetchProducts();
+    }
+    setShowBulkModal(false);
+  }, [refetchProducts]);
 
   const handleOpenImportModal = (onSuccess: (p: Product) => void) => {
     setOnImportSuccessCallback(() => onSuccess);
@@ -1131,7 +1078,12 @@ export const Admin: React.FC = () => {
 
       {/* FORM MODAL */}
       {showForm && (
-        <div className="bg-white border-2 border-[#7D2AE8]/30 rounded-3xl p-6 md:p-8 mb-10 shadow-md">
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-8 px-4"
+          style={{ background: 'rgba(17,33,51,0.65)', backdropFilter: 'blur(6px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}
+        >
+          <div className="relative w-full max-w-4xl bg-white border-2 border-[#7D2AE8]/20 rounded-3xl p-6 md:p-8 shadow-2xl">
           <div className="flex items-center justify-between border-b border-black/10 pb-4 mb-6">
             <h2 className="font-display text-2xl uppercase tracking-wider text-[#7D2AE8] font-bold">
               {editMode ? 'Edit Curated Product' : 'Create New Curated Product'}
@@ -2086,11 +2038,12 @@ export const Admin: React.FC = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       )}
 
       {/* PRODUCTS TAB CONTENT */}
-      {!showForm && activeAdminTab === 'products' && (
+      {activeAdminTab === 'products' && (
         <>
           {/* FILTER & SEARCH PANEL */}
           <div className="bg-[#FAF9F6] border border-black/10 rounded-2xl p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -2223,22 +2176,19 @@ export const Admin: React.FC = () => {
       )}
 
       {/* CATALOG CATEGORIES TAB CONTENT */}
-      {!showForm && activeAdminTab === 'categories' && (
+      {activeAdminTab === 'categories' && (
         <CatalogCategoryAdmin />
       )}
 
       {/* CATALOGS TAB CONTENT */}
-      {!showForm && activeAdminTab === 'catalogs' && (
+      {activeAdminTab === 'catalogs' && (
         <CatalogAdmin onOpenImportModal={handleOpenImportModal} />
       )}
       {/* BULK IMPORT MODAL */}
       {showBulkModal && (
         <BulkImportModal
           onClose={() => setShowBulkModal(false)}
-          onImportComplete={(results) => {
-            handleBulkImportComplete(results);
-            setShowBulkModal(false);
-          }}
+          onBulkSaveDone={handleBulkSaveDone}
         />
       )}
     </div>

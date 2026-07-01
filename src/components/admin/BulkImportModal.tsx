@@ -9,13 +9,15 @@ import { getAccessToken } from '../../supabase';
 interface BulkImportResult {
   url: string;
   success: boolean;
-  data?: any;
+  savedId?: string;
+  duplicate?: boolean;
+  noAffiliate?: boolean;
   error?: string;
 }
 
 interface Props {
   onClose: () => void;
-  onImportComplete: (results: BulkImportResult[]) => void;
+  onBulkSaveDone: (savedCount: number) => void;
 }
 
 type InputTab = 'text' | 'file';
@@ -75,7 +77,7 @@ async function parseFile(file: File): Promise<string[]> {
 }
 
 // ── Main Component ─────────────────────────────────────────────
-export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) => {
+export const BulkImportModal: React.FC<Props> = ({ onClose, onBulkSaveDone }) => {
   const [activeTab, setActiveTab] = useState<InputTab>('text');
   const [textInput, setTextInput] = useState('');
   const [parsedUrls, setParsedUrls] = useState<string[]>([]);
@@ -202,15 +204,15 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
     setRunStatus('done');
   };
 
-  const successCount = results.filter(r => r.success).length;
-  const errorCount = results.filter(r => !r.success).length;
+  const savedCount   = results.filter(r => r.success && r.savedId).length;
+  const dupCount     = results.filter(r => !r.success && r.duplicate).length;
+  const failCount    = results.filter(r => !r.success && !r.duplicate).length;
+  const noAffCount   = results.filter(r => r.success && r.noAffiliate).length;
+  const successCount = savedCount;  // kept for footer button logic
+  const errorCount   = failCount + dupCount;
   const maxLimit = activeTab === 'text' ? 50 : 300;
   const rawUrlsReady = activeTab === 'text' ? extractUrlsFromText(textInput) : parsedUrls;
   const urlsReady = rawUrlsReady.slice(0, maxLimit);
-
-  const successfulResults = results.filter(r => r.success);
-  const missingAffiliates = successfulResults.filter(r => !r.affiliateGenerated);
-  const hasMissingAffiliates = missingAffiliates.length > 0;
 
   // ── Render ───────────────────────────────────────────────────
   return (
@@ -438,89 +440,72 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
           {/* ── DONE: Results Summary ── */}
           {runStatus === 'done' && (
             <div className="space-y-4">
-              {/* Summary banner */}
-              <div className={`flex items-center gap-4 rounded-2xl px-5 py-4 ${
-                errorCount === 0
-                  ? 'bg-emerald-50 border border-emerald-100'
-                  : successCount === 0
-                    ? 'bg-red-50 border border-red-100'
-                    : 'bg-amber-50 border border-amber-100'
-              }`}>
-                {errorCount === 0
-                  ? <CheckCircle2 size={22} className="text-emerald-500 flex-shrink-0" />
-                  : successCount === 0
-                    ? <XCircle size={22} className="text-red-400 flex-shrink-0" />
-                    : <AlertTriangle size={22} className="text-amber-500 flex-shrink-0" />
-                }
-                <div>
-                  <p className="font-black text-sm text-[#112133] font-grotesk">
-                    {successCount > 0 && `${successCount} product${successCount !== 1 ? 's' : ''} imported successfully`}
-                    {successCount > 0 && errorCount > 0 && ' · '}
-                    {errorCount > 0 && `${errorCount} failed`}
-                  </p>
-                  <p className="text-xs text-black/50 mt-0.5 font-sans">
-                    {successCount > 0
-                      ? 'Select how you want to proceed with the successfully curated products below.'
-                      : 'All URLs failed to import. Check the URLs and try again.'}
-                  </p>
-                </div>
+              {/* Categorized badge summary */}
+              <div className="grid grid-cols-2 gap-3">
+                {savedCount > 0 && (
+                  <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-emerald-50 border border-emerald-200">
+                    <CheckCircle2 size={18} className="text-emerald-500 flex-shrink-0" />
+                    <div>
+                      <p className="font-black text-base text-emerald-700 font-grotesk leading-none">{savedCount}</p>
+                      <p className="text-[10px] text-emerald-600/70 font-sans mt-0.5">Saved to DB</p>
+                    </div>
+                  </div>
+                )}
+                {dupCount > 0 && (
+                  <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-amber-50 border border-amber-200">
+                    <AlertTriangle size={18} className="text-amber-500 flex-shrink-0" />
+                    <div>
+                      <p className="font-black text-base text-amber-700 font-grotesk leading-none">{dupCount}</p>
+                      <p className="text-[10px] text-amber-600/70 font-sans mt-0.5">Already Existed</p>
+                    </div>
+                  </div>
+                )}
+                {failCount > 0 && (
+                  <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-red-50 border border-red-200">
+                    <XCircle size={18} className="text-red-400 flex-shrink-0" />
+                    <div>
+                      <p className="font-black text-base text-red-600 font-grotesk leading-none">{failCount}</p>
+                      <p className="text-[10px] text-red-500/70 font-sans mt-0.5">Failed to Import</p>
+                    </div>
+                  </div>
+                )}
+                {noAffCount > 0 && (
+                  <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-purple-50 border border-purple-200">
+                    <Link2 size={18} className="text-purple-400 flex-shrink-0" />
+                    <div>
+                      <p className="font-black text-base text-purple-700 font-grotesk leading-none">{noAffCount}</p>
+                      <p className="text-[10px] text-purple-500/70 font-sans mt-0.5">No Affiliate Link</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Affiliate Warning Banner */}
-              {hasMissingAffiliates && (
-                <div className="flex items-start gap-3 rounded-2xl px-5 py-4 bg-amber-50 border border-amber-200">
-                  <AlertTriangle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-black text-xs text-[#112133] font-grotesk uppercase tracking-wide">
-                      Affiliate Links Not Available
-                    </p>
-                    <p className="text-xs text-black/60 mt-1 font-sans leading-relaxed">
-                      EarnKaro was unable to generate affiliate links for <strong>{missingAffiliates.length}</strong> product{missingAffiliates.length !== 1 ? 's' : ''} (unsupported retailers or API error).
-                      You can choose to proceed with all products anyway, or discard them and only import the rest.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Per-URL results */}
+              {/* Per-URL results list */}
               <div className="rounded-2xl border border-black/10 overflow-hidden">
                 <div className="px-4 py-2.5 bg-[#F8F7FF] border-b border-black/8">
-                  <span className="text-xs font-black uppercase tracking-wider text-black/50 font-grotesk">Results</span>
+                  <span className="text-xs font-black uppercase tracking-wider text-black/50 font-grotesk">Per-URL Results</span>
                 </div>
                 <div className="max-h-52 overflow-y-auto divide-y divide-black/5">
                   {results.map((r, i) => (
-                    <div key={i} className="flex items-start gap-3 px-4 py-3">
-                      <div className="mt-0.5 flex-shrink-0">
-                        {r.success
-                          ? <CheckCircle2 size={14} className="text-emerald-500" />
-                          : <XCircle size={14} className="text-red-400" />
-                        }
+                    <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                      <div className="flex-shrink-0">
+                        {r.success && <CheckCircle2 size={13} className="text-emerald-500" />}
+                        {!r.success && r.duplicate && <AlertTriangle size={13} className="text-amber-500" />}
+                        {!r.success && !r.duplicate && <XCircle size={13} className="text-red-400" />}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-mono text-black/55 truncate">{r.url}</p>
-                        {r.success && r.data?.title && (
-                          <p className="text-xs font-bold text-[#112133] mt-0.5 truncate">{r.data.title}</p>
+                      <p className="text-[11px] font-mono text-black/55 truncate flex-1">{r.url}</p>
+                      <div className="flex-shrink-0">
+                        {r.success && r.savedId && (
+                          <span className="text-[9px] font-grotesk font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Saved</span>
                         )}
-                        {!r.success && r.error && (
-                          <p className="text-[11px] text-red-400 mt-0.5">{r.error}</p>
+                        {r.success && r.noAffiliate && (
+                          <span className="text-[9px] font-grotesk font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100 ml-1">No Aff.</span>
                         )}
-                      </div>
-                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                        {r.success && r.data?.brand && (
-                          <span className="text-[10px] font-grotesk font-bold text-[#7D2AE8] bg-[#7D2AE8]/8 px-2 py-0.5 rounded-lg">
-                            {r.data.brand}
-                          </span>
+                        {!r.success && r.duplicate && (
+                          <span className="text-[9px] font-grotesk font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Duplicate</span>
                         )}
-                        {r.success && (
-                          r.affiliateGenerated ? (
-                            <span className="text-[9px] font-sans font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
-                              Affiliate Link OK
-                            </span>
-                          ) : (
-                            <span className="text-[9px] font-sans font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">
-                              No Affiliate Link
-                            </span>
-                          )
+                        {!r.success && !r.duplicate && (
+                          <span className="text-[9px] font-grotesk font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100" title={r.error}>Failed</span>
                         )}
                       </div>
                     </div>
@@ -561,7 +546,7 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
           {runStatus === 'running' && (
             <div className="flex items-center gap-2 text-xs text-black/50 font-sans">
               <Loader2 size={13} className="animate-spin text-[#7D2AE8]" />
-              Importing… please don't close this window.
+              Importing & saving… please don't close this window.
             </div>
           )}
 
@@ -580,52 +565,15 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
               >
                 Import More
               </button>
-              
-              {successCount > 0 ? (
-                hasMissingAffiliates ? (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        const supported = results.filter(r => !r.success || r.affiliateGenerated);
-                        onImportComplete(supported);
-                      }}
-                      className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
-                      id="bulk-proceed-supported"
-                    >
-                      Import Supported Only ({successCount - missingAffiliates.length})
-                    </button>
-                    <button
-                      onClick={() => {
-                        onImportComplete(results);
-                      }}
-                      className="px-5 py-2.5 bg-[#7D2AE8] hover:bg-[#6820C4] text-white rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-sm"
-                      id="bulk-proceed-all"
-                    >
-                      Import All ({successCount})
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      onImportComplete(results);
-                    }}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider text-white transition-all shadow-sm"
-                    style={{ background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
-                    id="bulk-import-done-success"
-                  >
-                    <CheckCircle2 size={14} />
-                    Done (Add {successCount} Product{successCount !== 1 ? 's' : ''})
-                  </button>
-                )
-              ) : (
-                <button
-                  onClick={onClose}
-                  className="px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider text-white bg-red-600 hover:bg-red-700 transition-all font-grotesk shadow-sm"
-                  id="bulk-import-done-fail"
-                >
-                  Close
-                </button>
-              )}
+              <button
+                onClick={() => { onBulkSaveDone(savedCount); }}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-grotesk font-black uppercase tracking-wider text-white transition-all shadow-sm"
+                style={{ background: savedCount > 0 ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)' }}
+                id="bulk-import-done-success"
+              >
+                <CheckCircle2 size={14} />
+                {savedCount > 0 ? `Done — ${savedCount} Saved` : 'Close'}
+              </button>
             </>
           )}
         </div>
@@ -633,3 +581,4 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onImportComplete }) 
     </div>
   );
 };
+

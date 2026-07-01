@@ -2716,6 +2716,41 @@ async function convertUrlToAffiliate(url) {
   }
   return { affiliateUrl: url, affiliateGenerated: false };
 }
+function detectSegmentAndType(title, category, subCategory) {
+  const text = `${title || ""} ${category || ""} ${subCategory || ""}`.toLowerCase();
+  let productSegment = "Upperwear";
+  let productType = "T-Shirt";
+  if (text.match(/jeans|trouser|pant|cargo|chino|shorts/)) {
+    productSegment = "Bottomwear";
+    productType = text.includes("jeans") ? "Jeans" : text.includes("cargo") ? "Cargo Pants" : text.includes("jogger") ? "Joggers" : text.includes("chino") ? "Chinos" : text.includes("shorts") ? "Shorts" : "Trousers";
+  } else if (text.match(/shoe|sneaker|boot|loafer/)) {
+    productSegment = "Footwear";
+    productType = text.includes("sneaker") ? "Sneakers" : text.includes("boot") ? "Boots" : text.includes("loafer") ? "Loafers" : "Formal Shoes";
+  } else if (text.match(/hoodie|sweatshirt|jacket|overshirt/)) {
+    productSegment = "Outerwear";
+    productType = text.includes("hoodie") ? "Hoodie" : text.includes("sweatshirt") ? "Sweatshirt" : text.includes("overshirt") ? "Overshirt" : "Jacket";
+  } else if (text.match(/kurta|nehru/)) {
+    productSegment = "Ethnic Wear";
+    productType = text.includes("set") ? "Kurta Set" : text.includes("nehru") ? "Nehru Jacket" : "Kurta";
+  } else if (text.match(/belt|cap|wallet|socks/)) {
+    productSegment = "Accessories";
+    productType = text.includes("belt") ? "Belt" : text.includes("cap") ? "Cap" : text.includes("wallet") ? "Wallet" : "Socks";
+  } else {
+    productType = text.includes("shirt") ? "Shirt" : text.includes("polo") ? "Polo" : text.includes("henley") ? "Henley" : "T-Shirt";
+  }
+  return { productSegment, productType };
+}
+function getSizeOptionsServer(segment) {
+  if (segment === "Footwear") return ["UK 8", "UK 9", "UK 10", "UK 11", "UK 12"];
+  if (segment === "Bottomwear") return ["30", "32", "34", "36", "38"];
+  return ["M", "L", "XL", "XXL", "3XL"];
+}
+function mapCuratedDataToCategories(category) {
+  if (category === "Ethnic Wear") return ["Ethnic Wear"];
+  if (category === "Formals") return ["Formal Wear", "Business Casual"];
+  if (category === "Streetwear") return ["Streetwear", "Casual Wear"];
+  return ["Casual Wear"];
+}
 app.post(
   "/api/admin/bulk-import",
   requireAuth,
@@ -2742,7 +2777,7 @@ app.post(
       try {
         const existingProduct = await productRepository.findByUrl(url);
         if (existingProduct) {
-          results.push({ url, success: false, error: "Product already exists in the system." });
+          results.push({ url, success: false, duplicate: true, error: "Product already exists in the system." });
           continue;
         }
       } catch (err) {
@@ -2768,6 +2803,7 @@ app.post(
           isScrapeBlocked: true
         };
       }
+      let curated = null;
       if (apiKey) {
         try {
           const ai = new GoogleGenAI({ apiKey });
@@ -2804,36 +2840,80 @@ Strict: respond with a single raw JSON object only.`;
             config: { responseMimeType: "application/json" }
           });
           const text = response.text || "";
-          const parsedResult = JSON.parse(text.trim());
-          const affiliateInfo = await convertUrlToAffiliate(url);
-          results.push({
-            url,
-            success: true,
-            affiliateUrl: affiliateInfo.affiliateUrl,
-            affiliateGenerated: affiliateInfo.affiliateGenerated,
-            data: {
-              source: "gemini",
-              ...parsedResult,
-              images: scraped.images && scraped.images.length > 0 ? scraped.images : parsedResult.images || []
-            }
-          });
-          continue;
+          curated = JSON.parse(text.trim());
+          if (scraped.images && scraped.images.length > 0) {
+            curated.images = scraped.images;
+          }
         } catch (err) {
           console.warn(`[BulkImport] Gemini failed for ${url}, using fallback:`, err?.message);
         }
       }
+      if (!curated) {
+        try {
+          curated = runFallbackParser(scraped, parsedUrl.href, retailerName);
+        } catch (err) {
+          results.push({ url, success: false, error: err?.message ?? "Failed to parse product data." });
+          continue;
+        }
+      }
+      const affiliateInfo = await convertUrlToAffiliate(url);
       try {
-        const fallbackResult = runFallbackParser(scraped, parsedUrl.href, retailerName);
-        const affiliateInfo = await convertUrlToAffiliate(url);
-        results.push({
-          url,
-          success: true,
-          affiliateUrl: affiliateInfo.affiliateUrl,
-          affiliateGenerated: affiliateInfo.affiliateGenerated,
-          data: fallbackResult
-        });
+        const { productSegment, productType } = detectSegmentAndType(
+          curated.title || "",
+          curated.category || "",
+          curated.subCategory || ""
+        );
+        const categories = mapCuratedDataToCategories(curated.category || "");
+        const sizes = getSizeOptionsServer(productSegment).slice(0, 4);
+        const slugId = (curated.title || "product").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 55);
+        const newProduct = {
+          id: `${slugId}-${Date.now().toString().slice(-5)}`,
+          brand: curated.brand || scraped.brand || "Brand",
+          title: curated.title || scraped.title || "Imported Product",
+          category: curated.category || "Casuals",
+          categories,
+          subCategory: curated.subCategory || "",
+          productSegment,
+          productType,
+          images: curated.images || [],
+          occasions: curated.occasions || ["Daily Wear"],
+          seasons: curated.seasons || ["All Season"],
+          colors: curated.colors || [],
+          sizes,
+          fitType: "Regular Tall",
+          retailer: curated.retailer || retailerName,
+          affiliateUrl: affiliateInfo.affiliateUrl || url,
+          priceAtRetailer: curated.price || 0,
+          merchantLinks: [{ store: curated.retailer || retailerName, url, price: curated.price || 0 }],
+          verdicts: [],
+          verifiedTier: "community",
+          description: curated.description || "",
+          tags: curated.tags || ["tall-friendly"],
+          material: curated.material || "",
+          tallFriendly: curated.tallFit?.tallFriendly ?? true,
+          heightRanges: curated.tallFit?.recommendedHeightRanges || [],
+          bodyTypes: curated.tallFit?.bodyTypes || ["Athletic"],
+          fitHighlights: curated.tallFit?.highlights || [],
+          isFeatured: false,
+          reviewsCount: 0,
+          averageRating: 0,
+          outOfStock: false,
+          discountPercent: 0,
+          verificationBadges: [],
+          measurements: {},
+          merchantLinks2: void 0
+        };
+        delete newProduct.merchantLinks2;
+        const saveResult = await productService.create(newProduct);
+        if (saveResult.error) {
+          const isDup = saveResult.error.includes("already exists");
+          results.push({ url, success: isDup ? false : false, duplicate: isDup, error: saveResult.error });
+        } else {
+          results.push({ url, success: true, savedId: saveResult.product?.id, noAffiliate: !affiliateInfo.affiliateGenerated });
+        }
       } catch (err) {
-        results.push({ url, success: false, error: err?.message ?? "Failed to parse product data." });
+        console.error(`[BulkImport] Save failed for ${url}:`, err?.message);
+        results.push({ url, success: false, error: `Save failed: ${err?.message ?? "DB error"}` });
       }
     }
     return res.json({ success: true, results });

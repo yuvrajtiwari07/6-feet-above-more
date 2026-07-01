@@ -9,6 +9,7 @@ import { requireAdmin } from './middleware/adminMiddleware';
 import { ImporterFactory } from './lib/importers/ImporterFactory';
 import { GoogleGenAI } from '@google/genai';
 import { productRepository } from './repositories/productRepository';
+import { productService } from './services/productService';
 
 
 let __dirname = '';
@@ -501,8 +502,48 @@ async function convertUrlToAffiliate(url: string): Promise<{ affiliateUrl: strin
 
 // ─── Admin: Bulk Import Products from URL list ───────────────
 // POST /api/admin/bulk-import
-// Accepts { urls: string[] } — processes each through the Gemini + fallback pipeline.
-// Returns { results: { url, success, data?, error?, affiliateUrl?, affiliateGenerated? }[] }
+// Accepts { urls: string[] } — scrapes, curates, AND saves each product server-side.
+// Returns per-URL status: { url, savedId?, duplicate?, noAffiliate?, error? }
+// This avoids N concurrent POST /api/products calls from the frontend.
+
+function detectSegmentAndType(title: string, category: string, subCategory: string): { productSegment: string; productType: string } {
+  const text = `${title || ''} ${category || ''} ${subCategory || ''}`.toLowerCase();
+  let productSegment = 'Upperwear';
+  let productType = 'T-Shirt';
+  if (text.match(/jeans|trouser|pant|cargo|chino|shorts/)) {
+    productSegment = 'Bottomwear';
+    productType = text.includes('jeans') ? 'Jeans' : text.includes('cargo') ? 'Cargo Pants' : text.includes('jogger') ? 'Joggers' : text.includes('chino') ? 'Chinos' : text.includes('shorts') ? 'Shorts' : 'Trousers';
+  } else if (text.match(/shoe|sneaker|boot|loafer/)) {
+    productSegment = 'Footwear';
+    productType = text.includes('sneaker') ? 'Sneakers' : text.includes('boot') ? 'Boots' : text.includes('loafer') ? 'Loafers' : 'Formal Shoes';
+  } else if (text.match(/hoodie|sweatshirt|jacket|overshirt/)) {
+    productSegment = 'Outerwear';
+    productType = text.includes('hoodie') ? 'Hoodie' : text.includes('sweatshirt') ? 'Sweatshirt' : text.includes('overshirt') ? 'Overshirt' : 'Jacket';
+  } else if (text.match(/kurta|nehru/)) {
+    productSegment = 'Ethnic Wear';
+    productType = text.includes('set') ? 'Kurta Set' : text.includes('nehru') ? 'Nehru Jacket' : 'Kurta';
+  } else if (text.match(/belt|cap|wallet|socks/)) {
+    productSegment = 'Accessories';
+    productType = text.includes('belt') ? 'Belt' : text.includes('cap') ? 'Cap' : text.includes('wallet') ? 'Wallet' : 'Socks';
+  } else {
+    productType = text.includes('shirt') ? 'Shirt' : text.includes('polo') ? 'Polo' : text.includes('henley') ? 'Henley' : 'T-Shirt';
+  }
+  return { productSegment, productType };
+}
+
+function getSizeOptionsServer(segment: string): string[] {
+  if (segment === 'Footwear') return ['UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12'];
+  if (segment === 'Bottomwear') return ['30', '32', '34', '36', '38'];
+  return ['M', 'L', 'XL', 'XXL', '3XL'];
+}
+
+function mapCuratedDataToCategories(category: string): string[] {
+  if (category === 'Ethnic Wear') return ['Ethnic Wear'];
+  if (category === 'Formals') return ['Formal Wear', 'Business Casual'];
+  if (category === 'Streetwear') return ['Streetwear', 'Casual Wear'];
+  return ['Casual Wear'];
+}
+
 app.post(
   '/api/admin/bulk-import',
   requireAuth,
@@ -516,8 +557,17 @@ app.post(
 
     const MAX_URLS = 300;
     const urlsToProcess = urls.slice(0, MAX_URLS);
-    const results: { url: string; success: boolean; data?: any; error?: string; affiliateUrl?: string; affiliateGenerated?: boolean }[] = [];
 
+    interface BulkResult {
+      url: string;
+      success: boolean;
+      savedId?: string;
+      duplicate?: boolean;
+      noAffiliate?: boolean;
+      error?: string;
+    }
+
+    const results: BulkResult[] = [];
     const apiKey = process.env.GEMINI_API_KEY;
 
     for (const rawUrl of urlsToProcess) {
@@ -531,17 +581,19 @@ app.post(
         results.push({ url, success: false, error: 'Invalid URL format.' });
         continue;
       }
-      // Check for duplicate URL
+
+      // ── Duplicate check ────────────────────────────────────
       try {
         const existingProduct = await productRepository.findByUrl(url);
         if (existingProduct) {
-          results.push({ url, success: false, error: 'Product already exists in the system.' });
+          results.push({ url, success: false, duplicate: true, error: 'Product already exists in the system.' });
           continue;
         }
       } catch (err: any) {
         console.warn(`[BulkImport] Duplicate check failed for ${url}:`, err?.message);
       }
-      // Step 1: Scrape with ImporterFactory
+
+      // ── Step 1: Scrape ─────────────────────────────────────
       let scraped: any = {};
       let retailerName = 'Retailer';
       try {
@@ -552,7 +604,7 @@ app.post(
         console.warn(`[BulkImport] Scraper failed for ${url}:`, err?.message);
       }
 
-      // Step 2: Detect block pages
+      // ── Step 2: Block page detection ───────────────────────
       const isBlocked = !scraped.title ||
         scraped.title.toLowerCase().includes('something went wrong') ||
         scraped.title.toLowerCase().includes('oops') ||
@@ -572,7 +624,8 @@ app.post(
         };
       }
 
-      // Step 3: Try Gemini AI curation
+      // ── Step 3: Curate (Gemini or fallback) ───────────────
+      let curated: any = null;
       if (apiKey) {
         try {
           const ai = new GoogleGenAI({ apiKey });
@@ -609,40 +662,94 @@ Strict: respond with a single raw JSON object only.`;
             contents: prompt,
             config: { responseMimeType: 'application/json' }
           });
-
           const text = response.text || '';
-          const parsedResult = JSON.parse(text.trim());
-          const affiliateInfo = await convertUrlToAffiliate(url);
-          results.push({
-            url,
-            success: true,
-            affiliateUrl: affiliateInfo.affiliateUrl,
-            affiliateGenerated: affiliateInfo.affiliateGenerated,
-            data: {
-              source: 'gemini',
-              ...parsedResult,
-              images: scraped.images && scraped.images.length > 0 ? scraped.images : (parsedResult.images || [])
-            }
-          });
-          continue;
+          curated = JSON.parse(text.trim());
+          if (scraped.images && scraped.images.length > 0) {
+            curated.images = scraped.images;
+          }
         } catch (err: any) {
           console.warn(`[BulkImport] Gemini failed for ${url}, using fallback:`, err?.message);
         }
       }
 
-      // Step 4: Fallback structured parser
+      if (!curated) {
+        try {
+          curated = runFallbackParser(scraped, parsedUrl.href, retailerName);
+        } catch (err: any) {
+          results.push({ url, success: false, error: err?.message ?? 'Failed to parse product data.' });
+          continue;
+        }
+      }
+
+      // ── Step 4: Affiliate conversion ───────────────────────
+      const affiliateInfo = await convertUrlToAffiliate(url);
+
+      // ── Step 5: Build and save product ────────────────────
       try {
-        const fallbackResult = runFallbackParser(scraped, parsedUrl.href, retailerName);
-        const affiliateInfo = await convertUrlToAffiliate(url);
-        results.push({
-          url,
-          success: true,
-          affiliateUrl: affiliateInfo.affiliateUrl,
-          affiliateGenerated: affiliateInfo.affiliateGenerated,
-          data: fallbackResult
-        });
+        const { productSegment, productType } = detectSegmentAndType(
+          curated.title || '',
+          curated.category || '',
+          curated.subCategory || ''
+        );
+        const categories = mapCuratedDataToCategories(curated.category || '');
+        const sizes = getSizeOptionsServer(productSegment).slice(0, 4);
+        const slugId = (curated.title || 'product')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 55);
+
+        const newProduct: any = {
+          id: `${slugId}-${Date.now().toString().slice(-5)}`,
+          brand: curated.brand || scraped.brand || 'Brand',
+          title: curated.title || scraped.title || 'Imported Product',
+          category: curated.category || 'Casuals',
+          categories,
+          subCategory: curated.subCategory || '',
+          productSegment,
+          productType,
+          images: curated.images || [],
+          occasions: curated.occasions || ['Daily Wear'],
+          seasons: curated.seasons || ['All Season'],
+          colors: curated.colors || [],
+          sizes,
+          fitType: 'Regular Tall',
+          retailer: curated.retailer || retailerName,
+          affiliateUrl: affiliateInfo.affiliateUrl || url,
+          priceAtRetailer: curated.price || 0,
+          merchantLinks: [{ store: curated.retailer || retailerName, url, price: curated.price || 0 }],
+          verdicts: [],
+          verifiedTier: 'community',
+          description: curated.description || '',
+          tags: curated.tags || ['tall-friendly'],
+          material: curated.material || '',
+          tallFriendly: curated.tallFit?.tallFriendly ?? true,
+          heightRanges: curated.tallFit?.recommendedHeightRanges || [],
+          bodyTypes: curated.tallFit?.bodyTypes || ['Athletic'],
+          fitHighlights: curated.tallFit?.highlights || [],
+          isFeatured: false,
+          reviewsCount: 0,
+          averageRating: 0,
+          outOfStock: false,
+          discountPercent: 0,
+          verificationBadges: [],
+          measurements: {},
+          merchantLinks2: undefined,
+        };
+        // Remove undefined merchantLinks2 hack
+        delete newProduct.merchantLinks2;
+
+        const saveResult = await productService.create(newProduct);
+        if (saveResult.error) {
+          // Could be a title+brand duplicate discovered at DB level
+          const isDup = saveResult.error.includes('already exists');
+          results.push({ url, success: isDup ? false : false, duplicate: isDup, error: saveResult.error });
+        } else {
+          results.push({ url, success: true, savedId: saveResult.product?.id, noAffiliate: !affiliateInfo.affiliateGenerated });
+        }
       } catch (err: any) {
-        results.push({ url, success: false, error: err?.message ?? 'Failed to parse product data.' });
+        console.error(`[BulkImport] Save failed for ${url}:`, err?.message);
+        results.push({ url, success: false, error: `Save failed: ${err?.message ?? 'DB error'}` });
       }
     }
 

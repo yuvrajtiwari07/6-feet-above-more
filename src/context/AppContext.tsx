@@ -74,6 +74,7 @@ interface AppContextType {
   addProduct: (p: Product) => Promise<void>;
   updateProduct: (id: string, p: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
+  refetchProducts: () => Promise<void>;
 
   // Catalogs
   catalogs: Catalog[];
@@ -576,6 +577,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addProduct,
         updateProduct,
         deleteProduct,
+        refetchProducts: fetchProducts,
         catalogs,
         catalogCategories,
         loadingCatalogs,
