@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "6Feet Above & More",
+    "slug": "6feetabove-more",
+    "version": "1.0.0",
+    "scheme": "6feetabovemore",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0F0F10"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sixfeetabove.more"
+    },
+    "android": {
+      "package": "com.sixfeetabove.more",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFD43B",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-image",
+      "expo-web-browser",
+      "expo-document-picker"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
