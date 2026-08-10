@@ -7,7 +7,7 @@ dotenv.config();
 
 const ADMIN_EMAILS = [
   'ytiwari@argusoft.com',
-  'yuvrajtiwari0710@gmail.com',
+  'rajtiwari07102001@gmail.com',
 ];
 
 export function isAdminEmail(email: string): boolean {

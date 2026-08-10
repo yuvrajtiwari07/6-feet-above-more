@@ -9,7 +9,7 @@ import {
 } from '../supabase';
 
 // ── Admin whitelist (client-side UX only — enforced server-side) ─────────────
-const ADMIN_EMAILS = ['ytiwari@argusoft.com', 'yuvrajtiwari0710@gmail.com'];
+const ADMIN_EMAILS = ['ytiwari@argusoft.com', 'rajtiwari07102001@gmail.com'];
 
 // ── Route types ───────────────────────────────────────────────────────────────
 export type RouteType =

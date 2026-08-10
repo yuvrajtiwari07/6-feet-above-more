@@ -10,7 +10,7 @@ dotenv.config();
 // Admin email whitelist — same as previous setup
 const ADMIN_EMAILS = [
   'ytiwari@argusoft.com',
-  'yuvrajtiwari0710@gmail.com',
+  'rajtiwari07102001@gmail.com',
 ];
 
 export interface AuthUser {
@@ -83,7 +83,7 @@ export async function requireAuth(
   if (process.env.NODE_ENV !== 'production') {
     req.user = {
       uid: 'dev-user-id',
-      email: 'yuvrajtiwari0710@gmail.com',
+      email: 'rajtiwari07102001@gmail.com',
       isAdmin: true,
     };
     return next();

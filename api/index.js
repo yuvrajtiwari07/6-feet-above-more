@@ -484,7 +484,7 @@ import dotenv2 from "dotenv";
 dotenv2.config();
 var ADMIN_EMAILS = [
   "ytiwari@argusoft.com",
-  "yuvrajtiwari0710@gmail.com"
+  "rajtiwari07102001@gmail.com"
 ];
 var _supabaseAdmin = null;
 function getSupabaseAdmin() {
@@ -502,7 +502,7 @@ async function requireAuth(req, res, next) {
   if (process.env.NODE_ENV !== "production") {
     req.user = {
       uid: "dev-user-id",
-      email: "yuvrajtiwari0710@gmail.com",
+      email: "rajtiwari07102001@gmail.com",
       isAdmin: true
     };
     return next();
@@ -690,7 +690,7 @@ function rowToUser(row) {
 }
 var ADMIN_EMAILS2 = [
   "ytiwari@argusoft.com",
-  "yuvrajtiwari0710@gmail.com"
+  "rajtiwari07102001@gmail.com"
 ];
 var userRepository = {
   async findByUserId(userId) {
