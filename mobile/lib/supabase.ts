@@ -38,15 +38,35 @@ export async function signInWithGoogle(): Promise<void> {
   if (!data.url) throw new Error('[Supabase] No OAuth URL returned');
 
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-  if (result.type === 'success') {
-    const { url } = result;
-    const params = new URLSearchParams(url.split('#')[1] ?? url.split('?')[1] ?? '');
-    const accessToken  = params.get('access_token');
-    const refreshToken = params.get('refresh_token');
-    if (accessToken && refreshToken) {
-      await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-    }
+  if (result.type !== 'success') return;
+
+  const { url } = result;
+  const queryPart = url.split('#')[0].split('?')[1] ?? '';
+  const hashPart  = url.split('#')[1] ?? '';
+  const queryParams = new URLSearchParams(queryPart);
+  const hashParams  = new URLSearchParams(hashPart);
+
+  // Supabase JS defaults to the PKCE flow, which returns `?code=...` — the
+  // verifier was stashed in AsyncStorage by signInWithOAuth() above, so
+  // exchangeCodeForSession can complete the handshake from just the code.
+  const code = queryParams.get('code');
+  if (code) {
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    if (exchangeError) throw exchangeError;
+    return;
   }
+
+  // Fallback: implicit flow, tokens arrive directly in the URL fragment.
+  const accessToken  = hashParams.get('access_token') ?? queryParams.get('access_token');
+  const refreshToken = hashParams.get('refresh_token') ?? queryParams.get('refresh_token');
+  if (accessToken && refreshToken) {
+    const { error: setSessionError } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+    if (setSessionError) throw setSessionError;
+    return;
+  }
+
+  const errorDescription = queryParams.get('error_description') ?? hashParams.get('error_description');
+  if (errorDescription) throw new Error(errorDescription);
 }
 
 export async function signOut(): Promise<void> {

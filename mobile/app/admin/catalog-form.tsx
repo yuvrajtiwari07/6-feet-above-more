@@ -85,7 +85,7 @@ export default function CatalogFormScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F9F8F6]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#F9F8F6]" edges={['top', 'bottom']}>
       <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-black/10">
         <Pressable onPress={() => router.back()} className="flex-row items-center gap-1.5">
           <ArrowLeft size={18} color="#112133" />

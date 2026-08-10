@@ -18,7 +18,7 @@ export default function AdminScreen() {
 
   if (!user || !isAdmin) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-8" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white items-center justify-center px-8" edges={['top', 'bottom']}>
         <Shield size={48} color="#EF4444" />
         <Text className="text-2xl font-black text-[#112133] uppercase mt-4 mb-2">Access Denied</Text>
         <Text className="text-xs text-[#112133]/50 text-center mb-6">
@@ -64,7 +64,7 @@ export default function AdminScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F9F8F6]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#F9F8F6]" edges={['top', 'bottom']}>
 
       {/* Header */}
       <View className="bg-[#0F0F10] px-5 pt-5 pb-6">

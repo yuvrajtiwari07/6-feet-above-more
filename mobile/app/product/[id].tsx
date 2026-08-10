@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import {
   View, Text, Pressable, ScrollView, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Heart, ArrowLeft, ExternalLink, Star, ChevronDown, ChevronUp, Check } from 'lucide-react-native';
 import * as Linking from 'expo-linking';
@@ -17,6 +17,7 @@ export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { products, height, bodyType, savedProductIds, toggleSaveProduct } = useApp();
   const product = products.find(p => p.id === id);
+  const insets = useSafeAreaInsets();
 
   const [imgIndex, setImgIndex] = useState(0);
   const [descOpen, setDescOpen] = useState(false);
@@ -51,7 +52,7 @@ export default function ProductDetailScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom }}>
 
         {/* Image carousel */}
         <View style={{ height: IMG_H }}>

@@ -10,6 +10,10 @@ import { getProductRecommendation, isPositiveRecommendation } from '../../lib/ut
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+const pressFeedback = ({ pressed }: { pressed: boolean }) => (pressed ? { opacity: 0.75 } : undefined);
+const RIPPLE_DARK  = { color: 'rgba(0,0,0,0.1)' };
+const RIPPLE_LIGHT = { color: 'rgba(255,255,255,0.25)' };
+
 interface ProductCardProps {
   product: Product;
   cardWidth?: number;
@@ -60,7 +64,8 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
       className={`bg-white border border-black/10 overflow-hidden ${isSm ? 'rounded-2xl' : 'rounded-[24px]'}`}
     >
       {/* Image carousel */}
-      <Pressable onPress={() => router.push(`/product/${product.id}`)} className="aspect-[3/4] relative">
+      <Pressable onPress={() => router.push(`/product/${product.id}`)} className="aspect-[3/4] relative"
+        android_ripple={RIPPLE_DARK} style={pressFeedback}>
         <FlatList
           ref={flatRef}
           data={product.images?.length ? product.images : [null]}
@@ -92,6 +97,7 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
         <Pressable
           onPress={() => toggleSaveProduct(product.id)}
           className={`absolute ${isSm ? 'top-2 right-2 p-1.5' : 'top-3 right-3 p-2.5'} bg-white rounded-full border border-black/10`}
+          android_ripple={{ ...RIPPLE_DARK, radius: isSm ? 16 : 22 }} style={pressFeedback} hitSlop={6}
         >
           <Heart size={isSm ? 12 : 15} color={isSaved ? '#FFD43B' : '#000'} fill={isSaved ? '#FFD43B' : 'none'} />
         </Pressable>
@@ -109,12 +115,14 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
             <Pressable
               onPress={() => { const prev = Math.max(0, activeIndex - 1); flatRef.current?.scrollToIndex({ index: prev, animated: true }); setActiveIndex(prev); }}
               className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/85 rounded-full p-1 border border-black/10"
+              android_ripple={{ ...RIPPLE_DARK, radius: 14 }} style={pressFeedback} hitSlop={6}
             >
               <ChevronLeft size={14} color="#000" />
             </Pressable>
             <Pressable
               onPress={() => { const next = Math.min(product.images.length - 1, activeIndex + 1); flatRef.current?.scrollToIndex({ index: next, animated: true }); setActiveIndex(next); }}
               className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/85 rounded-full p-1 border border-black/10"
+              android_ripple={{ ...RIPPLE_DARK, radius: 14 }} style={pressFeedback} hitSlop={6}
             >
               <ChevronRight size={14} color="#000" />
             </Pressable>
@@ -158,12 +166,14 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
           <Pressable
             onPress={() => router.push(`/product/${product.id}`)}
             className={`flex-[2] items-center justify-center bg-[#F5F5F7] border border-black/10 rounded-xl ${isSm ? 'py-1.5' : 'py-3'}`}
+            android_ripple={RIPPLE_DARK} style={pressFeedback}
           >
             <Text className={`text-black font-black uppercase tracking-wider ${isSm ? 'text-[9px]' : 'text-xs'}`}>Sizing</Text>
           </Pressable>
           <Pressable
             onPress={handleShop}
             className={`flex-[3] flex-row items-center justify-center gap-0.5 bg-black rounded-2xl ${isSm ? 'py-1.5' : 'py-3'}`}
+            android_ripple={RIPPLE_LIGHT} style={pressFeedback}
           >
             <Text className={`text-white font-black uppercase ${isSm ? 'text-[9px]' : 'text-xs'}`}>Shop</Text>
             <ExternalLink size={isSm ? 8 : 10} color="#fff" />

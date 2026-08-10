@@ -114,7 +114,7 @@ export default function CompleteFitsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F9F8F6]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#F9F8F6]" edges={['top', 'bottom']}>
       {/* Header */}
       <View className="flex-row items-center gap-3 px-4 pt-4 pb-3 bg-white border-b border-black/10">
         <Pressable onPress={() => router.back()} hitSlop={8}>
