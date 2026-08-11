@@ -2354,7 +2354,7 @@ app.get("/api/auth/mobile-redirect", (_req, res) => {
 <body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#112133;">
   <p>Returning to the app\u2026</p>
   <script>
-    window.location.replace('6feetabovemore://auth/callback' + window.location.search + window.location.hash);
+    window.location.replace('sixfeetabovemore://auth/callback' + window.location.search + window.location.hash);
   </script>
 </body>
 </html>`);

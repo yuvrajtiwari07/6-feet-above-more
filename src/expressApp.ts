@@ -49,10 +49,15 @@ app.get('/api/health', (_req, res) => {
 
 // ─── Mobile OAuth bounce page ─────────────────────────────
 // Supabase's redirect-URL allow-list does not reliably honor custom
-// (non-http) URI schemes like `6feetabovemore://`, so the mobile app
-// sends Google OAuth through this real HTTPS page instead (which Supabase
-// *does* honor), and this page immediately hands off to the app's deep
-// link with the same query/hash intact. Web logins never hit this route.
+// (non-http) URI schemes, so the mobile app sends Google OAuth through this
+// real HTTPS page instead (which Supabase *does* honor), and this page
+// immediately hands off to the app's deep link with the same query/hash
+// intact. Web logins never hit this route.
+//
+// The app's scheme must start with a letter — a leading digit is not a
+// valid URI scheme per the URL spec, so `window.location.replace()` with
+// such a string is silently resolved as a *relative* path instead of an
+// absolute URL, which is what broke this redirect originally.
 app.get('/api/auth/mobile-redirect', (_req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/html');
   res.send(`<!DOCTYPE html>
@@ -61,7 +66,7 @@ app.get('/api/auth/mobile-redirect', (_req: Request, res: Response) => {
 <body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#112133;">
   <p>Returning to the app…</p>
   <script>
-    window.location.replace('6feetabovemore://auth/callback' + window.location.search + window.location.hash);
+    window.location.replace('sixfeetabovemore://auth/callback' + window.location.search + window.location.hash);
   </script>
 </body>
 </html>`);

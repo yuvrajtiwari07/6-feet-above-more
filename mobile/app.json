@@ -3,7 +3,7 @@
     "name": "6Feet Above & More",
     "slug": "6feetabove-more",
     "version": "1.0.0",
-    "scheme": "6feetabovemore",
+    "scheme": "sixfeetabovemore",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

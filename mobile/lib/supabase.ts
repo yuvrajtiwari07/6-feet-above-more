@@ -22,13 +22,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnon, {
 // ── Auth Helpers ──────────────────────────────────────────
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://6-feet-above-more.vercel.app';
-const APP_CALLBACK = '6feetabovemore://auth/callback';
+// Scheme must start with a letter — a leading digit (the old "6feetabovemore")
+// is not a valid URI scheme per the URL spec, so browsers silently treat
+// `6feetabovemore://...` as a *relative* path instead of an absolute URL,
+// which is what was actually breaking the redirect chain this whole time.
+const APP_CALLBACK = 'sixfeetabovemore://auth/callback';
 
 export async function signInWithGoogle(): Promise<void> {
   // Supabase's redirect-URL allow-list doesn't reliably honor custom (non-http)
-  // schemes like `6feetabovemore://` — it silently falls back to the Site URL
-  // instead, even for an exact allow-listed match. So we route through a real
-  // HTTPS bounce page (which Supabase *does* honor) that immediately hands off
+  // schemes — it silently falls back to the Site URL instead, even for an
+  // exact allow-listed match. So we route through a real HTTPS bounce page
+  // (which Supabase *does* honor) that immediately hands off
   // to the app's deep link with the same query/hash intact.
   const redirectTo = `${API_BASE}/api/auth/mobile-redirect`;
 
