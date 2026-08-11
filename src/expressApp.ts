@@ -47,6 +47,26 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// ─── Mobile OAuth bounce page ─────────────────────────────
+// Supabase's redirect-URL allow-list does not reliably honor custom
+// (non-http) URI schemes like `6feetabovemore://`, so the mobile app
+// sends Google OAuth through this real HTTPS page instead (which Supabase
+// *does* honor), and this page immediately hands off to the app's deep
+// link with the same query/hash intact. Web logins never hit this route.
+app.get('/api/auth/mobile-redirect', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#112133;">
+  <p>Returning to the app…</p>
+  <script>
+    window.location.replace('6feetabovemore://auth/callback' + window.location.search + window.location.hash);
+  </script>
+</body>
+</html>`);
+});
+
 // Static category definitions (no DB needed)
 app.get('/api/categories', (_req, res) => {
   res.json([

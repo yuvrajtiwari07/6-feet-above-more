@@ -1,6 +1,5 @@
 import { createClient, User, Session } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
 // Read from Expo's env (use .env with EXPO_PUBLIC_ prefix)
@@ -22,8 +21,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnon, {
 
 // ── Auth Helpers ──────────────────────────────────────────
 
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://6-feet-above-more.vercel.app';
+const APP_CALLBACK = '6feetabovemore://auth/callback';
+
 export async function signInWithGoogle(): Promise<void> {
-  const redirectTo = Linking.createURL('/auth/callback');
+  // Supabase's redirect-URL allow-list doesn't reliably honor custom (non-http)
+  // schemes like `6feetabovemore://` — it silently falls back to the Site URL
+  // instead, even for an exact allow-listed match. So we route through a real
+  // HTTPS bounce page (which Supabase *does* honor) that immediately hands off
+  // to the app's deep link with the same query/hash intact.
+  const redirectTo = `${API_BASE}/api/auth/mobile-redirect`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -37,7 +44,7 @@ export async function signInWithGoogle(): Promise<void> {
   if (error) throw error;
   if (!data.url) throw new Error('[Supabase] No OAuth URL returned');
 
-  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+  const result = await WebBrowser.openAuthSessionAsync(data.url, APP_CALLBACK);
   if (result.type !== 'success') return;
 
   const { url } = result;

@@ -2346,6 +2346,19 @@ app.get("/api/health", (_req, res) => {
     timestamp: (/* @__PURE__ */ new Date()).toISOString()
   });
 });
+app.get("/api/auth/mobile-redirect", (_req, res) => {
+  res.setHeader("Content-Type", "text/html");
+  res.send(`<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#112133;">
+  <p>Returning to the app\u2026</p>
+  <script>
+    window.location.replace('6feetabovemore://auth/callback' + window.location.search + window.location.hash);
+  </script>
+</body>
+</html>`);
+});
 app.get("/api/categories", (_req, res) => {
   res.json([
     { name: "Ethnic Wear", theme: "ethnic", tags: ["Wedding", "Festive", "Haldi", "Sangeet"] },

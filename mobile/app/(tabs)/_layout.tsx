@@ -1,12 +1,15 @@
 import { Tabs } from 'expo-router';
 import { Home, Search, Heart, User, Sparkles } from 'lucide-react-native';
-import { View, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_ICON_SIZE = 22;
 const ACTIVE_COLOR = '#FFD43B';
 const INACTIVE_COLOR = '#112133';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 8);
+
   return (
     <Tabs
       screenOptions={{
@@ -15,9 +18,9 @@ export default function TabLayout() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1.5,
           borderTopColor: '#11213318',
-          paddingBottom: 8,
+          paddingBottom: bottomPadding,
           paddingTop: 6,
-          height: 62,
+          height: 54 + bottomPadding,
         },
         tabBarActiveTintColor: ACTIVE_COLOR,
         tabBarInactiveTintColor: INACTIVE_COLOR,
