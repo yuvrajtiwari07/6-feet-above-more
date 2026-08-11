@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User, LogOut, ChevronRight, Edit3, Check } from 'lucide-react-native';
 import { useApp } from '../../lib/context/AppContext';
@@ -8,15 +8,27 @@ const HEIGHT_OPTIONS = ["6'0", "6'1", "6'2", "6'3", "6'4", "6'5", "6'6+"];
 const BODY_TYPES = ['Athletic', 'Lean', 'Broad', 'Heavy'] as const;
 
 export default function ProfileScreen() {
-  const { user, logout, height, setHeight, bodyType, setBodyType, savedProductIds } = useApp();
+  const { user, logout, loginWithGoogle, height, setHeight, bodyType, setBodyType, savedProductIds } = useApp();
   const [editingHeight, setEditingHeight] = useState(false);
   const [editingBody,   setEditingBody]   = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
 
   const handleSignOut = () => {
     Alert.alert('Sign out', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: logout },
     ]);
+  };
+
+  const handleSignIn = async () => {
+    setSigningIn(true);
+    try {
+      await loginWithGoogle();
+    } catch (e: any) {
+      Alert.alert('Sign in failed', e.message ?? 'Something went wrong.');
+    } finally {
+      setSigningIn(false);
+    }
   };
 
   return (
@@ -134,9 +146,14 @@ export default function ProfileScreen() {
               <Text className="text-sm font-black uppercase tracking-wider text-red-500">Sign Out</Text>
             </Pressable>
           ) : (
-            <Pressable className="flex-row items-center justify-center gap-2 py-4 rounded-2xl bg-[#7D2AE8]">
-              <User size={16} color="#fff" />
-              <Text className="text-sm font-black uppercase tracking-wider text-white">Sign In with Google</Text>
+            <Pressable onPress={handleSignIn} disabled={signingIn}
+              android_ripple={{ color: 'rgba(255,255,255,0.25)' }}
+              style={({ pressed }) => (pressed ? { opacity: 0.8 } : undefined)}
+              className="flex-row items-center justify-center gap-2 py-4 rounded-2xl bg-[#7D2AE8]">
+              {signingIn ? <ActivityIndicator size="small" color="#fff" /> : <User size={16} color="#fff" />}
+              <Text className="text-sm font-black uppercase tracking-wider text-white">
+                {signingIn ? 'Signing in...' : 'Sign In with Google'}
+              </Text>
             </Pressable>
           )}
         </View>
