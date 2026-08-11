@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, LogOut, ChevronRight, Edit3, Check } from 'lucide-react-native';
+import { User, LogOut, ChevronRight, Edit3, Check, ShieldCheck } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { useApp } from '../../lib/context/AppContext';
 
 const HEIGHT_OPTIONS = ["6'0", "6'1", "6'2", "6'3", "6'4", "6'5", "6'6+"];
 const BODY_TYPES = ['Athletic', 'Lean', 'Broad', 'Heavy'] as const;
 
 export default function ProfileScreen() {
-  const { user, logout, loginWithGoogle, height, setHeight, bodyType, setBodyType, savedProductIds } = useApp();
+  const { user, logout, loginWithGoogle, isAdmin, height, setHeight, bodyType, setBodyType, savedProductIds } = useApp();
   const [editingHeight, setEditingHeight] = useState(false);
   const [editingBody,   setEditingBody]   = useState(false);
   const [signingIn, setSigningIn] = useState(false);
@@ -134,6 +135,26 @@ export default function ProfileScreen() {
                 <Text className="text-sm font-black text-[#112133]">{user.user_metadata.full_name}</Text>
               </View>
             )}
+          </View>
+        )}
+
+        {/* Admin access */}
+        {user && isAdmin && (
+          <View className="mx-4 mt-4 bg-[#7D2AE8]/10 border border-[#7D2AE8]/20 rounded-3xl p-5">
+            <View className="flex-row items-center gap-2 mb-1.5">
+              <View className="w-2 h-2 bg-[#7D2AE8] rounded-full" />
+              <Text className="text-xs font-black uppercase tracking-wider text-[#7D2AE8]">Admin Privileges Unlocked</Text>
+            </View>
+            <Text className="text-xs text-[#112133]/70 leading-relaxed mb-4">
+              You're signed in as an administrator. Add, edit, or remove products, manage catalogs, and toggle stock.
+            </Text>
+            <Pressable onPress={() => router.push('/admin')}
+              android_ripple={{ color: 'rgba(255,255,255,0.25)' }}
+              style={({ pressed }) => (pressed ? { opacity: 0.85 } : undefined)}
+              className="flex-row items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#7D2AE8]">
+              <ShieldCheck size={15} color="#fff" />
+              <Text className="text-xs font-black uppercase tracking-wider text-white">Enter Admin Panel</Text>
+            </Pressable>
           </View>
         )}
 
