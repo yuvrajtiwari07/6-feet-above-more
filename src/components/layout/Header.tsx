@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Ruler, Heart, Sparkles, Search, User, ChevronDown } from 'lucide-react';
+import { supabase } from '../../supabase';
+import { Ruler, Heart, Sparkles, Search, User, ChevronDown, Smartphone } from 'lucide-react';
+
+const ANDROID_APK_URL = supabase.storage.from('downloads').getPublicUrl('6feetabove-more.apk').data.publicUrl;
 
 export const Header: React.FC = () => {
   const { height, setHeight, navigate, savedProductIds, savedFitIds, route, user } = useApp();
@@ -50,7 +53,7 @@ export const Header: React.FC = () => {
             Translate Search
           </button>
           
-          <button 
+          <button
             onClick={() => navigate('catalog-categories')}
             className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#D5A021] transition ${route.current === 'catalog-categories' || route.current === 'catalog-list' || route.current === 'catalog-detail' ? 'text-[#D5A021]' : ''}`}
             id="desktop-catalogs-btn"
@@ -59,6 +62,18 @@ export const Header: React.FC = () => {
             Catalogs
           </button>
         </div>
+
+        {/* Android App Download */}
+        <a
+          href={ANDROID_APK_URL}
+          download
+          className="flex items-center justify-center gap-1.5 bg-black hover:bg-[#D5A021] text-white text-[11px] font-grotesk font-black uppercase tracking-wider px-2.5 sm:px-3 py-2 rounded-xl border border-black shadow-sm transition shrink-0"
+          id="header-download-app-btn"
+          title="Download the Android app (APK)"
+        >
+          <Smartphone size={14} className="text-[#FFD43B]" />
+          <span className="hidden sm:inline">Download App</span>
+        </a>
 
         {/* Global Controls */}
         <div className="flex items-center gap-3">
