@@ -5,6 +5,7 @@ import { CatalogCategory } from '../types';
 function rowToCategory(row: any): CatalogCategory {
   return {
     id:          row.id,
+    vertical:    row.vertical ?? 'fashion',
     name:        row.name,
     slug:        row.slug,
     description: row.description,
@@ -16,7 +17,16 @@ function rowToCategory(row: any): CatalogCategory {
 }
 
 export const catalogCategoryRepository = {
-  async findAll(): Promise<CatalogCategory[]> {
+  async findAll(filters?: { vertical?: string }): Promise<CatalogCategory[]> {
+    if (filters?.vertical) {
+      const rows = await query(
+        `SELECT * FROM catalog_categories
+          WHERE COALESCE(vertical, 'fashion') = LOWER($1)
+          ORDER BY sort_order ASC, name ASC`,
+        [filters.vertical]
+      );
+      return rows.map(rowToCategory);
+    }
     const rows = await query('SELECT * FROM catalog_categories ORDER BY sort_order ASC, name ASC');
     return rows.map(rowToCategory);
   },
@@ -28,10 +38,11 @@ export const catalogCategoryRepository = {
 
   async create(data: Omit<CatalogCategory, 'id' | 'createdAt'>): Promise<CatalogCategory> {
     const rows = await query(
-      `INSERT INTO catalog_categories (name, slug, description, cover_image, sort_order, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO catalog_categories (name, slug, description, cover_image, sort_order, is_active, vertical)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [data.name, data.slug, data.description ?? null, data.coverImage ?? null, data.sortOrder, data.isActive]
+      [data.name, data.slug, data.description ?? null, data.coverImage ?? null,
+       data.sortOrder, data.isActive, data.vertical ?? 'fashion']
     );
     return rowToCategory(rows[0]);
   },
@@ -40,6 +51,7 @@ export const catalogCategoryRepository = {
     const fieldMap: Record<string, string> = {
       name: 'name', slug: 'slug', description: 'description',
       coverImage: 'cover_image', sortOrder: 'sort_order', isActive: 'is_active',
+      vertical: 'vertical',
     };
     const setClauses: string[] = [];
     const params: any[] = [];

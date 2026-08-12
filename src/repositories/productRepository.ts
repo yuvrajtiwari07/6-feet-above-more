@@ -20,6 +20,7 @@ export function cleanUrl(urlStr: string): string {
 function rowToProduct(row: any): Product {
   return {
     id:                  row.id,
+    vertical:            row.vertical ?? 'fashion',
     brand:               row.brand,
     title:               row.title,
     category:            row.category,
@@ -49,16 +50,23 @@ function rowToProduct(row: any): Product {
     tags:                row.tags ?? [],
     discountPercent:     Number(row.discount_percent ?? 0),
     isFeatured:          row.is_featured,
-    // Tall-fit curation fields
+    // Tall-fit curation fields (fashion)
     tallFriendly:        row.tall_friendly ?? true,
     heightRanges:        row.height_ranges ?? [],
     bodyTypes:           row.body_types ?? [],
     fitHighlights:       row.fit_highlights ?? [],
+    // Wellness curation fields
+    form:                row.form ?? '',
+    netQuantity:         row.net_quantity ?? '',
+    concerns:            row.concerns ?? [],
+    keyIngredients:      row.key_ingredients ?? [],
+    dietTags:            row.diet_tags ?? [],
   };
 }
 
 export const productRepository = {
   async findAll(filters?: {
+    vertical?: string;
     category?: string;
     brand?: string;
     search?: string;
@@ -70,6 +78,10 @@ export const productRepository = {
     const params: any[] = [];
     let idx = 1;
 
+    if (filters?.vertical) {
+      where += ` AND COALESCE(vertical, 'fashion') = LOWER($${idx++})`;
+      params.push(filters.vertical);
+    }
     if (filters?.category) {
       where += ` AND (LOWER(category) = LOWER($${idx}) OR $${idx} = ANY(SELECT LOWER(unnest(categories))))`;
       params.push(filters.category);
@@ -124,10 +136,12 @@ export const productRepository = {
         verification_badges, merchant_links, reviews_count,
         average_rating, measurements, verdicts,
         material, tags, discount_percent, is_featured,
-        tall_friendly, height_ranges, body_types, fit_highlights
+        tall_friendly, height_ranges, body_types, fit_highlights,
+        vertical, form, net_quantity, concerns, key_ingredients, diet_tags
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
-        $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34
+        $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,
+        $35,$36,$37,$38,$39,$40
       )
       ON CONFLICT (id) DO UPDATE SET
         brand = EXCLUDED.brand, title = EXCLUDED.title,
@@ -147,6 +161,8 @@ export const productRepository = {
       p.isFeatured ?? false,
       p.tallFriendly ?? true, p.heightRanges ?? [], p.bodyTypes ?? [],
       p.fitHighlights ?? [],
+      p.vertical ?? 'fashion', p.form ?? null, p.netQuantity ?? null,
+      p.concerns ?? [], p.keyIngredients ?? [], p.dietTags ?? [],
     ];
     const rows = await query(text, params);
     return rowToProduct(rows[0]);
@@ -170,6 +186,8 @@ export const productRepository = {
       isFeatured: 'is_featured',
       tallFriendly: 'tall_friendly', heightRanges: 'height_ranges',
       bodyTypes: 'body_types', fitHighlights: 'fit_highlights',
+      vertical: 'vertical', form: 'form', netQuantity: 'net_quantity',
+      concerns: 'concerns', keyIngredients: 'key_ingredients', dietTags: 'diet_tags',
     };
 
     const jsonbFields = new Set(['merchantLinks', 'measurements', 'verdicts']);

@@ -85,6 +85,7 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onBulkSaveDone }) =>
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  const [vertical, setVertical] = useState<'fashion' | 'wellness'>('fashion');
   const [runStatus, setRunStatus] = useState<RunStatus>('idle');
   const [urlStatuses, setUrlStatuses] = useState<Map<string, 'pending' | 'processing' | 'done' | 'error'>>(new Map());
   const [results, setResults] = useState<BulkImportResult[]>([]);
@@ -169,7 +170,7 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onBulkSaveDone }) =>
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify({ urls: batch }),
+          body: JSON.stringify({ urls: batch, vertical }),
         });
 
         const body = await res.json();
@@ -248,6 +249,35 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onBulkSaveDone }) =>
           </button>
         </div>
 
+        {/* ── Storefront picker — decides how every URL in this run is curated ── */}
+        {runStatus === 'idle' && (
+          <div className="px-7 pt-5">
+            <span className="text-[10px] text-black/45 font-black uppercase tracking-wider block mb-2">
+              Import all of these into
+            </span>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {([
+                { key: 'fashion' as const, label: 'Fashion', hint: '6ft+ tall fit' },
+                { key: 'wellness' as const, label: 'Nutrition & Health', hint: 'For everyone' },
+              ]).map(v => (
+                <button
+                  key={v.key}
+                  onClick={() => setVertical(v.key)}
+                  className={`flex-1 text-left px-4 py-2.5 rounded-xl border-2 transition-all ${
+                    vertical === v.key
+                      ? 'bg-[#7D2AE8] border-[#7D2AE8] text-white'
+                      : 'bg-white border-black/15 text-black/70 hover:border-[#7D2AE8]/50'
+                  }`}
+                  id={`bulk-vertical-${v.key}`}
+                >
+                  <span className="block text-xs font-black uppercase tracking-wider">{v.label}</span>
+                  <span className={`block text-[10px] ${vertical === v.key ? 'text-white/70' : 'text-black/45'}`}>{v.hint}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Tabs ── */}
         {runStatus === 'idle' && (
           <div className="flex border-b border-black/8 px-7 pt-4">
@@ -279,7 +309,9 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onBulkSaveDone }) =>
           {runStatus === 'idle' && activeTab === 'text' && (
             <div className="space-y-3">
               <p className="text-xs text-black/50 font-sans">
-                Paste product URLs separated by <strong>commas</strong> or <strong>new lines</strong>. Supports any retailer (AJIO, Myntra, Zara, H&M, Snitch, etc.)
+                Paste product URLs separated by <strong>commas</strong> or <strong>new lines</strong>. {vertical === 'wellness'
+                  ? 'Supports any wellness retailer (Nutrabay, The Derma Co, Kapiva, MuscleBlaze, Netmeds, etc.)'
+                  : 'Supports any retailer (AJIO, Myntra, Zara, H&M, Snitch, etc.)'}
               </p>
               <textarea
                 id="bulk-text-input"

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Pencil, Trash2, LayoutGrid, X } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useApp } from '../../lib/context/AppContext';
-import { CatalogCategory } from '../../lib/types';
+import { CatalogCategory, Vertical } from '../../lib/types';
 
 const FieldLabel: React.FC<{ children: string }> = ({ children }) => (
   <Text className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-1.5 mt-3">{children}</Text>
@@ -15,7 +15,7 @@ const Input: React.FC<React.ComponentProps<typeof TextInput>> = (props) => (
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
 
 export default function CatalogCategoriesAdminScreen() {
-  const { catalogCategories, addCatalogCategory, updateCatalogCategory, deleteCatalogCategory, refreshCatalogs } = useApp();
+  const { allCatalogCategories: catalogCategories, addCatalogCategory, updateCatalogCategory, deleteCatalogCategory, refreshCatalogs } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
 
@@ -26,6 +26,7 @@ export default function CatalogCategoriesAdminScreen() {
   const [coverImage, setCoverImage] = useState('');
   const [sortOrder, setSortOrder] = useState('0');
   const [isActive, setIsActive] = useState(true);
+  const [vertical, setVertical] = useState<Vertical>('fashion');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function CatalogCategoriesAdminScreen() {
   const openNew = () => {
     setEditId(null);
     setName(''); setSlug(''); setSlugTouched(false); setDescription(''); setCoverImage(''); setSortOrder('0'); setIsActive(true);
+    setVertical('fashion');
     setShowForm(true);
   };
 
@@ -43,6 +45,7 @@ export default function CatalogCategoriesAdminScreen() {
     setEditId(c.id);
     setName(c.name); setSlug(c.slug); setSlugTouched(true); setDescription(c.description ?? '');
     setCoverImage(c.coverImage ?? ''); setSortOrder(String(c.sortOrder)); setIsActive(c.isActive);
+    setVertical(c.vertical === 'wellness' ? 'wellness' : 'fashion');
     setShowForm(true);
   };
 
@@ -57,6 +60,7 @@ export default function CatalogCategoriesAdminScreen() {
         coverImage: coverImage.trim() || undefined,
         sortOrder: Number(sortOrder) || 0,
         isActive,
+        vertical,
       };
       if (editId) await updateCatalogCategory(editId, payload);
       else await addCatalogCategory(payload);
@@ -98,6 +102,31 @@ export default function CatalogCategoriesAdminScreen() {
           <View className="flex-row items-center justify-between mb-1">
             <Text className="text-xs font-black uppercase text-[#112133]">{editId ? 'Edit Category' : 'New Category'}</Text>
             <Pressable onPress={() => setShowForm(false)}><X size={16} color="#112133" /></Pressable>
+          </View>
+
+          <FieldLabel>Storefront</FieldLabel>
+          <View className="flex-row gap-2">
+            {([
+              { key: 'fashion' as Vertical, label: 'Fashion' },
+              { key: 'wellness' as Vertical, label: 'Nutrition & Health' },
+            ]).map(v => {
+              const active = vertical === v.key;
+              return (
+                <Pressable
+                  key={v.key}
+                  onPress={() => setVertical(v.key)}
+                  className="flex-1 rounded-xl border-2 px-3 py-2.5 items-center"
+                  style={{
+                    backgroundColor: active ? '#7D2AE8' : '#FFFFFF',
+                    borderColor: active ? '#7D2AE8' : 'rgba(0,0,0,0.12)',
+                  }}
+                >
+                  <Text className="text-[10px] font-black uppercase tracking-wider" style={{ color: active ? '#fff' : '#112133' }}>
+                    {v.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
           <FieldLabel>Name</FieldLabel>

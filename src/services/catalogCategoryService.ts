@@ -13,8 +13,8 @@ function validate(data: Partial<CatalogCategory>): string | null {
 }
 
 export const catalogCategoryService = {
-  async getAll(): Promise<CatalogCategory[]> {
-    return catalogCategoryRepository.findAll();
+  async getAll(filters?: { vertical?: string }): Promise<CatalogCategory[]> {
+    return catalogCategoryRepository.findAll({ vertical: filters?.vertical });
   },
 
   async getById(id: string): Promise<CatalogCategory | null> {
@@ -33,6 +33,7 @@ export const catalogCategoryService = {
         coverImage:  data.coverImage?.trim(),
         sortOrder:   data.sortOrder ?? 0,
         isActive:    data.isActive ?? true,
+        vertical:    data.vertical === 'wellness' ? 'wellness' : 'fashion',
       }),
     };
   },
@@ -48,6 +49,7 @@ export const catalogCategoryService = {
     if (data.coverImage !== undefined)  updates.coverImage  = data.coverImage;
     if (data.sortOrder !== undefined)   updates.sortOrder   = data.sortOrder;
     if (data.isActive !== undefined)    updates.isActive    = data.isActive;
+    if (data.vertical !== undefined)    updates.vertical    = data.vertical === 'wellness' ? 'wellness' : 'fashion';
     return { category: await catalogCategoryRepository.update(id, updates) };
   },
 

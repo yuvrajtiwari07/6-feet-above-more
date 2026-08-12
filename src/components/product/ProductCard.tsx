@@ -89,11 +89,28 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) 
     navigate('product', { productId: product.id });
   };
 
-  const recommendation = getProductRecommendation(product.verdicts, height, bodyType);
+  const isWellnessProduct = (product.vertical ?? 'fashion') === 'wellness';
+  const recommendation = isWellnessProduct
+    ? null
+    : getProductRecommendation(product.verdicts, height, bodyType);
 
   // Helper method to display badges with high editorial styling
   const renderDifferentiatorBadge = () => {
     const isSm = cardSize === 'small';
+
+    if (isWellnessProduct) {
+      const label = product.dietTags?.[0] || product.form || product.productType || 'Wellness';
+      return (
+        <div className={
+          isSm
+            ? 'flex items-center gap-1 bg-[#0E7C5A] text-white font-grotesk font-bold text-[8px] tracking-wider uppercase px-2 py-0.5 rounded-md'
+            : 'flex items-center gap-1.5 bg-[#0E7C5A] text-white font-grotesk font-bold text-[9px] tracking-widest uppercase px-3 py-1 rounded-full'
+        }>
+          {label}
+        </div>
+      );
+    }
+
     if (!recommendation) {
       return (
         <div className={
@@ -240,7 +257,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) 
           </span>
           {!isSm && (
             <span className="text-[9px] font-black font-grotesk tracking-widest text-white bg-black/85 px-2.5 py-1 rounded">
-              FIT SPEC AUDITED
+              {isWellnessProduct ? 'LABEL CHECKED' : 'FIT SPEC AUDITED'}
             </span>
           )}
         </div>
@@ -254,7 +271,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) 
               {product.brand}
             </span>
             <span className={`text-white ${isSm ? 'text-[8.5px] px-1.5 py-0.5' : 'text-[10px] px-2'} font-mono bg-black font-bold rounded uppercase`}>
-              {product.fitType}
+              {isWellnessProduct ? (product.netQuantity || product.form || product.productType) : product.fitType}
             </span>
           </div>
  
@@ -284,14 +301,24 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) 
  
           {/* Dynamic Verdict text strip */}
           <div className={`bg-[#FAF9F6] border border-black/5 ${isSm ? 'rounded-xl p-1.5 mb-2.5' : 'rounded-2xl p-3 mb-4'}`}>
-            <div className="flex items-center gap-1.5 text-[#D5A021] text-[9px] font-black font-grotesk mb-0.5">
-              <div className="w-1 h-1 rounded-full bg-[#D5A021]" />
-              <span>{isSm ? `${height} FIT` : `${height} TALL VERDICT`}</span>
+            <div className={`flex items-center gap-1.5 text-[9px] font-black font-grotesk mb-0.5 ${isWellnessProduct ? 'text-[#0E7C5A]' : 'text-[#D5A021]'}`}>
+              <div className={`w-1 h-1 rounded-full ${isWellnessProduct ? 'bg-[#0E7C5A]' : 'bg-[#D5A021]'}`} />
+              <span>
+                {isWellnessProduct
+                  ? (product.concerns?.length ? 'HELPS WITH' : 'WHAT’S INSIDE')
+                  : (isSm ? `${height} FIT` : `${height} TALL VERDICT`)}
+              </span>
             </div>
             <p className={`text-black/70 font-sans ${isSm ? 'text-[9.5px] leading-snug line-clamp-1' : 'text-xs leading-relaxed line-clamp-2'}`}>
-              {recommendation 
-                ? `Verified as ${recommendation.fitRecommendation} for your profile.` 
-                : "Optimized torso length & wide shoulder-cuts prevent standard ride-up."}
+              {isWellnessProduct
+                ? (product.concerns?.length
+                    ? product.concerns.slice(0, 3).join(' · ')
+                    : product.keyIngredients?.length
+                      ? product.keyIngredients.slice(0, 3).join(' · ')
+                      : `${product.productType}${product.netQuantity ? ` · ${product.netQuantity}` : ''}`)
+                : recommendation
+                  ? `Verified as ${recommendation.fitRecommendation} for your profile.`
+                  : 'Optimized torso length & wide shoulder-cuts prevent standard ride-up.'}
             </p>
           </div>
         </div>
@@ -304,7 +331,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) 
             className={`col-span-2 text-center text-black bg-[#F5F5F7] hover:bg-black hover:text-white rounded-xl font-grotesk font-black tracking-wider transition uppercase border border-black/10 ${isSm ? 'py-1.5 text-[9px]' : 'py-3 text-xs'}`}
             id={`details-btn-${product.id}`}
           >
-            Sizing
+            {isWellnessProduct ? 'Details' : 'Sizing'}
           </button>
           
           {/* Shop Affiliate Link */}

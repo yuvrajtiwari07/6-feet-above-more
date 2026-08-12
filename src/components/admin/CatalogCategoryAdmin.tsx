@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { CatalogCategory } from '../../types';
+import { CatalogCategory, Vertical } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { Plus, Edit2, Trash2, Globe, FileText, CheckCircle, XCircle } from 'lucide-react';
 
 export const CatalogCategoryAdmin: React.FC = () => {
-  const { catalogCategories, addCatalogCategory, updateCatalogCategory, deleteCatalogCategory } = useApp();
+  const { allCatalogCategories: catalogCategories, addCatalogCategory, updateCatalogCategory, deleteCatalogCategory } = useApp();
 
   // Form states
   const [showForm, setShowForm] = useState(false);
@@ -15,6 +15,7 @@ export const CatalogCategoryAdmin: React.FC = () => {
   const [coverImage, setCoverImage] = useState('');
   const [sortOrder, setSortOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
+  const [vertical, setVertical] = useState<Vertical>('fashion');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -27,6 +28,7 @@ export const CatalogCategoryAdmin: React.FC = () => {
     setCoverImage('');
     setSortOrder(0);
     setIsActive(true);
+    setVertical('fashion');
     setError('');
     setShowForm(true);
   };
@@ -39,6 +41,7 @@ export const CatalogCategoryAdmin: React.FC = () => {
     setCoverImage(cat.coverImage || '');
     setSortOrder(cat.sortOrder);
     setIsActive(cat.isActive);
+    setVertical(cat.vertical === 'wellness' ? 'wellness' : 'fashion');
     setError('');
     setShowForm(true);
   };
@@ -71,6 +74,7 @@ export const CatalogCategoryAdmin: React.FC = () => {
       coverImage: coverImage.trim() || undefined,
       sortOrder: Number(sortOrder),
       isActive,
+      vertical,
     };
 
     try {
@@ -143,6 +147,20 @@ export const CatalogCategoryAdmin: React.FC = () => {
                 required
                 className="px-3.5 py-2.5 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs"
               />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-black uppercase text-black/55 tracking-wider">
+                Storefront
+              </label>
+              <select
+                value={vertical}
+                onChange={e => setVertical(e.target.value as Vertical)}
+                className="px-3.5 py-2.5 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold bg-white"
+              >
+                <option value="fashion">Fashion (6ft+)</option>
+                <option value="wellness">Nutrition &amp; Health</option>
+              </select>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -255,7 +273,14 @@ export const CatalogCategoryAdmin: React.FC = () => {
             <tbody className="divide-y divide-black/5">
               {catalogCategories.map(cat => (
                 <tr key={cat.id} className="hover:bg-black/[0.01]">
-                  <td className="p-4 font-mono font-bold text-black/40">{cat.sortOrder}</td>
+                  <td className="p-4 font-mono font-bold text-black/40">
+                    {cat.sortOrder}
+                    <span className={`block mt-1 text-[8px] font-black uppercase tracking-widest ${
+                      cat.vertical === 'wellness' ? 'text-[#0E7C5A]' : 'text-[#7D2AE8]'
+                    }`}>
+                      {cat.vertical === 'wellness' ? 'Wellness' : 'Fashion'}
+                    </span>
+                  </td>
                   <td className="p-4 font-bold flex items-center gap-3">
                     {cat.coverImage ? (
                       <img

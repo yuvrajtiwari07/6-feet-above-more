@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { ProductCard, ProductCardSkeleton } from '../components/product/ProductCard';
 import { GridDensitySelector } from '../components/layout/GridDensitySelector';
-import { Sparkles, Info, SlidersHorizontal, Shirt, ArrowRight, Compass } from 'lucide-react';
+import { Sparkles, Info, SlidersHorizontal, Shirt, ArrowRight, Compass, Leaf } from 'lucide-react';
 import { motion } from 'motion/react';
+import { WELLNESS_CATEGORIES, getWellnessCategory } from '../data/wellness';
 
 // Definitions for Category Immersion styling variables
 interface CategoryTheme {
@@ -64,6 +65,19 @@ const CATEGORY_THEMES: Record<string, CategoryTheme> = {
   }
 };
 
+// Wellness aisles get their own immersive themes, derived from the shared taxonomy.
+WELLNESS_CATEGORIES.forEach(cat => {
+  CATEGORY_THEMES[cat.name.toLowerCase()] = {
+    bg: 'bg-[#F7FAF8]',
+    cardBg: 'bg-white',
+    text: 'text-[#112133]',
+    accent: cat.bg,
+    accentText: 'text-[#0E7C5A]',
+    moodLabel: `CURATOR SPEC: ${cat.name.toUpperCase()}`,
+    tagline: cat.desc,
+  };
+});
+
 const DEFAULT_THEME: CategoryTheme = {
   bg: 'bg-[#FAF9F6]',
   cardBg: 'bg-white',
@@ -77,9 +91,9 @@ const DEFAULT_THEME: CategoryTheme = {
 const PAGE_SIZE = 24;
 
 export const Category: React.FC = () => {
-  const { route, height, heightBand, navigate, cardSize, products, loadingProducts } = useApp();
+  const { route, height, heightBand, navigate, cardSize, products, loadingProducts, isWellness } = useApp();
 
-  const activeCategory = route.params?.categoryName || 'Streetwear';
+  const activeCategory = route.params?.categoryName || (isWellness ? WELLNESS_CATEGORIES[0].name : 'Streetwear');
   const categoryKey = activeCategory.toLowerCase();
 
   // Pick up immersive theme configurations
@@ -91,6 +105,12 @@ export const Category: React.FC = () => {
   // Filter products by main category (supporting both primary category and categories array with string normalization)
   const baseProducts = products.filter(p => {
     if (p.outOfStock) return false;
+
+    if (isWellness) {
+      const target = categoryKey;
+      return (p.category || '').toLowerCase() === target
+        || (p.categories ?? []).some(c => (c || '').toLowerCase() === target);
+    }
     
     const normalize = (name: string) => {
       if (!name) return '';
@@ -110,7 +130,9 @@ export const Category: React.FC = () => {
   });
 
   // Derive unique subcategories from the filtered range
-  const subCategories: string[] = ['All', ...Array.from(new Set(baseProducts.map(p => p.subCategory).filter(Boolean) as string[]))];
+  const subCategories: string[] = ['All', ...Array.from(new Set(
+    baseProducts.map(p => (isWellness ? p.productType : p.subCategory)).filter(Boolean) as string[]
+  ))];
 
   // Reset inner filters if user changes main category
   useEffect(() => {
@@ -120,7 +142,7 @@ export const Category: React.FC = () => {
   // Final filtered list based on subcategory chip selection
   const displayedProducts = selectedSubCat === 'All'
     ? baseProducts
-    : baseProducts.filter(p => p.subCategory === selectedSubCat);
+    : baseProducts.filter(p => (isWellness ? p.productType : p.subCategory) === selectedSubCat);
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -149,14 +171,16 @@ export const Category: React.FC = () => {
   const visibleProducts = displayedProducts.slice(0, visibleCount);
 
   // Render Category switching pills to stay highly immersive
-  const navigationBubbles = [
-    { name: 'Streetwear', icon: '⚡' },
-    { name: 'Formals', icon: '👔' },
-    { name: 'Ethnic Wear', icon: '🔱' },
-    { name: 'Summer', icon: '🌴' },
-    { name: 'Winter', icon: '❄️' },
-    { name: 'Sneakers', icon: '👟' }
-  ];
+  const navigationBubbles = isWellness
+    ? WELLNESS_CATEGORIES.map(c => ({ name: c.name, icon: c.icon }))
+    : [
+      { name: 'Streetwear', icon: '⚡' },
+      { name: 'Formals', icon: '👔' },
+      { name: 'Ethnic Wear', icon: '🔱' },
+      { name: 'Summer', icon: '🌴' },
+      { name: 'Winter', icon: '❄️' },
+      { name: 'Sneakers', icon: '👟' }
+    ];
 
   return (
     <div className={`min-h-screen py-10 transition-colors duration-700 ${theme.bg}`}>
@@ -197,7 +221,10 @@ export const Category: React.FC = () => {
               {activeCategory}
             </h1>
             <p className={`text-xs md:text-sm leading-relaxed opacity-75 ${theme.text}`}>
-              {theme.tagline} Currently optimized for your selected <span className="underline font-bold text-[#7D2AE8]">{height}" Height</span>.
+              {theme.tagline}
+              {!isWellness && (
+                <> Currently optimized for your selected <span className="underline font-bold text-[#7D2AE8]">{height}" Height</span>.</>
+              )}
             </p>
           </div>
 
@@ -206,10 +233,12 @@ export const Category: React.FC = () => {
             <Info className="text-[#7D2AE8] shrink-0" size={18} />
             <div className="text-left text-[#112133]">
               <h4 className="font-grotesk font-black text-[11.5px] uppercase tracking-wider text-[#7D2AE8]">
-                Tall Fit Assurance
+                {isWellness ? 'What\u2019s Inside Matters' : 'Tall Fit Assurance'}
               </h4>
               <p className="text-[10.5px] text-[#112133]/70 leading-relaxed font-sans">
-                Measured in actual chest & shoulder ratios compared to India average models. Click specs for CM data.
+                {isWellness
+                  ? 'Every listing carries its form, pack size and key ingredients. Not medicine \u2014 check with a doctor before starting anything new.'
+                  : 'Measured in actual chest & shoulder ratios compared to India average models. Click specs for CM data.'}
               </p>
             </div>
           </div>
@@ -299,12 +328,16 @@ export const Category: React.FC = () => {
           </>
         ) : (
           <div className="bg-[#112133]/5 border border-[#112133]/10 rounded-[30px] p-16 text-center max-w-lg mx-auto my-12">
-            <Shirt size={48} className="text-[#112133]/20 mx-auto mb-4 animate-bounce" />
+            {isWellness
+              ? <Leaf size={48} className="text-[#0E7C5A]/25 mx-auto mb-4 animate-bounce" />
+              : <Shirt size={48} className="text-[#112133]/20 mx-auto mb-4 animate-bounce" />}
             <h3 className="text-[#112133] font-display text-2xl uppercase tracking-wider font-bold mb-2">
-              Expanding Wardrobes
+              {isWellness ? 'Stocking The Shelf' : 'Expanding Wardrobes'}
             </h3>
             <p className="text-[#112133]/60 text-xs leading-relaxed max-w-xs mx-auto mb-6">
-              Our fashion architects are currently human-verifying apparel in {activeCategory} right now. Click home or search to explore.
+              {isWellness
+                ? `We are still curating ${activeCategory}. Try another aisle, or browse the full store.`
+                : `Our fashion architects are currently human-verifying apparel in ${activeCategory} right now. Click home or search to explore.`}
             </p>
             <button 
               onClick={() => navigate('home')}

@@ -10,9 +10,12 @@ const router = Router();
 // ── Catalog Categories ────────────────────────────────────────
 
 // GET /api/catalogs/categories — public, list all active
-router.get('/categories', async (_req: Request, res: Response) => {
+router.get('/categories', async (req: Request, res: Response) => {
   try {
-    const categories = await catalogCategoryService.getAll();
+    const { vertical } = req.query;
+    const categories = await catalogCategoryService.getAll({
+      vertical: vertical === 'fashion' || vertical === 'wellness' ? vertical : undefined,
+    });
     res.json({ success: true, categories });
   } catch (err: any) {
     console.error('[CatalogController] GET /categories error:', err);
@@ -62,8 +65,11 @@ router.delete('/categories/:id', requireAuth, requireAdmin, async (req: Request,
 // GET /api/catalogs?admin=true — admin, list all (auth required)
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { category } = req.query;
-    const catalogs = await catalogService.getAll({ category: category as string | undefined });
+    const { category, vertical } = req.query;
+    const catalogs = await catalogService.getAll({
+      category: category as string | undefined,
+      vertical: vertical === 'fashion' || vertical === 'wellness' ? vertical : undefined,
+    });
     res.json({ success: true, catalogs });
   } catch (err: any) {
     console.error('[CatalogController] GET /catalogs error:', err);

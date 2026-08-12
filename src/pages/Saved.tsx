@@ -6,7 +6,7 @@ import { FitCard } from '../components/fits/FitCard';
 import { Heart, Sparkles, Shirt, Compass } from 'lucide-react';
 
 export const Saved: React.FC = () => {
-  const { savedProductIds, savedFitIds, navigate, height, products } = useApp();
+  const { savedProductIds, savedFitIds, navigate, height, allProducts: products } = useApp();
 
   // Pick up full models
   const savedProducts = products.filter(p => savedProductIds.includes(p.id));

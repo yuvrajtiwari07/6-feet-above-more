@@ -64,6 +64,7 @@ function cleanUrl(urlStr) {
 function rowToProduct(row) {
   return {
     id: row.id,
+    vertical: row.vertical ?? "fashion",
     brand: row.brand,
     title: row.title,
     category: row.category,
@@ -93,11 +94,17 @@ function rowToProduct(row) {
     tags: row.tags ?? [],
     discountPercent: Number(row.discount_percent ?? 0),
     isFeatured: row.is_featured,
-    // Tall-fit curation fields
+    // Tall-fit curation fields (fashion)
     tallFriendly: row.tall_friendly ?? true,
     heightRanges: row.height_ranges ?? [],
     bodyTypes: row.body_types ?? [],
-    fitHighlights: row.fit_highlights ?? []
+    fitHighlights: row.fit_highlights ?? [],
+    // Wellness curation fields
+    form: row.form ?? "",
+    netQuantity: row.net_quantity ?? "",
+    concerns: row.concerns ?? [],
+    keyIngredients: row.key_ingredients ?? [],
+    dietTags: row.diet_tags ?? []
   };
 }
 var productRepository = {
@@ -105,6 +112,10 @@ var productRepository = {
     let where = "WHERE 1=1";
     const params = [];
     let idx = 1;
+    if (filters?.vertical) {
+      where += ` AND COALESCE(vertical, 'fashion') = LOWER($${idx++})`;
+      params.push(filters.vertical);
+    }
     if (filters?.category) {
       where += ` AND (LOWER(category) = LOWER($${idx}) OR $${idx} = ANY(SELECT LOWER(unnest(categories))))`;
       params.push(filters.category);
@@ -154,10 +165,12 @@ var productRepository = {
         verification_badges, merchant_links, reviews_count,
         average_rating, measurements, verdicts,
         material, tags, discount_percent, is_featured,
-        tall_friendly, height_ranges, body_types, fit_highlights
+        tall_friendly, height_ranges, body_types, fit_highlights,
+        vertical, form, net_quantity, concerns, key_ingredients, diet_tags
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
-        $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34
+        $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,
+        $35,$36,$37,$38,$39,$40
       )
       ON CONFLICT (id) DO UPDATE SET
         brand = EXCLUDED.brand, title = EXCLUDED.title,
@@ -198,7 +211,13 @@ var productRepository = {
       p.tallFriendly ?? true,
       p.heightRanges ?? [],
       p.bodyTypes ?? [],
-      p.fitHighlights ?? []
+      p.fitHighlights ?? [],
+      p.vertical ?? "fashion",
+      p.form ?? null,
+      p.netQuantity ?? null,
+      p.concerns ?? [],
+      p.keyIngredients ?? [],
+      p.dietTags ?? []
     ];
     const rows = await query(text, params);
     return rowToProduct(rows[0]);
@@ -237,7 +256,13 @@ var productRepository = {
       tallFriendly: "tall_friendly",
       heightRanges: "height_ranges",
       bodyTypes: "body_types",
-      fitHighlights: "fit_highlights"
+      fitHighlights: "fit_highlights",
+      vertical: "vertical",
+      form: "form",
+      netQuantity: "net_quantity",
+      concerns: "concerns",
+      keyIngredients: "key_ingredients",
+      dietTags: "diet_tags"
     };
     const jsonbFields = /* @__PURE__ */ new Set(["merchantLinks", "measurements", "verdicts"]);
     const setClauses = [];
@@ -302,8 +327,10 @@ function validateProduct(p) {
   return null;
 }
 function sanitizeProduct(p) {
+  const vertical = p.vertical === "wellness" ? "wellness" : "fashion";
   return {
     ...p,
+    vertical,
     id: p.id.trim().toLowerCase(),
     brand: p.brand.trim(),
     title: p.title.trim(),
@@ -324,7 +351,15 @@ function sanitizeProduct(p) {
     tags: (p.tags ?? []).filter(Boolean),
     heightRanges: (p.heightRanges ?? []).filter(Boolean),
     bodyTypes: (p.bodyTypes ?? []).filter(Boolean),
-    fitHighlights: (p.fitHighlights ?? []).filter(Boolean)
+    fitHighlights: (p.fitHighlights ?? []).filter(Boolean),
+    // Wellness fields
+    form: p.form?.trim() ?? "",
+    netQuantity: p.netQuantity?.trim() ?? "",
+    concerns: (p.concerns ?? []).filter(Boolean),
+    keyIngredients: (p.keyIngredients ?? []).filter(Boolean),
+    dietTags: (p.dietTags ?? []).filter(Boolean),
+    // A wellness product has no fit — never let a stale tall verdict ride along.
+    ...vertical === "wellness" ? { fitType: "", verdicts: [], measurements: {}, sizes: [], tallFriendly: false, heightRanges: [], bodyTypes: [], fitHighlights: [] } : {}
   };
 }
 var productService = {
@@ -548,8 +583,9 @@ function requireAdmin(req, res, next) {
 var router = Router();
 router.get("/", async (req, res) => {
   try {
-    const { category, brand, search, featured, limit, offset } = req.query;
+    const { vertical, category, brand, search, featured, limit, offset } = req.query;
     const { products, total } = await productService.getAll({
+      vertical: vertical === "fashion" || vertical === "wellness" ? vertical : void 0,
       category,
       brand,
       search,
@@ -812,6 +848,7 @@ import { Router as Router3 } from "express";
 function rowToCategory(row) {
   return {
     id: row.id,
+    vertical: row.vertical ?? "fashion",
     name: row.name,
     slug: row.slug,
     description: row.description,
@@ -822,7 +859,16 @@ function rowToCategory(row) {
   };
 }
 var catalogCategoryRepository = {
-  async findAll() {
+  async findAll(filters) {
+    if (filters?.vertical) {
+      const rows2 = await query(
+        `SELECT * FROM catalog_categories
+          WHERE COALESCE(vertical, 'fashion') = LOWER($1)
+          ORDER BY sort_order ASC, name ASC`,
+        [filters.vertical]
+      );
+      return rows2.map(rowToCategory);
+    }
     const rows = await query("SELECT * FROM catalog_categories ORDER BY sort_order ASC, name ASC");
     return rows.map(rowToCategory);
   },
@@ -832,10 +878,18 @@ var catalogCategoryRepository = {
   },
   async create(data) {
     const rows = await query(
-      `INSERT INTO catalog_categories (name, slug, description, cover_image, sort_order, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO catalog_categories (name, slug, description, cover_image, sort_order, is_active, vertical)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [data.name, data.slug, data.description ?? null, data.coverImage ?? null, data.sortOrder, data.isActive]
+      [
+        data.name,
+        data.slug,
+        data.description ?? null,
+        data.coverImage ?? null,
+        data.sortOrder,
+        data.isActive,
+        data.vertical ?? "fashion"
+      ]
     );
     return rowToCategory(rows[0]);
   },
@@ -846,7 +900,8 @@ var catalogCategoryRepository = {
       description: "description",
       coverImage: "cover_image",
       sortOrder: "sort_order",
-      isActive: "is_active"
+      isActive: "is_active",
+      vertical: "vertical"
     };
     const setClauses = [];
     const params = [];
@@ -881,8 +936,8 @@ function validate(data) {
   return null;
 }
 var catalogCategoryService = {
-  async getAll() {
-    return catalogCategoryRepository.findAll();
+  async getAll(filters) {
+    return catalogCategoryRepository.findAll({ vertical: filters?.vertical });
   },
   async getById(id) {
     return catalogCategoryRepository.findById(id);
@@ -898,7 +953,8 @@ var catalogCategoryService = {
         description: data.description?.trim(),
         coverImage: data.coverImage?.trim(),
         sortOrder: data.sortOrder ?? 0,
-        isActive: data.isActive ?? true
+        isActive: data.isActive ?? true,
+        vertical: data.vertical === "wellness" ? "wellness" : "fashion"
       })
     };
   },
@@ -913,6 +969,7 @@ var catalogCategoryService = {
     if (data.coverImage !== void 0) updates.coverImage = data.coverImage;
     if (data.sortOrder !== void 0) updates.sortOrder = data.sortOrder;
     if (data.isActive !== void 0) updates.isActive = data.isActive;
+    if (data.vertical !== void 0) updates.vertical = data.vertical === "wellness" ? "wellness" : "fashion";
     return { category: await catalogCategoryRepository.update(id, updates) };
   },
   async delete(id) {
@@ -927,6 +984,7 @@ var catalogCategoryService = {
 function rowToCatalog(row) {
   return {
     id: row.id,
+    vertical: row.vertical ?? "fashion",
     title: row.title,
     slug: row.slug,
     description: row.description,
@@ -947,6 +1005,10 @@ var catalogRepository = {
     let text = "SELECT * FROM catalogs WHERE 1=1";
     const params = [];
     let idx = 1;
+    if (filters?.vertical) {
+      text += ` AND COALESCE(vertical, 'fashion') = LOWER($${idx++})`;
+      params.push(filters.vertical);
+    }
     if (filters?.category) {
       text += ` AND LOWER(category_name) = LOWER($${idx++})`;
       params.push(filters.category);
@@ -966,8 +1028,8 @@ var catalogRepository = {
     const rows = await query(
       `INSERT INTO catalogs
          (title, slug, description, category_id, category_name, cover_image,
-          product_ids, affiliate_url, is_published, sort_order, tags)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+          product_ids, affiliate_url, is_published, sort_order, tags, vertical)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        RETURNING *`,
       [
         data.title,
@@ -980,7 +1042,8 @@ var catalogRepository = {
         data.affiliateUrl ?? null,
         data.isPublished ?? true,
         data.sortOrder ?? 0,
-        data.tags ?? []
+        data.tags ?? [],
+        data.vertical ?? "fashion"
       ]
     );
     return rowToCatalog(rows[0]);
@@ -997,7 +1060,8 @@ var catalogRepository = {
       affiliateUrl: "affiliate_url",
       isPublished: "is_published",
       sortOrder: "sort_order",
-      tags: "tags"
+      tags: "tags",
+      vertical: "vertical"
     };
     const setClauses = [];
     const params = [];
@@ -1034,7 +1098,11 @@ function validate2(data) {
 }
 var catalogService = {
   async getAll(filters) {
-    return catalogRepository.findAll({ category: filters?.category, publishedOnly: true });
+    return catalogRepository.findAll({
+      category: filters?.category,
+      vertical: filters?.vertical,
+      publishedOnly: true
+    });
   },
   async getAllForAdmin() {
     return catalogRepository.findAll({ publishedOnly: false });
@@ -1067,7 +1135,8 @@ var catalogService = {
       affiliateUrl: data.affiliateUrl?.trim(),
       isPublished: data.isPublished ?? true,
       sortOrder: data.sortOrder ?? 0,
-      tags: data.tags ?? []
+      tags: data.tags ?? [],
+      vertical: data.vertical === "wellness" ? "wellness" : "fashion"
     });
     return { catalog };
   },
@@ -1092,9 +1161,12 @@ var catalogService = {
 
 // src/controllers/catalogController.ts
 var router3 = Router3();
-router3.get("/categories", async (_req, res) => {
+router3.get("/categories", async (req, res) => {
   try {
-    const categories = await catalogCategoryService.getAll();
+    const { vertical } = req.query;
+    const categories = await catalogCategoryService.getAll({
+      vertical: vertical === "fashion" || vertical === "wellness" ? vertical : void 0
+    });
     res.json({ success: true, categories });
   } catch (err) {
     console.error("[CatalogController] GET /categories error:", err);
@@ -1133,8 +1205,11 @@ router3.delete("/categories/:id", requireAuth, requireAdmin, async (req, res) =>
 });
 router3.get("/", async (req, res) => {
   try {
-    const { category } = req.query;
-    const catalogs = await catalogService.getAll({ category });
+    const { category, vertical } = req.query;
+    const catalogs = await catalogService.getAll({
+      category,
+      vertical: vertical === "fashion" || vertical === "wellness" ? vertical : void 0
+    });
     res.json({ success: true, catalogs });
   } catch (err) {
     console.error("[CatalogController] GET /catalogs error:", err);
@@ -2321,6 +2396,194 @@ var ImporterFactory = class _ImporterFactory {
 
 // src/expressApp.ts
 import { GoogleGenAI } from "@google/genai";
+
+// src/data/wellness.ts
+var WELLNESS_CATEGORIES = [
+  {
+    name: "Nutrition & Foods",
+    icon: "\u{1F957}",
+    desc: "Everyday food that actually does something \u2014 superfoods, nuts, health drinks & clean staples",
+    bg: "#0E7C5A",
+    text: "#FFFFFF",
+    accent: "#FFD43B",
+    types: [
+      "Protein Snack",
+      "Dry Fruits & Nuts",
+      "Health Drink",
+      "Coffee & Tea",
+      "Breakfast & Cereal",
+      "Superfood",
+      "Cooking Essentials",
+      "Functional Gum"
+    ]
+  },
+  {
+    name: "Supplements & Sports Nutrition",
+    icon: "\u{1F4AA}",
+    desc: "Protein, vitamins and performance stacks for training, recovery and daily gaps",
+    bg: "#112133",
+    text: "#FFFFFF",
+    accent: "#FFD43B",
+    types: [
+      "Whey Protein",
+      "Mass Gainer",
+      "Multivitamin",
+      "Omega & Fish Oil",
+      "Pre-Workout",
+      "Creatine",
+      "Collagen",
+      "Kids Nutrition",
+      "Gummies"
+    ]
+  },
+  {
+    name: "Ayurveda & Herbal",
+    icon: "\u{1F33F}",
+    desc: "Classical formulations \u2014 ashwagandha, chyawanprash, herbal juices and oils",
+    bg: "#5B8C2A",
+    text: "#FFFFFF",
+    accent: "#FFD43B",
+    types: [
+      "Ayurvedic Churna",
+      "Herbal Juice",
+      "Ashwagandha & Adaptogens",
+      "Chyawanprash",
+      "Herbal Tablets",
+      "Ayurvedic Oil"
+    ]
+  },
+  {
+    name: "Health Care & Diagnostics",
+    icon: "\u{1FA7A}",
+    desc: "Lab tests, full-body checkups, OTC medicine and home health devices",
+    bg: "#0B6FA4",
+    text: "#FFFFFF",
+    accent: "#FFD43B",
+    types: [
+      "Lab Test Package",
+      "Full Body Checkup",
+      "OTC Medicine",
+      "Health Device",
+      "Wellness Membership"
+    ]
+  },
+  {
+    name: "Skin Care",
+    icon: "\u2728",
+    desc: "Serums, sunscreens and routines built around your actual skin concern",
+    bg: "#FFD43B",
+    text: "#111111",
+    accent: "#7D2AE8",
+    types: [
+      "Face Serum",
+      "Face Wash",
+      "Moisturiser",
+      "Sunscreen",
+      "Face Mask",
+      "Body Lotion",
+      "Toner",
+      "Makeup"
+    ]
+  },
+  {
+    name: "Hair & Grooming",
+    icon: "\u{1F488}",
+    desc: "Hair fall, dandruff, beard and styling \u2014 for men and women",
+    bg: "#7D2AE8",
+    text: "#FFFFFF",
+    accent: "#FFD43B",
+    types: [
+      "Shampoo",
+      "Conditioner",
+      "Hair Oil",
+      "Hair Serum",
+      "Beard Care",
+      "Styling",
+      "Hair Colour"
+    ]
+  },
+  {
+    name: "Body Care & Hygiene",
+    icon: "\u{1F9FC}",
+    desc: "Body wash, oral care, intimate hygiene, sexual wellness and baby care",
+    bg: "#00AFB9",
+    text: "#FFFFFF",
+    accent: "#112133",
+    types: [
+      "Body Wash",
+      "Soap",
+      "Deodorant",
+      "Intimate Hygiene",
+      "Oral Care",
+      "Sexual Wellness",
+      "Baby Care",
+      "Home Hygiene"
+    ]
+  }
+];
+var WELLNESS_CATEGORY_NAMES = WELLNESS_CATEGORIES.map((c) => c.name);
+var WELLNESS_FORMS = [
+  "Powder",
+  "Capsule",
+  "Tablet",
+  "Gummy",
+  "Liquid",
+  "Syrup",
+  "Serum",
+  "Cream",
+  "Gel",
+  "Oil",
+  "Bar",
+  "Spray",
+  "Kit",
+  "Service"
+];
+var WELLNESS_CONCERNS = [
+  "Hair Fall",
+  "Dandruff",
+  "Acne",
+  "Pigmentation",
+  "Dry Skin",
+  "Anti-Ageing",
+  "Sun Protection",
+  "Immunity",
+  "Gut Health",
+  "Sleep",
+  "Energy & Stamina",
+  "Muscle Gain",
+  "Weight Loss",
+  "Joint & Bone",
+  "Stress & Focus",
+  "Diabetes Care",
+  "Heart Health",
+  "Women's Health",
+  "Men's Health",
+  "Kids Growth"
+];
+var WELLNESS_DIET_TAGS = [
+  "Veg",
+  "Vegan",
+  "Sugar Free",
+  "Gluten Free",
+  "Dairy Free",
+  "No Preservatives",
+  "Organic",
+  "Clinically Tested",
+  "Dermat Tested",
+  "Cruelty Free"
+];
+function getWellnessCategory(name) {
+  if (!name) return void 0;
+  const key = name.trim().toLowerCase();
+  return WELLNESS_CATEGORIES.find((c) => c.name.toLowerCase() === key);
+}
+function wellnessTypesFor(category) {
+  const cat = getWellnessCategory(category);
+  if (cat) return cat.types;
+  return Array.from(new Set(WELLNESS_CATEGORIES.flatMap((c) => c.types)));
+}
+
+// src/expressApp.ts
 var __dirname = "";
 try {
   __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -2359,16 +2622,22 @@ app.get("/api/auth/mobile-redirect", (_req, res) => {
 </body>
 </html>`);
 });
-app.get("/api/categories", (_req, res) => {
-  res.json([
-    { name: "Ethnic Wear", theme: "ethnic", tags: ["Wedding", "Festive", "Haldi", "Sangeet"] },
-    { name: "Formals", theme: "formals", tags: ["Office", "Boardroom", "Interviews", "Corporate"] },
-    { name: "Streetwear", theme: "streetwear", tags: ["Hypebeast", "Oversized", "Skate", "Concert"] },
-    { name: "Casuals", theme: "casuals", tags: ["Weekend", "Lounge", "Everyday", "Comfort"] },
-    { name: "Summer", theme: "summer", tags: ["Beach", "Brunch", "Linen", "Vacation"] },
-    { name: "Winter", theme: "winter", tags: ["Overcoats", "Layering", "Warm Luxury", "Knitted"] },
-    { name: "Sneakers", theme: "default", tags: ["Big Sizes", "UK 12-15", "Flat Arches"] }
-  ]);
+var FASHION_CATEGORY_DEFS = [
+  { name: "Ethnic Wear", theme: "ethnic", tags: ["Wedding", "Festive", "Haldi", "Sangeet"] },
+  { name: "Formals", theme: "formals", tags: ["Office", "Boardroom", "Interviews", "Corporate"] },
+  { name: "Streetwear", theme: "streetwear", tags: ["Hypebeast", "Oversized", "Skate", "Concert"] },
+  { name: "Casuals", theme: "casuals", tags: ["Weekend", "Lounge", "Everyday", "Comfort"] },
+  { name: "Summer", theme: "summer", tags: ["Beach", "Brunch", "Linen", "Vacation"] },
+  { name: "Winter", theme: "winter", tags: ["Overcoats", "Layering", "Warm Luxury", "Knitted"] },
+  { name: "Sneakers", theme: "default", tags: ["Big Sizes", "UK 12-15", "Flat Arches"] }
+];
+app.get("/api/categories", (req, res) => {
+  if (req.query.vertical === "wellness") {
+    return res.json(
+      WELLNESS_CATEGORIES.map((c) => ({ name: c.name, theme: "wellness", tags: c.types.slice(0, 4) }))
+    );
+  }
+  res.json(FASHION_CATEGORY_DEFS);
 });
 app.use("/api/products", productController_default);
 app.post("/api/track", (_req, res) => {
@@ -2473,6 +2742,7 @@ app.post(
   requireAdmin,
   async (req, res) => {
     const { url } = req.body;
+    const vertical = normalizeVertical(req.body?.vertical);
     if (!url || typeof url !== "string") {
       return res.status(400).json({ success: false, error: "A product URL is required." });
     }
@@ -2505,7 +2775,7 @@ app.post(
       const urlMetadata = parseMetadataFromUrl(parsedUrl.href);
       scraped = {
         ...scraped,
-        title: urlMetadata.title || scraped.title || "Curated Tall Garment",
+        title: urlMetadata.title || scraped.title || (vertical === "wellness" ? "Curated Wellness Product" : "Curated Tall Garment"),
         brand: urlMetadata.brand || scraped.brand || "Brand",
         retailer: retailerName,
         isScrapeBlocked: true
@@ -2515,11 +2785,81 @@ app.post(
     if (apiKey) {
       try {
         const ai = new GoogleGenAI({ apiKey });
-        const prompt = `You are a fashion AI specialized in sizing, styling, and classifying products for tall men (6ft+).
+        const prompt = buildCurationPrompt(vertical, scraped, parsedUrl.href);
+        const response = await ai.models.generateContent({
+          model: "gemini-2.0-flash",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json"
+          }
+        });
+        const text = response.text || "";
+        const parsedResult = JSON.parse(text.trim());
+        return res.json({
+          success: true,
+          source: "gemini-3.5-flash",
+          vertical,
+          ...parsedResult,
+          images: scraped.images && scraped.images.length > 0 ? scraped.images : parsedResult.images || []
+        });
+      } catch (err) {
+        console.error("[AICuration] Gemini API curation failed. Falling back to structured parser.", err?.message);
+      }
+    }
+    try {
+      const fallbackResult = vertical === "wellness" ? runWellnessFallbackParser(scraped, parsedUrl.href, retailerName) : runFallbackParser(scraped, parsedUrl.href, retailerName);
+      return res.json(fallbackResult);
+    } catch (err) {
+      return res.status(502).json({
+        success: false,
+        error: "Failed to curate product from URL.",
+        detail: err?.message ?? "Unknown error"
+      });
+    }
+  }
+);
+function normalizeVertical(value) {
+  return value === "wellness" ? "wellness" : "fashion";
+}
+function buildCurationPrompt(vertical, scraped, url) {
+  if (vertical === "wellness") {
+    return `You are a wellness commerce AI that classifies nutrition, body care and health care products for an Indian storefront.
 Given this scraped raw product metadata:
 ${JSON.stringify(scraped)}
 
-And the retailer product URL: ${parsedUrl.href}
+And the retailer product URL: ${url}
+
+Generate a clean, structured curation response matching this JSON schema exactly:
+{
+  "brand": "Inferred brand (e.g., MuscleBlaze, The Derma Co, Kapiva)",
+  "title": "Concise human-friendly display title",
+  "category": "One of: ${WELLNESS_CATEGORY_NAMES.join(" | ")}",
+  "productType": "One of: ${wellnessTypesFor().join(", ")}",
+  "form": "One of: ${WELLNESS_FORMS.join(", ")}",
+  "netQuantity": "Pack size exactly as listed, e.g. '60 capsules', '1 kg', '100 ml', or null if unknown",
+  "keyIngredients": ["Whey Isolate", "Niacinamide"],
+  "concerns": ["Immunity"],
+  "dietTags": ["Veg"],
+  "price": 1499,
+  "retailer": "Retailer platform name",
+  "description": "One or two factual sentences about what the product does",
+  "tags": ["daily-use"]
+}
+
+Strict requirements:
+1. "category" MUST be exactly one of: ${WELLNESS_CATEGORY_NAMES.join(" | ")}.
+2. "concerns" MUST only use values from this list: ${WELLNESS_CONCERNS.join(", ")}. Use [] if none apply.
+3. "dietTags" MUST only use values from this list: ${WELLNESS_DIET_TAGS.join(", ")}. Use [] if none apply.
+4. "price" MUST be an integer or null. Do NOT guess a price that is not in the scraped metadata.
+5. "keyIngredients" MUST come from the scraped metadata. Do NOT invent ingredients, dosages or health claims.
+6. Never state that a product treats, cures or prevents a disease.
+7. Respond with a single raw JSON object \u2014 no markdown fences, no commentary.`;
+  }
+  return `You are a fashion AI specialized in sizing, styling, and classifying products for tall men (6ft+).
+Given this scraped raw product metadata:
+${JSON.stringify(scraped)}
+
+And the retailer product URL: ${url}
 
 Generate a clean, professional, structured curation response matching this JSON schema exactly:
 {
@@ -2548,37 +2888,141 @@ Strict requirements:
 3. The "material" MUST be a string or null. Do NOT guess/hallucinate materials.
 4. The "colors" MUST be an array of strings or empty array []. Do NOT guess/hallucinate colors.
 5. The response MUST be a single raw JSON object. Do not wrap the JSON output in markdown code blocks or any other formatting.`;
-        const response = await ai.models.generateContent({
-          model: "gemini-2.0-flash",
-          contents: prompt,
-          config: {
-            responseMimeType: "application/json"
-          }
-        });
-        const text = response.text || "";
-        const parsedResult = JSON.parse(text.trim());
-        return res.json({
-          success: true,
-          source: "gemini-3.5-flash",
-          ...parsedResult,
-          images: scraped.images && scraped.images.length > 0 ? scraped.images : parsedResult.images || []
-        });
-      } catch (err) {
-        console.error("[AICuration] Gemini API curation failed. Falling back to structured parser.", err?.message);
-      }
-    }
+}
+function runWellnessFallbackParser(scraped, url, detectedRetailer) {
+  let retailer = scraped.retailer || detectedRetailer || "Retailer";
+  if (retailer === "Retailer" || !retailer) {
     try {
-      const fallbackResult = runFallbackParser(scraped, parsedUrl.href, retailerName);
-      return res.json(fallbackResult);
-    } catch (err) {
-      return res.status(502).json({
-        success: false,
-        error: "Failed to curate product from URL.",
-        detail: err?.message ?? "Unknown error"
-      });
+      const host = new URL(url).hostname.replace("www.", "").split(".")[0];
+      retailer = host.charAt(0).toUpperCase() + host.slice(1);
+    } catch {
+      retailer = "Retailer";
     }
   }
-);
+  const text = `${scraped.title || ""} ${scraped.category || ""} ${scraped.subCategory || ""} ${scraped.description || ""} ${url}`.toLowerCase();
+  const { category, productType } = detectWellnessCategoryAndType(text);
+  let form = "";
+  if (text.match(/powder|sachet/)) form = "Powder";
+  else if (text.match(/capsule|caps\b/)) form = "Capsule";
+  else if (text.match(/tablet|tabs\b/)) form = "Tablet";
+  else if (text.match(/gummy|gummies/)) form = "Gummy";
+  else if (text.match(/serum/)) form = "Serum";
+  else if (text.match(/cream|lotion|balm/)) form = "Cream";
+  else if (text.match(/\boil\b/)) form = "Oil";
+  else if (text.match(/gel\b/)) form = "Gel";
+  else if (text.match(/spray|mist/)) form = "Spray";
+  else if (text.match(/juice|syrup|liquid|drink/)) form = "Liquid";
+  const qty = text.match(/(\d+(?:\.\d+)?)\s?(kg|g|gm|grams|ml|l|capsules|caps|tablets|tabs|sachets|pieces)/);
+  const concerns = [];
+  const CONCERN_HINTS = [
+    [/hair ?fall|hairfall/, "Hair Fall"],
+    [/dandruff/, "Dandruff"],
+    [/acne|pimple/, "Acne"],
+    [/pigment|dark spot|tan\b/, "Pigmentation"],
+    [/dry skin|hydrat|moistur/, "Dry Skin"],
+    [/anti ?age|wrinkle|retinol/, "Anti-Ageing"],
+    [/spf|sunscreen|uv\b/, "Sun Protection"],
+    [/immun/, "Immunity"],
+    [/gut|digest|probiotic|fibre|fiber/, "Gut Health"],
+    [/sleep|melatonin/, "Sleep"],
+    [/energy|stamina|endurance/, "Energy & Stamina"],
+    [/muscle|protein|gainer|creatine|bcaa/, "Muscle Gain"],
+    [/weight loss|slim|fat burn/, "Weight Loss"],
+    [/joint|bone|calcium|collagen/, "Joint & Bone"],
+    [/stress|focus|ashwagandha|nootropic/, "Stress & Focus"],
+    [/diabet|sugar control/, "Diabetes Care"],
+    [/heart|cardiac|cholesterol/, "Heart Health"],
+    [/women|menstrual|period/, "Women's Health"],
+    [/\bmen\b|beard|testosterone/, "Men's Health"],
+    [/kids|child|growth/, "Kids Growth"]
+  ];
+  for (const [re, label] of CONCERN_HINTS) {
+    if (re.test(text) && !concerns.includes(label)) concerns.push(label);
+  }
+  const dietTags = [];
+  if (/vegan/.test(text)) dietTags.push("Vegan");
+  else if (/\bveg\b|vegetarian/.test(text)) dietTags.push("Veg");
+  if (/sugar ?free|no added sugar/.test(text)) dietTags.push("Sugar Free");
+  if (/gluten ?free/.test(text)) dietTags.push("Gluten Free");
+  if (/organic/.test(text)) dietTags.push("Organic");
+  if (/cruelty ?free/.test(text)) dietTags.push("Cruelty Free");
+  return {
+    success: true,
+    source: "fallback-parser",
+    vertical: "wellness",
+    brand: scraped.brand || null,
+    title: scraped.title || null,
+    images: scraped.images || [],
+    category,
+    productType,
+    form,
+    netQuantity: qty ? `${qty[1]} ${qty[2]}` : "",
+    keyIngredients: [],
+    concerns: concerns.slice(0, 4),
+    dietTags,
+    price: typeof scraped.price === "number" ? scraped.price : null,
+    retailer,
+    description: scraped.description || "",
+    tags: scraped.tags && scraped.tags.length > 0 ? scraped.tags : []
+  };
+}
+function detectWellnessCategoryAndType(text) {
+  const t = text.toLowerCase();
+  const rules = [
+    [/whey|isolate|protein powder/, "Supplements & Sports Nutrition", "Whey Protein"],
+    [/mass gainer|weight gainer/, "Supplements & Sports Nutrition", "Mass Gainer"],
+    [/multivitamin|vitamin [abcdek]\b/, "Supplements & Sports Nutrition", "Multivitamin"],
+    [/omega|fish oil/, "Supplements & Sports Nutrition", "Omega & Fish Oil"],
+    [/pre.?workout/, "Supplements & Sports Nutrition", "Pre-Workout"],
+    [/creatine/, "Supplements & Sports Nutrition", "Creatine"],
+    [/collagen/, "Supplements & Sports Nutrition", "Collagen"],
+    [/ashwagandha|shilajit|adaptogen/, "Ayurveda & Herbal", "Ashwagandha & Adaptogens"],
+    [/chyawanprash/, "Ayurveda & Herbal", "Chyawanprash"],
+    [/churna|powder ayurved/, "Ayurveda & Herbal", "Ayurvedic Churna"],
+    [/amla juice|aloe juice|herbal juice/, "Ayurveda & Herbal", "Herbal Juice"],
+    [/ayurved|herbal/, "Ayurveda & Herbal", "Herbal Tablets"],
+    [/lab test|blood test|diagnostic/, "Health Care & Diagnostics", "Lab Test Package"],
+    [/full body checkup|health checkup/, "Health Care & Diagnostics", "Full Body Checkup"],
+    [/thermometer|oximeter|bp monitor|glucomet/, "Health Care & Diagnostics", "Health Device"],
+    [/medicine|tablet strip|pharmacy/, "Health Care & Diagnostics", "OTC Medicine"],
+    [/sunscreen|spf/, "Skin Care", "Sunscreen"],
+    [/face serum|serum/, "Skin Care", "Face Serum"],
+    [/face wash|cleanser/, "Skin Care", "Face Wash"],
+    [/moistur|day cream|night cream/, "Skin Care", "Moisturiser"],
+    [/face mask|sheet mask/, "Skin Care", "Face Mask"],
+    [/body lotion/, "Skin Care", "Body Lotion"],
+    [/toner/, "Skin Care", "Toner"],
+    [/lipstick|foundation|kajal|mascara|makeup/, "Skin Care", "Makeup"],
+    [/shampoo/, "Hair & Grooming", "Shampoo"],
+    [/conditioner/, "Hair & Grooming", "Conditioner"],
+    [/hair oil/, "Hair & Grooming", "Hair Oil"],
+    [/hair serum|hair growth/, "Hair & Grooming", "Hair Serum"],
+    [/beard/, "Hair & Grooming", "Beard Care"],
+    [/hair colou?r|hair dye/, "Hair & Grooming", "Hair Colour"],
+    [/wax|pomade|hair gel|styling/, "Hair & Grooming", "Styling"],
+    [/body wash|shower gel/, "Body Care & Hygiene", "Body Wash"],
+    [/\bsoap\b/, "Body Care & Hygiene", "Soap"],
+    [/deodorant|deo spray|perfume/, "Body Care & Hygiene", "Deodorant"],
+    [/intimate|menstrual|period|sanitary/, "Body Care & Hygiene", "Intimate Hygiene"],
+    [/toothpaste|toothbrush|oral|floss/, "Body Care & Hygiene", "Oral Care"],
+    [/condom|lubricant|sexual/, "Body Care & Hygiene", "Sexual Wellness"],
+    [/baby|infant|diaper/, "Body Care & Hygiene", "Baby Care"],
+    [/detergent|floor cleaner|dishwash/, "Body Care & Hygiene", "Home Hygiene"],
+    [/coffee|green tea|\btea\b/, "Nutrition & Foods", "Coffee & Tea"],
+    [/almond|cashew|walnut|dry fruit|makhana/, "Nutrition & Foods", "Dry Fruits & Nuts"],
+    [/muesli|granola|oats|cereal|breakfast/, "Nutrition & Foods", "Breakfast & Cereal"],
+    [/protein bar|energy bar|protein snack/, "Nutrition & Foods", "Protein Snack"],
+    [/health drink|electrolyte|hydration/, "Nutrition & Foods", "Health Drink"],
+    [/gum\b/, "Nutrition & Foods", "Functional Gum"],
+    [/masala|spice|ghee|honey|oil pack/, "Nutrition & Foods", "Cooking Essentials"],
+    [/superfood|chia|flax|moringa|spirulina/, "Nutrition & Foods", "Superfood"],
+    [/gummies|gummy/, "Supplements & Sports Nutrition", "Gummies"]
+  ];
+  for (const [re, category, productType] of rules) {
+    if (re.test(t)) return { category, productType };
+  }
+  return { category: "Nutrition & Foods", productType: "Superfood" };
+}
 function runFallbackParser(scraped, url, detectedRetailer) {
   let retailer = scraped.retailer || detectedRetailer || "Retailer";
   if (retailer === "Retailer" || !retailer) {
@@ -2770,6 +3214,7 @@ app.post(
   requireAdmin,
   async (req, res) => {
     const { urls } = req.body;
+    const vertical = normalizeVertical(req.body?.vertical);
     if (!Array.isArray(urls) || urls.length === 0) {
       return res.status(400).json({ success: false, error: "An array of product URLs is required." });
     }
@@ -2810,7 +3255,7 @@ app.post(
         const urlMetadata = parseMetadataFromUrl(parsedUrl.href);
         scraped = {
           ...scraped,
-          title: urlMetadata.title || scraped.title || "Curated Tall Garment",
+          title: urlMetadata.title || scraped.title || (vertical === "wellness" ? "Curated Wellness Product" : "Curated Tall Garment"),
           brand: urlMetadata.brand || scraped.brand || "Brand",
           retailer: retailerName,
           isScrapeBlocked: true
@@ -2820,33 +3265,7 @@ app.post(
       if (apiKey) {
         try {
           const ai = new GoogleGenAI({ apiKey });
-          const prompt = `You are a fashion AI specialized in sizing, styling, and classifying products for tall men (6ft+).
-Given this scraped raw product metadata:
-${JSON.stringify(scraped)}
-
-And the retailer product URL: ${parsedUrl.href}
-
-Generate a clean, professional, structured curation response matching this JSON schema exactly:
-{
-  "brand": "Inferred fashion brand",
-  "title": "Concise human-friendly display title",
-  "category": "One of: 'Ethnic Wear', 'Formals', 'Streetwear', 'Casuals'",
-  "subCategory": "Garment detailed style",
-  "material": "Material blend breakdown or null if unknown",
-  "price": 1499,
-  "retailer": "Retailer platform name",
-  "occasions": ["Daily Wear"],
-  "seasons": ["All Season"],
-  "colors": ["Navy"],
-  "tags": ["tall-friendly"],
-  "tallFit": {
-    "tallFriendly": true,
-    "recommendedHeightRanges": ["6'2-6'3"],
-    "bodyTypes": ["Athletic"],
-    "highlights": ["Extended Torso Fit"]
-  }
-}
-Strict: respond with a single raw JSON object only.`;
+          const prompt = buildCurationPrompt(vertical, scraped, parsedUrl.href);
           const response = await ai.models.generateContent({
             model: "gemini-2.0-flash",
             contents: prompt,
@@ -2863,7 +3282,7 @@ Strict: respond with a single raw JSON object only.`;
       }
       if (!curated) {
         try {
-          curated = runFallbackParser(scraped, parsedUrl.href, retailerName);
+          curated = vertical === "wellness" ? runWellnessFallbackParser(scraped, parsedUrl.href, retailerName) : runFallbackParser(scraped, parsedUrl.href, retailerName);
         } catch (err) {
           results.push({ url, success: false, error: err?.message ?? "Failed to parse product data." });
           continue;
@@ -2871,29 +3290,35 @@ Strict: respond with a single raw JSON object only.`;
       }
       const affiliateInfo = await convertUrlToAffiliate(url);
       try {
-        const { productSegment, productType } = detectSegmentAndType(
+        const isWellness = vertical === "wellness";
+        const wellnessCategory = isWellness ? WELLNESS_CATEGORY_NAMES.includes(curated.category) ? curated.category : detectWellnessCategoryAndType(`${curated.title || ""} ${curated.category || ""} ${curated.productType || ""}`).category : "";
+        const { productSegment, productType } = isWellness ? {
+          productSegment: wellnessCategory,
+          productType: curated.productType || detectWellnessCategoryAndType(`${curated.title || ""} ${curated.category || ""}`).productType
+        } : detectSegmentAndType(
           curated.title || "",
           curated.category || "",
           curated.subCategory || ""
         );
-        const categories = mapCuratedDataToCategories(curated.category || "");
-        const sizes = getSizeOptionsServer(productSegment).slice(0, 4);
+        const categories = isWellness ? [wellnessCategory] : mapCuratedDataToCategories(curated.category || "");
+        const sizes = isWellness ? [] : getSizeOptionsServer(productSegment).slice(0, 4);
         const slugId = (curated.title || "product").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 55);
         const newProduct = {
           id: `${slugId}-${Date.now().toString().slice(-5)}`,
+          vertical,
           brand: curated.brand || scraped.brand || "Brand",
           title: curated.title || scraped.title || "Imported Product",
-          category: curated.category || "Casuals",
+          category: isWellness ? wellnessCategory : curated.category || "Casuals",
           categories,
-          subCategory: curated.subCategory || "",
+          subCategory: isWellness ? curated.productType || "" : curated.subCategory || "",
           productSegment,
           productType,
           images: curated.images || [],
-          occasions: curated.occasions || ["Daily Wear"],
-          seasons: curated.seasons || ["All Season"],
-          colors: curated.colors || [],
+          occasions: isWellness ? [] : curated.occasions || ["Daily Wear"],
+          seasons: isWellness ? [] : curated.seasons || ["All Season"],
+          colors: isWellness ? [] : curated.colors || [],
           sizes,
-          fitType: "Regular Tall",
+          fitType: isWellness ? "" : "Regular Tall",
           retailer: curated.retailer || retailerName,
           affiliateUrl: affiliateInfo.affiliateUrl || url,
           priceAtRetailer: curated.price || 0,
@@ -2901,12 +3326,18 @@ Strict: respond with a single raw JSON object only.`;
           verdicts: [],
           verifiedTier: "community",
           description: curated.description || "",
-          tags: curated.tags || ["tall-friendly"],
+          tags: curated.tags || (isWellness ? [] : ["tall-friendly"]),
           material: curated.material || "",
-          tallFriendly: curated.tallFit?.tallFriendly ?? true,
-          heightRanges: curated.tallFit?.recommendedHeightRanges || [],
-          bodyTypes: curated.tallFit?.bodyTypes || ["Athletic"],
-          fitHighlights: curated.tallFit?.highlights || [],
+          tallFriendly: isWellness ? false : curated.tallFit?.tallFriendly ?? true,
+          heightRanges: isWellness ? [] : curated.tallFit?.recommendedHeightRanges || [],
+          bodyTypes: isWellness ? [] : curated.tallFit?.bodyTypes || ["Athletic"],
+          fitHighlights: isWellness ? [] : curated.tallFit?.highlights || [],
+          // Wellness-only attributes
+          form: isWellness ? curated.form || "" : "",
+          netQuantity: isWellness ? curated.netQuantity || "" : "",
+          concerns: isWellness ? curated.concerns || [] : [],
+          keyIngredients: isWellness ? curated.keyIngredients || [] : [],
+          dietTags: isWellness ? curated.dietTags || [] : [],
           isFeatured: false,
           reviewsCount: 0,
           averageRating: 0,

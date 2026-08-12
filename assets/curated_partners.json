@@ -1,0 +1,1237 @@
+[
+  {
+    "id": "2870",
+    "name": "Strch",
+    "slug": "strch-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/strch-store-1726731046.png",
+    "payoutLabel": "Flat 30% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 30.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2867",
+    "name": "Rigo",
+    "slug": "rigo-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/rigo-store-1761715669.png",
+    "payoutLabel": "Flat 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2895",
+    "name": "Kimti",
+    "slug": "kimti-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/kimti-store-1764239196.png",
+    "payoutLabel": "Flat 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2537",
+    "name": "House Of Koala",
+    "slug": "house-of-koala-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/house-of-koala-store-1778239944.png",
+    "payoutLabel": "Flat 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2495",
+    "name": "Shyaway",
+    "slug": "shyaway-store-3-live-new1",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/shyaway-store-3-live-new-1701328754.jpg",
+    "payoutLabel": "Flat 24.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 24.5
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "3133",
+    "name": "Hummel",
+    "slug": "hummel-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/hummel-store-1783667893.png",
+    "payoutLabel": "Flat 23% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 23.0
+    },
+    "vertical": "fashion",
+    "category": "Activewear & Sports"
+  },
+  {
+    "id": "3108",
+    "name": "Daily Objects",
+    "slug": "daily-objects-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/daily-objects-store-1781769177.png",
+    "payoutLabel": "Upto 12% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 12.0
+    },
+    "vertical": "fashion",
+    "category": "Accessories"
+  },
+  {
+    "id": "2032",
+    "name": "Ajio New Store",
+    "slug": "ajionew-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ajio-store-1606812055.png",
+    "payoutLabel": "Upto 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "2322",
+    "name": "Ajiogram",
+    "slug": "ajiogram-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ajiogram-store-1731922140.png",
+    "payoutLabel": "Upto 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "3028",
+    "name": "AJIO Luxe",
+    "slug": "ajio-luxe-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ajio-luxe-store-1780921863.png",
+    "payoutLabel": "Upto 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "2903",
+    "name": "BeYoung",
+    "slug": "beyoung-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/beyoung-store-1777976428.png",
+    "payoutLabel": "Flat 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "3099",
+    "name": "Campus Shoes",
+    "slug": "campus-shoes-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/campus-store-1715152890.png",
+    "payoutLabel": "Flat 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "fashion",
+    "category": "Footwear"
+  },
+  {
+    "id": "2837",
+    "name": "Neemans",
+    "slug": "neemans-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/neemans-store-1778239843.png",
+    "payoutLabel": "Flat 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "fashion",
+    "category": "Footwear"
+  },
+  {
+    "id": "2525",
+    "name": "Tiaraa",
+    "slug": "tiaraa-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/tiaraa-store-1680241064.png",
+    "payoutLabel": "Flat 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "fashion",
+    "category": "Accessories"
+  },
+  {
+    "id": "2482",
+    "name": "IGP",
+    "slug": "igp-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/igp-store-1723466570.png",
+    "payoutLabel": "Flat 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "fashion",
+    "category": "Accessories"
+  },
+  {
+    "id": "2706",
+    "name": "Salty",
+    "slug": "salty-store-new1",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/salty-store-1725949898.png",
+    "payoutLabel": "Flat 9% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 9.0
+    },
+    "vertical": "fashion",
+    "category": "Accessories"
+  },
+  {
+    "id": "1100",
+    "name": "Amazon",
+    "slug": "amazon-store-live-1",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/amazon-store-live-1-1777975646.png",
+    "payoutLabel": "Upto 8.2% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 8.2
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "2468",
+    "name": "Myntra New",
+    "slug": "myntra-new-t",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/myntra-new-t-1777980142.png",
+    "payoutLabel": "Upto 8% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 8.0
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "1786",
+    "name": "Shopsy Store",
+    "slug": "shopsy-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/shopsy-store-1692602320.png",
+    "payoutLabel": "Upto 8% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 8.0
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "3084",
+    "name": "Levis",
+    "slug": "levis-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/levis-store-1629456527.png",
+    "payoutLabel": "Flat 8% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 8.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2328",
+    "name": "Jaypore",
+    "slug": "jaypore-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/jaypore-store-new-1732101726.png",
+    "payoutLabel": "Flat 8% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 8.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2522",
+    "name": "ShopClues Store",
+    "slug": "shopclues-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/shopclues-store-1660305844.png",
+    "payoutLabel": "Upto 7.7% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 7.7
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "2817",
+    "name": "Libas",
+    "slug": "libas-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/libas-store-1639484758.png",
+    "payoutLabel": "Flat 7% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 7.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "3100",
+    "name": "Haute Sauce",
+    "slug": "hautesauce-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/hautesauce-store-1719896369.png",
+    "payoutLabel": "Upto 7% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 7.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2464",
+    "name": "XYXX Crew",
+    "slug": "xyxx-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/xyxx-1657861140.png",
+    "payoutLabel": "Flat 7% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 7.0
+    },
+    "vertical": "fashion",
+    "category": "Innerwear & Basics"
+  },
+  {
+    "id": "3090",
+    "name": "Linen Club",
+    "slug": "linen-club-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/linen-club-store-1780487956.png",
+    "payoutLabel": "Flat 6% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 6.0
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2796",
+    "name": "The Luxury Closet",
+    "slug": "tlc-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/tlc-store-1756798737.png",
+    "payoutLabel": "Flat 3.8% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 3.8
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "2739",
+    "name": "Tata CLiQ",
+    "slug": "tata-cliq-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/tatacliq-coupons.png",
+    "payoutLabel": "Upto 3.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 3.5
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "2969",
+    "name": "Decathlon",
+    "slug": "decathlon-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/decathalon-store-1763035136.png",
+    "payoutLabel": "Upto 2.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 2.5
+    },
+    "vertical": "fashion",
+    "category": "Activewear & Sports"
+  },
+  {
+    "id": "2169",
+    "name": "Uniqlo",
+    "slug": "uniqlo-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/uniqlo-store-1723805465.png",
+    "payoutLabel": "Flat 1.25% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 1.25
+    },
+    "vertical": "fashion",
+    "category": "Apparel Brands"
+  },
+  {
+    "id": "3134",
+    "name": "Meesho",
+    "slug": "meesho-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/meesho-store-1783579255.png",
+    "payoutLabel": "Flat 1% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 1.0
+    },
+    "vertical": "fashion",
+    "category": "Marketplaces"
+  },
+  {
+    "id": "2512",
+    "name": "Truemeds Store",
+    "slug": "truemeds-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/truemeds-affise-1668159988.png",
+    "payoutLabel": "Upto Rs 400 Profit",
+    "payout": {
+      "kind": "flat_inr",
+      "value": 400.0
+    },
+    "vertical": "wellness",
+    "category": "Health Care & Diagnostics"
+  },
+  {
+    "id": "2872",
+    "name": "Ounce Organics",
+    "slug": "ounce-organics-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ounce-organics-store-1762173328.png",
+    "payoutLabel": "Flat 80% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 80.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "3132",
+    "name": "Curiously Positive",
+    "slug": "curiously-positive-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/curiously-positive-store-1783405315.png",
+    "payoutLabel": "Flat 65% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 65.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "2312",
+    "name": "Neurogum",
+    "slug": "neurogum-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/neurogum-store-1730204249.png",
+    "payoutLabel": "Flat 56% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 56.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "2965",
+    "name": "JiViSa",
+    "slug": "jivisa-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/jivisa-store-1756460670.png",
+    "payoutLabel": "Flat 52.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 52.5
+    },
+    "vertical": "wellness",
+    "category": "Ayurveda & Herbal"
+  },
+  {
+    "id": "2715",
+    "name": "Nature 4 Nature",
+    "slug": "nature-4-nature-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/nature-4-nature-store-1754548575.png",
+    "payoutLabel": "Flat 49% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 49.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "2881",
+    "name": "Zoff Foods",
+    "slug": "zoff-foods-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/zoff-store-1763035812.png",
+    "payoutLabel": "Flat Rs 40 Profit",
+    "payout": {
+      "kind": "flat_inr",
+      "value": 40.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "2524",
+    "name": "Koparo Clean Store",
+    "slug": "koparo-clean-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/koparo-clean-1712820744.png",
+    "payoutLabel": "Flat 40% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 40.0
+    },
+    "vertical": "wellness",
+    "category": "Body Care & Hygiene"
+  },
+  {
+    "id": "3091",
+    "name": "The Moms Co",
+    "slug": "the-moms-co-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/the-moms-co-store-1781073261.png",
+    "payoutLabel": "Flat 35% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 35.0
+    },
+    "vertical": "wellness",
+    "category": "Body Care & Hygiene"
+  },
+  {
+    "id": "2802",
+    "name": "Nutriburst Store",
+    "slug": "nutriburst-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/nutriburst-store-1755510321.png",
+    "payoutLabel": "Flat 31.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 31.5
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "3055",
+    "name": "Ramam Group",
+    "slug": "ramam-group-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ramam-store-1750161483.png",
+    "payoutLabel": "Flat 30% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 30.0
+    },
+    "vertical": "wellness",
+    "category": "Ayurveda & Herbal"
+  },
+  {
+    "id": "2709",
+    "name": "Neuherbs",
+    "slug": "neu-herbs-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/neu-herbs-store-1725342525.png",
+    "payoutLabel": "Flat 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "2856",
+    "name": "City Gold Tea",
+    "slug": "city-gold-tea-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/city-gold-tea-store-1760609807.png",
+    "payoutLabel": "Flat 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "3122",
+    "name": "AGEasy",
+    "slug": "ageasy-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ageasy-store-1782213550.png",
+    "payoutLabel": "Flat 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  },
+  {
+    "id": "1130",
+    "name": "Kerala Ayurveda",
+    "slug": "kerala-ayurveda-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/kerala-ayurveda-store-1777981958.png",
+    "payoutLabel": "Flat 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "wellness",
+    "category": "Ayurveda & Herbal"
+  },
+  {
+    "id": "3123",
+    "name": "WorldofAsaya",
+    "slug": "worldofasaya-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/world-of-asaya-1714049938.png",
+    "payoutLabel": "Upto 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "wellness",
+    "category": "Ayurveda & Herbal"
+  },
+  {
+    "id": "1005",
+    "name": "Brillare",
+    "slug": "brillare-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/brillare-store-1778674845.png",
+    "payoutLabel": "Flat 28% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 28.0
+    },
+    "vertical": "wellness",
+    "category": "Hair & Grooming"
+  },
+  {
+    "id": "2519",
+    "name": "XYLife",
+    "slug": "xy-life-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/xy-life-store-1677243400.jpg",
+    "payoutLabel": "Flat 21% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 21.0
+    },
+    "vertical": "wellness",
+    "category": "Health Care & Diagnostics"
+  },
+  {
+    "id": "2729",
+    "name": "Aqualogica",
+    "slug": "aqualogica-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/aqualogica-store-1680500501.jpg",
+    "payoutLabel": "Flat 21% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 21.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2457",
+    "name": "Gabit Skincare",
+    "slug": "gabit-skincare-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/gabit-skincare-store-1741610226.png",
+    "payoutLabel": "Flat 21% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 21.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "3034",
+    "name": "Sirona",
+    "slug": "sirona-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/sirona-store-1734343036.png",
+    "payoutLabel": "Flat 21% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 21.0
+    },
+    "vertical": "wellness",
+    "category": "Body Care & Hygiene"
+  },
+  {
+    "id": "3130",
+    "name": "Nutslane",
+    "slug": "nutslane-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/nutslane-store-1782475965.png",
+    "payoutLabel": "Flat 20% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 20.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "2532",
+    "name": "The Derma Co",
+    "slug": "the-derma-co-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/thedermaco-store-1626755932.png",
+    "payoutLabel": "Upto 20% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 20.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2034",
+    "name": "mCaffeine Store",
+    "slug": "mcaffeine-trackier",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/mcaffeine-store-4-1639372559.jpg",
+    "payoutLabel": "Flat 18% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 18.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2533",
+    "name": "Swiss Beauty",
+    "slug": "swiss-beauty-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/swissbeauty-store-1723635802.png",
+    "payoutLabel": "Flat 18% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 18.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2463",
+    "name": "Durex Store",
+    "slug": "durex-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/durex-india-1660906517.png",
+    "payoutLabel": "Flat 18% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 18.0
+    },
+    "vertical": "wellness",
+    "category": "Body Care & Hygiene"
+  },
+  {
+    "id": "2488",
+    "name": "Bella Vita Store",
+    "slug": "bellavita-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/bella-vita-store-1634097135.png",
+    "payoutLabel": "Flat 17.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.5
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2849",
+    "name": "CosIQ",
+    "slug": "cosiq-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/cosiq-store-1761301497.png",
+    "payoutLabel": "Flat 17.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.5
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2916",
+    "name": "Be Neude",
+    "slug": "beneude-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/beneude-store-1781269938.png",
+    "payoutLabel": "Flat 17.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.5
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2479",
+    "name": "Ustraa",
+    "slug": "ustraa-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ustraa-store-1697626260.png",
+    "payoutLabel": "Flat 17.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.5
+    },
+    "vertical": "wellness",
+    "category": "Hair & Grooming"
+  },
+  {
+    "id": "2478",
+    "name": "VLCC",
+    "slug": "vlcc-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/vlcc-store-1697627455.jpg",
+    "payoutLabel": "Flat 17.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.5
+    },
+    "vertical": "wellness",
+    "category": "Hair & Grooming"
+  },
+  {
+    "id": "3153",
+    "name": "Rasayanam",
+    "slug": "rasayanam-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/rasayanam-store-1785743599.png",
+    "payoutLabel": "Flat 17% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.0
+    },
+    "vertical": "wellness",
+    "category": "Ayurveda & Herbal"
+  },
+  {
+    "id": "2799",
+    "name": "PharmEasy Diagnostics",
+    "slug": "pharmeasy-diagnostics-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/pharmeasy-diagnostics-store-1756990958.png",
+    "payoutLabel": "Upto 17% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.0
+    },
+    "vertical": "wellness",
+    "category": "Health Care & Diagnostics"
+  },
+  {
+    "id": "2477",
+    "name": "Foxtale",
+    "slug": "foxtale-store-new1",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/foxtale-store-1677751477.jpg",
+    "payoutLabel": "Flat 17% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2913",
+    "name": "Kama Ayurveda",
+    "slug": "kama-ayurveda-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/kama-ayurveda-store-1765951129.png",
+    "payoutLabel": "Flat 17% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2540",
+    "name": "Sugar Cosmetics",
+    "slug": "sugar-cosmetics-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/sugar-store-1744721889.png",
+    "payoutLabel": "Upto 17% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 17.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "3125",
+    "name": "Rage Coffee",
+    "slug": "rage-coffee-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/rage-coffee-store-1693910370.jpg",
+    "payoutLabel": "Flat 16% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 16.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "2529",
+    "name": "Dot & Key Store",
+    "slug": "dot-key-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/dot-key-new-3-1701263368.jpg",
+    "payoutLabel": "Upto 15% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 15.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "3157",
+    "name": "Dr. Sheth’s",
+    "slug": "dr-sheths-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/dr-sheths-store-1785911400.png",
+    "payoutLabel": "Flat 15% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 15.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2653",
+    "name": "Soulflower",
+    "slug": "soulflower-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/soulflower-store-1724674575.png",
+    "payoutLabel": "Flat 15% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 15.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "2678",
+    "name": "Yaan Man",
+    "slug": "yaanman-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/yaanman-store-1751973815.png",
+    "payoutLabel": "Flat 15% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 15.0
+    },
+    "vertical": "wellness",
+    "category": "Hair & Grooming"
+  },
+  {
+    "id": "2510",
+    "name": "HK Vitals",
+    "slug": "hk-vitals-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/hk-vitals-1695983147.jpg",
+    "payoutLabel": "Flat 14% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 14.0
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  },
+  {
+    "id": "2534",
+    "name": "Zandu Care",
+    "slug": "zandu-care-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/emami-zandu-care-store-1677840107.jpg",
+    "payoutLabel": "Flat 14% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 14.0
+    },
+    "vertical": "wellness",
+    "category": "Ayurveda & Herbal"
+  },
+  {
+    "id": "2676",
+    "name": "Forest Essentials India",
+    "slug": "forestessentials1-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/forestessentials-store-1723552221.png",
+    "payoutLabel": "Flat 14% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 14.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "3004",
+    "name": "WoW",
+    "slug": "wow-skin-care-new-store1",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/wow-skin-care-1591489432.png",
+    "payoutLabel": "Flat 14% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 14.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "3081",
+    "name": "BBlunt",
+    "slug": "bblunt-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/bblunt-store-1779442113.png",
+    "payoutLabel": "Flat 14% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 14.0
+    },
+    "vertical": "wellness",
+    "category": "Hair & Grooming"
+  },
+  {
+    "id": "2471",
+    "name": "The Man Company Store",
+    "slug": "themancompany-direct-newstore",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/themancompany-direct-newstore-1778239912.png",
+    "payoutLabel": "Flat 14% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 14.0
+    },
+    "vertical": "wellness",
+    "category": "Hair & Grooming"
+  },
+  {
+    "id": "3110",
+    "name": "IBA Cosmetics",
+    "slug": "ibacosmetics-store-new-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ibacosmetics-store-1750846690.png",
+    "payoutLabel": "Flat 12.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 12.5
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "3061",
+    "name": "Kapiva Store",
+    "slug": "kapiva-new-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/kapiva-store-live-1644313508.png",
+    "payoutLabel": "Upto 12% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 12.0
+    },
+    "vertical": "wellness",
+    "category": "Ayurveda & Herbal"
+  },
+  {
+    "id": "2476",
+    "name": "Hyphen",
+    "slug": "hyphen-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/hyphen-store-1707997633.png",
+    "payoutLabel": "Flat 12% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 12.0
+    },
+    "vertical": "wellness",
+    "category": "Skin Care"
+  },
+  {
+    "id": "3097",
+    "name": "Beco",
+    "slug": "beco-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/beco-store-1683808673.jpg",
+    "payoutLabel": "Flat 12% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 12.0
+    },
+    "vertical": "wellness",
+    "category": "Body Care & Hygiene"
+  },
+  {
+    "id": "3109",
+    "name": "Ghar Soaps",
+    "slug": "ghar-soaps-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/ghar-soaps-store-1765966524.png",
+    "payoutLabel": "Flat 11% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 11.0
+    },
+    "vertical": "wellness",
+    "category": "Body Care & Hygiene"
+  },
+  {
+    "id": "2485",
+    "name": "Hyugalife",
+    "slug": "hyugalife-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/hyugalife-store-1725869177.png",
+    "payoutLabel": "Upto 10.5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.5
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  },
+  {
+    "id": "2531",
+    "name": "True Elements Store",
+    "slug": "true-elements-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/true-elements-store-1671615192.jpg",
+    "payoutLabel": "Flat 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "wellness",
+    "category": "Nutrition & Foods"
+  },
+  {
+    "id": "2828",
+    "name": "Nutrabay",
+    "slug": "nutrabay-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/nutrabay-store-1758545523.png",
+    "payoutLabel": "Upto 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  },
+  {
+    "id": "3113",
+    "name": "Perfora",
+    "slug": "perfora-store-new-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/perforacare-store-1724138670.png",
+    "payoutLabel": "Upto 10% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 10.0
+    },
+    "vertical": "wellness",
+    "category": "Body Care & Hygiene"
+  },
+  {
+    "id": "2483",
+    "name": "MuscleBlaze",
+    "slug": "muscleblaze-new-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/muscleblaze-store-1629791765.png",
+    "payoutLabel": "Flat 8% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 8.0
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  },
+  {
+    "id": "1591",
+    "name": "Medibuddy Labs New",
+    "slug": "medibuddy-labs-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/medibuddy-labs-1637855791.jpg",
+    "payoutLabel": "Upto 8% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 8.0
+    },
+    "vertical": "wellness",
+    "category": "Health Care & Diagnostics"
+  },
+  {
+    "id": "2484",
+    "name": "Netmeds",
+    "slug": "netmeds-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/netmeds-store-1610622260.png",
+    "payoutLabel": "Upto 7% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 7.0
+    },
+    "vertical": "wellness",
+    "category": "Health Care & Diagnostics"
+  },
+  {
+    "id": "3066",
+    "name": "Baby Forest",
+    "slug": "baby-forest-store-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/baby-forest-store-1756105616.png",
+    "payoutLabel": "Flat 7% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 7.0
+    },
+    "vertical": "wellness",
+    "category": "Body Care & Hygiene"
+  },
+  {
+    "id": "2775",
+    "name": "TrueBasics",
+    "slug": "truebasics-store",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/truebasics-store-1756191641.png",
+    "payoutLabel": "Flat 6% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 6.0
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  },
+  {
+    "id": "3112",
+    "name": "Gritzo",
+    "slug": "gritzo-direct-ns",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/gritzo-store-1677484321.png",
+    "payoutLabel": "Flat 6% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 6.0
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  },
+  {
+    "id": "2466",
+    "name": "Kindlife",
+    "slug": "kindlife-store-new",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/kindlife-1650881667.png",
+    "payoutLabel": "Flat 5% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 5.0
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  },
+  {
+    "id": "2493",
+    "name": "Healthkart Store",
+    "slug": "healthkart-store-live-new-3",
+    "logo": "https://asset21.ckassets.com/resources/image/stores/healthkart-1635502455.png",
+    "payoutLabel": "Flat 2.8% Profit",
+    "payout": {
+      "kind": "percent",
+      "value": 2.8
+    },
+    "vertical": "wellness",
+    "category": "Supplements & Sports Nutrition"
+  }
+]

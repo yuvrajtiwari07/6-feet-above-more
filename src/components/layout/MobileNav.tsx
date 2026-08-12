@@ -1,16 +1,17 @@
 import React from 'react';
 import { useApp, RouteType } from '../../context/AppContext';
 import { Home, Grid, Sparkles, Heart, User } from 'lucide-react';
+import { WELLNESS_CATEGORIES } from '../../data/wellness';
 
 export const MobileNav: React.FC = () => {
-  const { route, navigate, savedProductIds, savedFitIds } = useApp();
+  const { route, navigate, savedProductIds, savedFitIds, isWellness } = useApp();
 
   const activeTab = route.current;
   const totalSaved = savedProductIds.length + savedFitIds.length;
 
   const tabs: { label: string; icon: React.ReactNode; route: RouteType; params?: any; id: string }[] = [
     { label: 'Home', icon: <Home size={20} />, route: 'home', id: 'mob-home' },
-    { label: 'Categories', icon: <Grid size={20} />, route: 'category', params: { categoryName: 'Streetwear' }, id: 'mob-categories' },
+    { label: 'Categories', icon: <Grid size={20} />, route: 'category', params: { categoryName: isWellness ? WELLNESS_CATEGORIES[0].name : 'Streetwear' }, id: 'mob-categories' },
     { label: 'Catalogs', icon: <Sparkles size={20} />, route: 'catalog-categories', id: 'mob-catalogs' },
     { label: 'Saved', icon: <Heart size={20} />, route: 'saved', id: 'mob-saved' },
     { label: 'Profile', icon: <User size={20} />, route: 'profile', id: 'mob-profile' },

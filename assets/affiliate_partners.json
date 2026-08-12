@@ -1,0 +1,3507 @@
+{
+    "pageProps": {
+        "allStores": {
+            "data": [
+                {
+                    "type": "offers",
+                    "id": "1100",
+                    "attributes": {
+                        "name": "Amazon",
+                        "unique_identifier": "amazon-store-live-1",
+                        "cashback_button_text": "Upto 8.2% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/amazon-store-live-1-1777975646.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2468",
+                    "attributes": {
+                        "name": "Myntra New",
+                        "unique_identifier": "myntra-new-t",
+                        "cashback_button_text": "Upto 8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/myntra-new-t-1777980142.png"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2032",
+                    "attributes": {
+                        "name": "Ajio New Store",
+                        "unique_identifier": "ajionew-store",
+                        "cashback_button_text": "Upto 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ajio-store-1606812055.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2543",
+                    "attributes": {
+                        "name": "Axis MyZone Rupay Credit Card",
+                        "unique_identifier": "myzone-cc",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/myzone-cc-1770012000.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2545",
+                    "attributes": {
+                        "name": "Axis Flipkart Credit Card",
+                        "unique_identifier": "axis-flipkart-credit-card",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-flipkart-credit-card-1779791791.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2529",
+                    "attributes": {
+                        "name": "Dot & Key Store",
+                        "unique_identifier": "dot-key-new-store",
+                        "cashback_button_text": "Upto 15% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/dot-key-new-3-1701263368.jpg"
+                    },
+                    "meta": {
+                        "group": "D"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2616",
+                    "attributes": {
+                        "name": "SBI Cashback Credit Card",
+                        "unique_identifier": "sbi-cashback-2-new",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-cashback-2-new-1765441194.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2034",
+                    "attributes": {
+                        "name": "mCaffeine Store",
+                        "unique_identifier": "mcaffeine-trackier",
+                        "cashback_button_text": "Flat 18% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/mcaffeine-store-4-1639372559.jpg"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1005",
+                    "attributes": {
+                        "name": "Brillare",
+                        "unique_identifier": "brillare-store",
+                        "cashback_button_text": "Flat 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/brillare-store-1778674845.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1014",
+                    "attributes": {
+                        "name": "Goibibo",
+                        "unique_identifier": "goibibo-store",
+                        "cashback_button_text": "Flat Rs 100 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/goibibo-1657700314.png"
+                    },
+                    "meta": {
+                        "group": "G"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1098",
+                    "attributes": {
+                        "name": "Croma Store",
+                        "unique_identifier": "croma-store",
+                        "cashback_button_text": "Upto 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/croma-store-1644578583.png"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1130",
+                    "attributes": {
+                        "name": "Kerala Ayurveda",
+                        "unique_identifier": "kerala-ayurveda-store",
+                        "cashback_button_text": "Flat 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kerala-ayurveda-store-1777981958.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1151",
+                    "attributes": {
+                        "name": "Dell",
+                        "unique_identifier": "dell-store",
+                        "cashback_button_text": "Flat 5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/dell-store-1667252946.jpg"
+                    },
+                    "meta": {
+                        "group": "D"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1591",
+                    "attributes": {
+                        "name": "Medibuddy Labs New",
+                        "unique_identifier": "medibuddy-labs-new",
+                        "cashback_button_text": "Upto 8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/medibuddy-labs-1637855791.jpg"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1729",
+                    "attributes": {
+                        "name": "MakeMyTrip Hotels",
+                        "unique_identifier": "makemytrip-hotels-2",
+                        "cashback_button_text": "Flat Rs 140 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/makemytrip-live-1657716572.png"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1742",
+                    "attributes": {
+                        "name": "GoDaddy Store",
+                        "unique_identifier": "go-daddy-2",
+                        "cashback_button_text": "Flat 5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/go-daddy-1576521085.png"
+                    },
+                    "meta": {
+                        "group": "G"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1786",
+                    "attributes": {
+                        "name": "Shopsy Store",
+                        "unique_identifier": "shopsy-store",
+                        "cashback_button_text": "Upto 8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/shopsy-store-1692602320.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "1943",
+                    "attributes": {
+                        "name": "Qatar Airways",
+                        "unique_identifier": "qatar-airways-store",
+                        "cashback_button_text": "Flat 1% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/qatar-store-1638174650.png"
+                    },
+                    "meta": {
+                        "group": "Q"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2043",
+                    "attributes": {
+                        "name": "AVAST Software",
+                        "unique_identifier": "avast-store",
+                        "cashback_button_text": "Flat 15% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/avast-store-1713875668.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2054",
+                    "attributes": {
+                        "name": "Hamara Mall",
+                        "unique_identifier": "hamara-mall-store",
+                        "cashback_button_text": "Upto 15% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hamara-mall-store-1777901389.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2091",
+                    "attributes": {
+                        "name": "Kayak Flights",
+                        "unique_identifier": "kayak-flights",
+                        "cashback_button_text": "Flat 0.9% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kayak-flights-1718022074.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2092",
+                    "attributes": {
+                        "name": "Kayak Hotels",
+                        "unique_identifier": "kayak-hotels",
+                        "cashback_button_text": "Flat 3.7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kayak-hotels-1718023334.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2130",
+                    "attributes": {
+                        "name": "Pepperfry",
+                        "unique_identifier": "pepperfry-new",
+                        "cashback_button_text": "Upto 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/pepperfry-new-1721737170.png"
+                    },
+                    "meta": {
+                        "group": "P"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2169",
+                    "attributes": {
+                        "name": "Uniqlo",
+                        "unique_identifier": "uniqlo-store",
+                        "cashback_button_text": "Flat 1.25% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/uniqlo-store-1723805465.png"
+                    },
+                    "meta": {
+                        "group": "U"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2177",
+                    "attributes": {
+                        "name": "Acer",
+                        "unique_identifier": "acer-new",
+                        "cashback_button_text": "Flat 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/acer-new-1724156305.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2197",
+                    "attributes": {
+                        "name": "Cleartrip Flights",
+                        "unique_identifier": "cleartrip-flights-new",
+                        "cashback_button_text": "Upto Rs 60 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/cleartrip-admitad-1664859262.jpg"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2272",
+                    "attributes": {
+                        "name": "Google Workspace",
+                        "unique_identifier": "google-workspace-store",
+                        "cashback_button_text": "Upto Rs 700 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/google-workspace-store-1727245718.png"
+                    },
+                    "meta": {
+                        "group": "G"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2312",
+                    "attributes": {
+                        "name": "Neurogum",
+                        "unique_identifier": "neurogum-store",
+                        "cashback_button_text": "Flat 56% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/neurogum-store-1730204249.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2322",
+                    "attributes": {
+                        "name": "Ajiogram",
+                        "unique_identifier": "ajiogram-store",
+                        "cashback_button_text": "Upto 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ajiogram-store-1731922140.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2328",
+                    "attributes": {
+                        "name": "Jaypore",
+                        "unique_identifier": "jaypore-store-new",
+                        "cashback_button_text": "Flat 8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/jaypore-store-new-1732101726.png"
+                    },
+                    "meta": {
+                        "group": "J"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2333",
+                    "attributes": {
+                        "name": "Air India",
+                        "unique_identifier": "air-india-store1",
+                        "cashback_button_text": "Upto 0.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/air-india-store-1728906771.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2389",
+                    "attributes": {
+                        "name": "Expedia",
+                        "unique_identifier": "expedia-store-new",
+                        "cashback_button_text": "Upto 7.7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/expedia-store-1730893396.png"
+                    },
+                    "meta": {
+                        "group": "E"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2390",
+                    "attributes": {
+                        "name": "Go Noise Store",
+                        "unique_identifier": "gonoise-store-ek-new",
+                        "cashback_button_text": "Flat 5.6% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/gonoise-store-ek-1724994446.png"
+                    },
+                    "meta": {
+                        "group": "G"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2392",
+                    "attributes": {
+                        "name": "Hotels.com",
+                        "unique_identifier": "hotels-india-new-store",
+                        "cashback_button_text": "Upto 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hotels-india-store-1734697776.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2397",
+                    "attributes": {
+                        "name": "Guvi",
+                        "unique_identifier": "guvi-store",
+                        "cashback_button_text": "Flat 3.7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/guviaiml-store-1745930565.png"
+                    },
+                    "meta": {
+                        "group": "G"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2402",
+                    "attributes": {
+                        "name": "Olyv Personal Loan",
+                        "unique_identifier": "olyv-loan",
+                        "cashback_button_text": "Flat 1.75% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/olyv-1737014556.png"
+                    },
+                    "meta": {
+                        "group": "O"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2444",
+                    "attributes": {
+                        "name": "Cleartrip Hotels",
+                        "unique_identifier": "cleartrip-hotels-new",
+                        "cashback_button_text": "Upto Rs 240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/cleartrip-admitad-1664859262.jpg"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2453",
+                    "attributes": {
+                        "name": "Firstcry Store",
+                        "unique_identifier": "firstcry-new2",
+                        "cashback_button_text": "Upto Rs 35 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/firstcry-1658475993.png"
+                    },
+                    "meta": {
+                        "group": "F"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2457",
+                    "attributes": {
+                        "name": "Gabit Skincare",
+                        "unique_identifier": "gabit-skincare-store",
+                        "cashback_button_text": "Flat 21% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/gabit-skincare-store-1741610226.png"
+                    },
+                    "meta": {
+                        "group": "G"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2463",
+                    "attributes": {
+                        "name": "Durex Store",
+                        "unique_identifier": "durex-store-new",
+                        "cashback_button_text": "Flat 18% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/durex-india-1660906517.png"
+                    },
+                    "meta": {
+                        "group": "D"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2464",
+                    "attributes": {
+                        "name": "XYXX Crew",
+                        "unique_identifier": "xyxx-store-new",
+                        "cashback_button_text": "Flat 7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/xyxx-1657861140.png"
+                    },
+                    "meta": {
+                        "group": "X"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2466",
+                    "attributes": {
+                        "name": "Kindlife",
+                        "unique_identifier": "kindlife-store-new",
+                        "cashback_button_text": "Flat 5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kindlife-1650881667.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2471",
+                    "attributes": {
+                        "name": "The Man Company Store",
+                        "unique_identifier": "themancompany-direct-newstore",
+                        "cashback_button_text": "Flat 14% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/themancompany-direct-newstore-1778239912.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2475",
+                    "attributes": {
+                        "name": "Mpokket Personal Loan",
+                        "unique_identifier": "mpokket-store-new",
+                        "cashback_button_text": "Upto Rs 110 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/mpokket-store-1720422391.png"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2476",
+                    "attributes": {
+                        "name": "Hyphen",
+                        "unique_identifier": "hyphen-new-store",
+                        "cashback_button_text": "Flat 12% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hyphen-store-1707997633.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2477",
+                    "attributes": {
+                        "name": "Foxtale",
+                        "unique_identifier": "foxtale-store-new1",
+                        "cashback_button_text": "Flat 17% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/foxtale-store-1677751477.jpg"
+                    },
+                    "meta": {
+                        "group": "F"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2478",
+                    "attributes": {
+                        "name": "VLCC",
+                        "unique_identifier": "vlcc-store-new",
+                        "cashback_button_text": "Flat 17.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/vlcc-store-1697627455.jpg"
+                    },
+                    "meta": {
+                        "group": "V"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2479",
+                    "attributes": {
+                        "name": "Ustraa",
+                        "unique_identifier": "ustraa-store-new",
+                        "cashback_button_text": "Flat 17.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ustraa-store-1697626260.png"
+                    },
+                    "meta": {
+                        "group": "U"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2482",
+                    "attributes": {
+                        "name": "IGP",
+                        "unique_identifier": "igp-store-new",
+                        "cashback_button_text": "Flat 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/igp-store-1723466570.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2483",
+                    "attributes": {
+                        "name": "MuscleBlaze",
+                        "unique_identifier": "muscleblaze-new-store",
+                        "cashback_button_text": "Flat 8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/muscleblaze-store-1629791765.png"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2484",
+                    "attributes": {
+                        "name": "Netmeds",
+                        "unique_identifier": "netmeds-store-new",
+                        "cashback_button_text": "Upto 7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/netmeds-store-1610622260.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2485",
+                    "attributes": {
+                        "name": "Hyugalife",
+                        "unique_identifier": "hyugalife-store-new",
+                        "cashback_button_text": "Upto 10.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hyugalife-store-1725869177.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2488",
+                    "attributes": {
+                        "name": "Bella Vita Store",
+                        "unique_identifier": "bellavita-new",
+                        "cashback_button_text": "Flat 17.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/bella-vita-store-1634097135.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2493",
+                    "attributes": {
+                        "name": "Healthkart Store",
+                        "unique_identifier": "healthkart-store-live-new-3",
+                        "cashback_button_text": "Flat 2.8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/healthkart-1635502455.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2495",
+                    "attributes": {
+                        "name": "Shyaway",
+                        "unique_identifier": "shyaway-store-3-live-new1",
+                        "cashback_button_text": "Flat 24.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/shyaway-store-3-live-new-1701328754.jpg"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2510",
+                    "attributes": {
+                        "name": "HK Vitals",
+                        "unique_identifier": "hk-vitals-new",
+                        "cashback_button_text": "Flat 14% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hk-vitals-1695983147.jpg"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2512",
+                    "attributes": {
+                        "name": "Truemeds Store",
+                        "unique_identifier": "truemeds-new-store",
+                        "cashback_button_text": "Upto Rs 400 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/truemeds-affise-1668159988.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2518",
+                    "attributes": {
+                        "name": "Times Prime",
+                        "unique_identifier": "times-prime-new-store",
+                        "cashback_button_text": "Flat Rs 350 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/times-prime-new-1704797504.jpg"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2519",
+                    "attributes": {
+                        "name": "XYLife",
+                        "unique_identifier": "xy-life-new-store",
+                        "cashback_button_text": "Flat 21% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/xy-life-store-1677243400.jpg"
+                    },
+                    "meta": {
+                        "group": "X"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2522",
+                    "attributes": {
+                        "name": "ShopClues Store",
+                        "unique_identifier": "shopclues-store",
+                        "cashback_button_text": "Upto 7.7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/shopclues-store-1660305844.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2524",
+                    "attributes": {
+                        "name": "Koparo Clean Store",
+                        "unique_identifier": "koparo-clean-store",
+                        "cashback_button_text": "Flat 40% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/koparo-clean-1712820744.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2525",
+                    "attributes": {
+                        "name": "Tiaraa",
+                        "unique_identifier": "tiaraa-new-store",
+                        "cashback_button_text": "Flat 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tiaraa-store-1680241064.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2531",
+                    "attributes": {
+                        "name": "True Elements Store",
+                        "unique_identifier": "true-elements-new-store",
+                        "cashback_button_text": "Flat 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/true-elements-store-1671615192.jpg"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2532",
+                    "attributes": {
+                        "name": "The Derma Co",
+                        "unique_identifier": "the-derma-co-new-store",
+                        "cashback_button_text": "Upto 20% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/thedermaco-store-1626755932.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2533",
+                    "attributes": {
+                        "name": "Swiss Beauty",
+                        "unique_identifier": "swiss-beauty-new-store",
+                        "cashback_button_text": "Flat 18% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/swissbeauty-store-1723635802.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2534",
+                    "attributes": {
+                        "name": "Zandu Care",
+                        "unique_identifier": "zandu-care-new-store",
+                        "cashback_button_text": "Flat 14% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/emami-zandu-care-store-1677840107.jpg"
+                    },
+                    "meta": {
+                        "group": "Z"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2537",
+                    "attributes": {
+                        "name": "House Of Koala",
+                        "unique_identifier": "house-of-koala-store",
+                        "cashback_button_text": "Flat 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/house-of-koala-store-1778239944.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2540",
+                    "attributes": {
+                        "name": "Sugar Cosmetics",
+                        "unique_identifier": "sugar-cosmetics-store",
+                        "cashback_button_text": "Upto 17% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sugar-store-1744721889.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2541",
+                    "attributes": {
+                        "name": "Prefr Personal Loan",
+                        "unique_identifier": "prefr-new",
+                        "cashback_button_text": "Flat 1.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/prefr-loan-1661252205.png"
+                    },
+                    "meta": {
+                        "group": "P"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2542",
+                    "attributes": {
+                        "name": "Axis Privilege Credit Card",
+                        "unique_identifier": "privilege-cc",
+                        "cashback_button_text": "Upto Rs 2080 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/privilege-cc-1765450971.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2544",
+                    "attributes": {
+                        "name": "Axis Magnus Credit Card",
+                        "unique_identifier": "magnus-cc",
+                        "cashback_button_text": "Upto Rs 2800 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/magnus-cc-1765450902.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2547",
+                    "attributes": {
+                        "name": "Axis Indian Oil Rupay Credit Card",
+                        "unique_identifier": "iocl-rupay-cc",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/iocl-rupay-cc-1765450848.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2549",
+                    "attributes": {
+                        "name": "Axis Airtel Rupay Credit Card",
+                        "unique_identifier": "airtel-cc",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/airtel-cc-1769773221.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2550",
+                    "attributes": {
+                        "name": "Axis LIC Signature Credit Card",
+                        "unique_identifier": "lic-signature-cc",
+                        "cashback_button_text": "Flat Rs 1600 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/lic-signature-cc-1765450885.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2551",
+                    "attributes": {
+                        "name": "Axis LIC Platinum Credit Card",
+                        "unique_identifier": "lic-platinum-cc",
+                        "cashback_button_text": "Flat Rs 1600 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/lic-platinum-cc-1765450863.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2561",
+                    "attributes": {
+                        "name": "IDFC First Power Credit Card",
+                        "unique_identifier": "idfc-power",
+                        "cashback_button_text": "Upto Rs 1050 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-power-1783673344.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2562",
+                    "attributes": {
+                        "name": "IDFC First Power Plus Credit Card",
+                        "unique_identifier": "idfc-powerplus",
+                        "cashback_button_text": "Upto Rs 1050 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-powerplus-1783673366.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2563",
+                    "attributes": {
+                        "name": "IDFC First Credit Card",
+                        "unique_identifier": "idfc-first",
+                        "cashback_button_text": "Upto Rs 1050 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-first-1783673277.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2565",
+                    "attributes": {
+                        "name": "IDFC FIRST WOW Credit Card",
+                        "unique_identifier": "idfc-wow",
+                        "cashback_button_text": "Flat Rs 350 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-wow-1783673426.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2566",
+                    "attributes": {
+                        "name": "IDFC FIRST Bank Mayura Credit Card",
+                        "unique_identifier": "idfc-mayura",
+                        "cashback_button_text": "Upto Rs 1050 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-mayura-1783673247.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2567",
+                    "attributes": {
+                        "name": "IDFC FIRST Bank Ashva Credit Card",
+                        "unique_identifier": "idfc-ashwa-cc",
+                        "cashback_button_text": "Upto Rs 1050 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-ashwa-cc-1783673221.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2583",
+                    "attributes": {
+                        "name": "Indusind Tiger Credit Card",
+                        "unique_identifier": "indusind-tiger-new",
+                        "cashback_button_text": "Flat Rs 600 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/indusind-tiger-new-1785840683.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2584",
+                    "attributes": {
+                        "name": "RBL Bank Shoprite Credit Card",
+                        "unique_identifier": "rbl-shoprite-cc-new",
+                        "cashback_button_text": "Flat Rs 1200 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rbl-shoprite-1733985539.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2585",
+                    "attributes": {
+                        "name": "HSBC Live Plus Credit Card",
+                        "unique_identifier": "hsbc-live-plus-credit-card",
+                        "cashback_button_text": "Flat Rs 3000 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hsbc-live-plus-credit-card-1785499532.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2588",
+                    "attributes": {
+                        "name": "Scapia Co-Branded Credit Card",
+                        "unique_identifier": "scapia-co-branded-credit-card",
+                        "cashback_button_text": "Flat Rs 770 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/scapia-cc-2-1770178832.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2589",
+                    "attributes": {
+                        "name": "RBL Bank Indian Oil Credit Card",
+                        "unique_identifier": "rbl-indianoi-cc-new",
+                        "cashback_button_text": "Flat Rs 1280 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rbl-indianoil-1733998816.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2590",
+                    "attributes": {
+                        "name": "RBL Bank Indian Oil XTRA Credit Card",
+                        "unique_identifier": "rbl-indianoil-xtr-cc-new",
+                        "cashback_button_text": "Flat Rs 1280 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rbl-indianoil-xtra-1734077120.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2593",
+                    "attributes": {
+                        "name": "IndusInd Platinum Credit Card",
+                        "unique_identifier": "indusind-platinum-store-new",
+                        "cashback_button_text": "Upto Rs 1290 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/indusind-platinum-store-new-1785840649.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2594",
+                    "attributes": {
+                        "name": "IndusInd Platinum Aura Edge Credit Card",
+                        "unique_identifier": "indusind-pae-new",
+                        "cashback_button_text": "Upto Rs 1290 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/indusind-pae-new-1785840617.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2595",
+                    "attributes": {
+                        "name": "IndusInd Legend Credit Card",
+                        "unique_identifier": "indusind-legend-new-store",
+                        "cashback_button_text": "Upto Rs 1290 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/indusind-legend-new-store-1785840597.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2597",
+                    "attributes": {
+                        "name": "UPI Credit Card on KIWI Store",
+                        "unique_identifier": "kiwiupi-store2",
+                        "cashback_button_text": "Flat Rs 1200 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kiwiupi-store-1728045132.png"
+                    },
+                    "meta": {
+                        "group": "U"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2598",
+                    "attributes": {
+                        "name": "HSBC Platinum Credit Card",
+                        "unique_identifier": "hsbc-platinum-credit-card",
+                        "cashback_button_text": "Flat Rs 3000 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hsbc-platinum-credit-card-1785499565.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2599",
+                    "attributes": {
+                        "name": "HSBC Travel One Credit Card",
+                        "unique_identifier": "hsbc-travel-one-credit-card",
+                        "cashback_button_text": "Flat Rs 3000 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hsbc-travel-one-credit-card-1785499590.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2600",
+                    "attributes": {
+                        "name": "AU NOMO Credit Card",
+                        "unique_identifier": "au-nomo-store-new",
+                        "cashback_button_text": "Flat Rs 350 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-altura-creditcard-1684299137.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2601",
+                    "attributes": {
+                        "name": "AU LIT Credit Card Store",
+                        "unique_identifier": "aulit-store-new",
+                        "cashback_button_text": "Flat Rs 1540 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-lit-1684299171.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2605",
+                    "attributes": {
+                        "name": "HDFC Pixel Play Credit Card",
+                        "unique_identifier": "hdfc-pixel-new",
+                        "cashback_button_text": "Upto Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-pixel-new-1765449126.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2606",
+                    "attributes": {
+                        "name": "HDFC IRCTC Credit Card",
+                        "unique_identifier": "irctch-new",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/irctch-new-1765449077.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2607",
+                    "attributes": {
+                        "name": "HDFC Bank Credit Card",
+                        "unique_identifier": "hdfccc-new",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfccc-new-1765448784.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2609",
+                    "attributes": {
+                        "name": "HDFC RuPay Credit Card",
+                        "unique_identifier": "rupayh-new",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rupayh-new-1765449145.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2610",
+                    "attributes": {
+                        "name": "HDFC Bank Marriott Credit Card",
+                        "unique_identifier": "marriotth-new",
+                        "cashback_button_text": "Flat Rs 2180 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/marriotth-new-1765448992.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2611",
+                    "attributes": {
+                        "name": "HDFC Shoppers Stop Credit Card",
+                        "unique_identifier": "shoppersstoph-new",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/shoppersstoph-new-1765449163.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2612",
+                    "attributes": {
+                        "name": "Tata Neu HDFC Bank Credit Card",
+                        "unique_identifier": "tataneuh-new",
+                        "cashback_button_text": "Flat Rs 600 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tataneuh-new-1765459454.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2613",
+                    "attributes": {
+                        "name": "HDFC Smart EMI",
+                        "unique_identifier": "hdfc-emi-new",
+                        "cashback_button_text": "Flat 1% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-emi-new-1765449180.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2614",
+                    "attributes": {
+                        "name": "HDFC Instant Loan",
+                        "unique_identifier": "hdfc-loan-new",
+                        "cashback_button_text": "Flat 1% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-loan-new-1765449060.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2617",
+                    "attributes": {
+                        "name": "SBI Simply Click Credit Card",
+                        "unique_identifier": "sbi-simply-click-2-new",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-simply-click-2-new-1765441216.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2618",
+                    "attributes": {
+                        "name": "SBI Simply Save Credit Card",
+                        "unique_identifier": "sbi-simply-save-2-new",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-simply-save-2-new-1765441290.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2619",
+                    "attributes": {
+                        "name": "SBI Prime Credit Card",
+                        "unique_identifier": "sbi-prime-2-new",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-prime-2-new-1765438701.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2620",
+                    "attributes": {
+                        "name": "SBI BPCL Credit Card",
+                        "unique_identifier": "sbi-bpcl-2-new",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-bpcl-2-new-1765439226.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2621",
+                    "attributes": {
+                        "name": "SBI Miles Credit Card",
+                        "unique_identifier": "sbi-miles-2-new",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-miles-2-new-1765439887.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2622",
+                    "attributes": {
+                        "name": "SBI Elite Credit Card",
+                        "unique_identifier": "sbi-elite-2-new",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-elite-2-new-1765440570.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2623",
+                    "attributes": {
+                        "name": "Poonawalla Fincorp Personal Loan",
+                        "unique_identifier": "poonawalla-store",
+                        "cashback_button_text": "Flat 1.28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/poonawalla-store-1746786527.png"
+                    },
+                    "meta": {
+                        "group": "P"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2624",
+                    "attributes": {
+                        "name": "RBL Bank IRCTC Credit Card",
+                        "unique_identifier": "rbl-irctc",
+                        "cashback_button_text": "Flat Rs 1280 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rbl-shoprite-1733985539.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2625",
+                    "attributes": {
+                        "name": "IDFC FIRST Earn Credit Card",
+                        "unique_identifier": "idfc-first-earn",
+                        "cashback_button_text": "Flat Rs 350 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-first-earn-1783673302.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2627",
+                    "attributes": {
+                        "name": "Kotak811 Classic Savings Account",
+                        "unique_identifier": "kotak-savings",
+                        "cashback_button_text": "Flat Rs 300 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kotak-811-1708059420.jpg"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2636",
+                    "attributes": {
+                        "name": "IndusInd EazyDiner Platinum RuPay Credit Card",
+                        "unique_identifier": "indusind-eazydiner-platinum-rupay-credit-card",
+                        "cashback_button_text": "Upto Rs 1290 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/indusind-eazydiner-1785840578.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2644",
+                    "attributes": {
+                        "name": "IndusInd Platinum Rupay Credit Card",
+                        "unique_identifier": "indusind-platinum-rupay",
+                        "cashback_button_text": "Upto Rs 1290 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/indusind-platinum-rupay-1785840667.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2653",
+                    "attributes": {
+                        "name": "Soulflower",
+                        "unique_identifier": "soulflower-new-store",
+                        "cashback_button_text": "Flat 15% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/soulflower-store-1724674575.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2660",
+                    "attributes": {
+                        "name": "MyEazyLoan",
+                        "unique_identifier": "myeazyloan",
+                        "cashback_button_text": "Upto 2% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/myeazyloan-1750245678.png"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2663",
+                    "attributes": {
+                        "name": "Axis Cashback Credit Card",
+                        "unique_identifier": "axis-cashback-cc",
+                        "cashback_button_text": "Upto Rs 2080 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-cashback-cc-1765450792.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2676",
+                    "attributes": {
+                        "name": "Forest Essentials India",
+                        "unique_identifier": "forestessentials1-store-new",
+                        "cashback_button_text": "Flat 14% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/forestessentials-store-1723552221.png"
+                    },
+                    "meta": {
+                        "group": "F"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2678",
+                    "attributes": {
+                        "name": "Yaan Man",
+                        "unique_identifier": "yaanman-store",
+                        "cashback_button_text": "Flat 15% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/yaanman-store-1751973815.png"
+                    },
+                    "meta": {
+                        "group": "Y"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2683",
+                    "attributes": {
+                        "name": "Reliance Digital",
+                        "unique_identifier": "reliance-digital-store-new",
+                        "cashback_button_text": "Upto 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/reliance-digital-store-new-1763448022.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2685",
+                    "attributes": {
+                        "name": "Axis Privilege Amex Credit Card",
+                        "unique_identifier": "axis-amex",
+                        "cashback_button_text": "Upto Rs 1920 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-amex-1765450954.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2692",
+                    "attributes": {
+                        "name": "BHIM UPI",
+                        "unique_identifier": "bhim-upi-store-new",
+                        "cashback_button_text": "Flat Rs 12 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/bhim-store-hidden-1752901728.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2704",
+                    "attributes": {
+                        "name": "Zype Personal Loan",
+                        "unique_identifier": "zype-loan",
+                        "cashback_button_text": "Flat 2% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/zype-loan-1754925590.png"
+                    },
+                    "meta": {
+                        "group": "Z"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2706",
+                    "attributes": {
+                        "name": "Salty",
+                        "unique_identifier": "salty-store-new1",
+                        "cashback_button_text": "Flat 9% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/salty-store-1725949898.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2709",
+                    "attributes": {
+                        "name": "Neuherbs",
+                        "unique_identifier": "neu-herbs-store-new",
+                        "cashback_button_text": "Flat 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/neu-herbs-store-1725342525.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2715",
+                    "attributes": {
+                        "name": "Nature 4 Nature",
+                        "unique_identifier": "nature-4-nature-store",
+                        "cashback_button_text": "Flat 49% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/nature-4-nature-store-1754548575.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2718",
+                    "attributes": {
+                        "name": "Fibe Personal Loan",
+                        "unique_identifier": "fibe-loan",
+                        "cashback_button_text": "Upto 1.62% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/bankkaro-fibe-1669708403.jpg"
+                    },
+                    "meta": {
+                        "group": "F"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2723",
+                    "attributes": {
+                        "name": "Bajaj Finserv Personal Loan",
+                        "unique_identifier": "bajaj-finserv-loan",
+                        "cashback_button_text": "Flat 1.3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/bajaj-finserv-loan-1754994124.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2724",
+                    "attributes": {
+                        "name": "Axis Bank Personal Loan",
+                        "unique_identifier": "axis-loan",
+                        "cashback_button_text": "Flat 0.75% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-loan-1765451065.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2725",
+                    "attributes": {
+                        "name": "Tata Capital Personal Loan",
+                        "unique_identifier": "tata-capital-loan",
+                        "cashback_button_text": "Flat 1.25% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tata-capital-loan-1755067162.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2728",
+                    "attributes": {
+                        "name": "HDFC Bank Personal Loan",
+                        "unique_identifier": "hdfc-loan",
+                        "cashback_button_text": "Flat 1.23% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-loan-1765449018.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2729",
+                    "attributes": {
+                        "name": "Aqualogica",
+                        "unique_identifier": "aqualogica-store-new",
+                        "cashback_button_text": "Flat 21% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/aqualogica-store-1680500501.jpg"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2730",
+                    "attributes": {
+                        "name": "HDFC Millennia Credit Card",
+                        "unique_identifier": "hdfc-millennia",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-millennia-1765449092.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2732",
+                    "attributes": {
+                        "name": "Booking.com Store",
+                        "unique_identifier": "booking-store-new",
+                        "cashback_button_text": "Flat 4% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/booking-store-1679897461.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2739",
+                    "attributes": {
+                        "name": "Tata CLiQ",
+                        "unique_identifier": "tata-cliq-store",
+                        "cashback_button_text": "Upto 3.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tatacliq-coupons.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2744",
+                    "attributes": {
+                        "name": "IndiGo IDFC FIRST Dual Credit Cards",
+                        "unique_identifier": "idfc-indigo",
+                        "cashback_button_text": "Upto Rs 1050 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-indigo-1783673476.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2748",
+                    "attributes": {
+                        "name": "Axis Samsung Signature Credit Card",
+                        "unique_identifier": "axis-samsung-signature-credit-card-store",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-samsung-signature-credit-card-store-1765451023.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2749",
+                    "attributes": {
+                        "name": "SBI IRCTC Rupay Credit Card",
+                        "unique_identifier": "sbi-irctc-rupay-credit-card-store",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-irctc-rupay-credit-card-store-1765441166.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2750",
+                    "attributes": {
+                        "name": "HDFC Pixel Go Credit Card",
+                        "unique_identifier": "hdfc-pixel-go-credit-card-store",
+                        "cashback_button_text": "Upto Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-pixel-go-credit-card-store-1765449109.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2753",
+                    "attributes": {
+                        "name": "Mivi",
+                        "unique_identifier": "mivi-store2",
+                        "cashback_button_text": "Flat 6.3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/mivi-store-1723634930.png"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2756",
+                    "attributes": {
+                        "name": "Havells",
+                        "unique_identifier": "havells-store",
+                        "cashback_button_text": "Upto 1.89% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/havells-store-1755697902.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2760",
+                    "attributes": {
+                        "name": "TripAdvisor",
+                        "unique_identifier": "tripadvisor-store",
+                        "cashback_button_text": "Flat 4% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tripadvisor-store-1755757046.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2768",
+                    "attributes": {
+                        "name": "Tanishq",
+                        "unique_identifier": "tanishq-offers-new",
+                        "cashback_button_text": "Upto 2% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tanishq-offers-1560339755.jpg"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2775",
+                    "attributes": {
+                        "name": "TrueBasics",
+                        "unique_identifier": "truebasics-store",
+                        "cashback_button_text": "Flat 6% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/truebasics-store-1756191641.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2792",
+                    "attributes": {
+                        "name": "Accor Hotels",
+                        "unique_identifier": "accor-hotels-new",
+                        "cashback_button_text": "Upto 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/accor-hotels-1704884078.jpg"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2796",
+                    "attributes": {
+                        "name": "The Luxury Closet",
+                        "unique_identifier": "tlc-store",
+                        "cashback_button_text": "Flat 3.8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tlc-store-1756798737.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2799",
+                    "attributes": {
+                        "name": "PharmEasy Diagnostics",
+                        "unique_identifier": "pharmeasy-diagnostics-store",
+                        "cashback_button_text": "Upto 17% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/pharmeasy-diagnostics-store-1756990958.png"
+                    },
+                    "meta": {
+                        "group": "P"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2800",
+                    "attributes": {
+                        "name": "RBL Bank World Safari Credit Card",
+                        "unique_identifier": "rbl-safari",
+                        "cashback_button_text": "Flat Rs 1280 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rbl-shoprite-1733985539.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2801",
+                    "attributes": {
+                        "name": "RBL Bank Cookies Credit Card",
+                        "unique_identifier": "rbl-cookies",
+                        "cashback_button_text": "Flat Rs 1280 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rbl-shoprite-1733985539.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2802",
+                    "attributes": {
+                        "name": "Nutriburst Store",
+                        "unique_identifier": "nutriburst-store-new",
+                        "cashback_button_text": "Flat 31.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/nutriburst-store-1755510321.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2804",
+                    "attributes": {
+                        "name": "Loophoop",
+                        "unique_identifier": "loophoop-store",
+                        "cashback_button_text": "Flat 35% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/loophoop-kids-store-1757073047.png"
+                    },
+                    "meta": {
+                        "group": "L"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2814",
+                    "attributes": {
+                        "name": "Oppo",
+                        "unique_identifier": "oppo-store-new",
+                        "cashback_button_text": "Upto 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/oppo-store-1723526085.png"
+                    },
+                    "meta": {
+                        "group": "O"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2816",
+                    "attributes": {
+                        "name": "RBL Bank BookMyShow Play Credit Card",
+                        "unique_identifier": "rbl-bms",
+                        "cashback_button_text": "Flat Rs 1280 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rbl-shoprite-1733985539.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2817",
+                    "attributes": {
+                        "name": "Libas",
+                        "unique_identifier": "libas-store-new",
+                        "cashback_button_text": "Flat 7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/libas-store-1639484758.png"
+                    },
+                    "meta": {
+                        "group": "L"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2826",
+                    "attributes": {
+                        "name": "Realme Store",
+                        "unique_identifier": "realme-store-new1",
+                        "cashback_button_text": "Upto 2.1% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/realme-admitad-1664174316.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2828",
+                    "attributes": {
+                        "name": "Nutrabay",
+                        "unique_identifier": "nutrabay-store",
+                        "cashback_button_text": "Upto 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/nutrabay-store-1758545523.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2832",
+                    "attributes": {
+                        "name": "HP",
+                        "unique_identifier": "hp-store-new",
+                        "cashback_button_text": "Upto 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hp-store-new-1759125274.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2835",
+                    "attributes": {
+                        "name": "Axis Horizon Credit Card",
+                        "unique_identifier": "axis-horizon",
+                        "cashback_button_text": "Upto Rs 2800 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-horizon-1765450832.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2836",
+                    "attributes": {
+                        "name": "Axis Ace Credit Card",
+                        "unique_identifier": "axis-ace",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-ace-1765450660.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2837",
+                    "attributes": {
+                        "name": "Neemans",
+                        "unique_identifier": "neemans-store",
+                        "cashback_button_text": "Flat 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/neemans-store-1778239843.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2838",
+                    "attributes": {
+                        "name": "Udemy",
+                        "unique_identifier": "exclusive-udemy-1",
+                        "cashback_button_text": "Upto 14% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/exclusive-udemy-1579676706.png"
+                    },
+                    "meta": {
+                        "group": "U"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2842",
+                    "attributes": {
+                        "name": "HDFC Bank Regalia Gold Credit Card",
+                        "unique_identifier": "hdfc-regalia",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-regalia-1765449040.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2843",
+                    "attributes": {
+                        "name": "HDFC Bank Diners Club Credit Card",
+                        "unique_identifier": "hdfc-diners",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-diners-1765448800.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2844",
+                    "attributes": {
+                        "name": "HDFC Bank Indian Oil Credit Card",
+                        "unique_identifier": "hdfc-indianoil",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-indianoil-1765448972.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2849",
+                    "attributes": {
+                        "name": "CosIQ",
+                        "unique_identifier": "cosiq-store",
+                        "cashback_button_text": "Flat 17.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/cosiq-store-1761301497.png"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2851",
+                    "attributes": {
+                        "name": "Axis Privilege Visa Credit Card",
+                        "unique_identifier": "axis-visa",
+                        "cashback_button_text": "Upto Rs 2080 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-visa-1765450988.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2855",
+                    "attributes": {
+                        "name": "University Living Store",
+                        "unique_identifier": "university-living-store",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/university-living-1719310752.png"
+                    },
+                    "meta": {
+                        "group": "U"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2856",
+                    "attributes": {
+                        "name": "City Gold Tea",
+                        "unique_identifier": "city-gold-tea-store",
+                        "cashback_button_text": "Flat 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/city-gold-tea-store-1760609807.png"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2865",
+                    "attributes": {
+                        "name": "Axis Neo Rupay Credit Card",
+                        "unique_identifier": "axis-neo",
+                        "cashback_button_text": "Upto Rs 1920 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-neo-1765450935.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2866",
+                    "attributes": {
+                        "name": "Axis Rewards Visa Credit Card",
+                        "unique_identifier": "axis-reward",
+                        "cashback_button_text": "Upto Rs 2080 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-reward-1765451005.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2867",
+                    "attributes": {
+                        "name": "Rigo",
+                        "unique_identifier": "rigo-store",
+                        "cashback_button_text": "Flat 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rigo-store-1761715669.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2868",
+                    "attributes": {
+                        "name": "Kredit.Pe Yes Bank LTF UPI Credit Card",
+                        "unique_identifier": "yes-upi-ltf",
+                        "cashback_button_text": "Flat Rs 1350 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/yes-upi-ltf-1766405043.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2870",
+                    "attributes": {
+                        "name": "Strch",
+                        "unique_identifier": "strch-store-new",
+                        "cashback_button_text": "Flat 30% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/strch-store-1726731046.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2872",
+                    "attributes": {
+                        "name": "Ounce Organics",
+                        "unique_identifier": "ounce-organics-store",
+                        "cashback_button_text": "Flat 80% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ounce-organics-store-1762173328.png"
+                    },
+                    "meta": {
+                        "group": "O"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2873",
+                    "attributes": {
+                        "name": "Radisson Hotels",
+                        "unique_identifier": "radisson-hotels-store",
+                        "cashback_button_text": "Flat 2% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/radisson-blu-store-1762174009.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2881",
+                    "attributes": {
+                        "name": "Zoff Foods",
+                        "unique_identifier": "zoff-foods-store",
+                        "cashback_button_text": "Flat Rs 40 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/zoff-store-1763035812.png"
+                    },
+                    "meta": {
+                        "group": "Z"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2886",
+                    "attributes": {
+                        "name": "Indus Astro",
+                        "unique_identifier": "indus-astro-store",
+                        "cashback_button_text": "Flat 42% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/indus-astro-store-1763625590.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2889",
+                    "attributes": {
+                        "name": "BOBCARD Eterna Credit Card",
+                        "unique_identifier": "bobcard-eterna-credit-card",
+                        "cashback_button_text": "Flat Rs 950 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/bob-eterna-credit-card-1764135980.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2891",
+                    "attributes": {
+                        "name": "Yes Bank Select Credit Card",
+                        "unique_identifier": "yes-bank-select-credit-card",
+                        "cashback_button_text": "Flat Rs 945 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/yes-bank-select-credit-card-1764074070.png"
+                    },
+                    "meta": {
+                        "group": "Y"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2892",
+                    "attributes": {
+                        "name": "Yes Bank Elite+ Credit Card",
+                        "unique_identifier": "yes-bank-elite-plus-credit-card",
+                        "cashback_button_text": "Flat Rs 945 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/yes-bank-elite-plus-credit-card-1764074116.png"
+                    },
+                    "meta": {
+                        "group": "Y"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2895",
+                    "attributes": {
+                        "name": "Kimti",
+                        "unique_identifier": "kimti-store",
+                        "cashback_button_text": "Flat 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kimti-store-1764239196.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2896",
+                    "attributes": {
+                        "name": "BOBCARD Credit Cards",
+                        "unique_identifier": "bobcard-credit-cards",
+                        "cashback_button_text": "Flat Rs 950 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/bob-credit-cards-1764143910.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2898",
+                    "attributes": {
+                        "name": "Malaysia Airlines",
+                        "unique_identifier": "malaysia-airlines-store",
+                        "cashback_button_text": "Upto 1% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/malaysia-airlines-store-1764313276.png"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2903",
+                    "attributes": {
+                        "name": "BeYoung",
+                        "unique_identifier": "beyoung-store",
+                        "cashback_button_text": "Flat 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/beyoung-store-1777976428.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2909",
+                    "attributes": {
+                        "name": "IDFC FIRST Wow Black Credit Card",
+                        "unique_identifier": "idfc-first-wow-black-credit-card",
+                        "cashback_button_text": "Flat Rs 525 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-first-wow-black-credit-card-1783673390.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2913",
+                    "attributes": {
+                        "name": "Kama Ayurveda",
+                        "unique_identifier": "kama-ayurveda-store",
+                        "cashback_button_text": "Flat 17% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kama-ayurveda-store-1765951129.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2915",
+                    "attributes": {
+                        "name": "SBI BPCL Octane Credit Card",
+                        "unique_identifier": "sbi-bpcl-octane-credit-card-store",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-bpcl-octane-credit-card-store-1766049045.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2916",
+                    "attributes": {
+                        "name": "Be Neude",
+                        "unique_identifier": "beneude-store",
+                        "cashback_button_text": "Flat 17.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/beneude-store-1781269938.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2918",
+                    "attributes": {
+                        "name": "IndusInd Avios Platinum Visa Credit Card",
+                        "unique_identifier": "indusind-avios-platinum-visa-credit-card-store",
+                        "cashback_button_text": "Upto Rs 1290 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/indusind-avios-platinum-visa-credit-card-store-1777383018.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2922",
+                    "attributes": {
+                        "name": "SBI Flipkart Credit Card",
+                        "unique_identifier": "sbi-flipkart-credit-card-store",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbi-flipkart-credit-card-store-1767871289.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2927",
+                    "attributes": {
+                        "name": "Agoda",
+                        "unique_identifier": "agoda-new1",
+                        "cashback_button_text": "Flat 7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/agoda-live-store-1714113287.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2939",
+                    "attributes": {
+                        "name": "IDFC FIRST Hello Cashback Credit Card",
+                        "unique_identifier": "idfc-first-hello-cashback-credit-card",
+                        "cashback_button_text": "Flat Rs 350 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/idfc-first-hello-cashback-credit-card-1783673322.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2949",
+                    "attributes": {
+                        "name": "Skyscanner",
+                        "unique_identifier": "skyscanner-new",
+                        "cashback_button_text": "Upto 3% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/skyscanner-flight-1770725227.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2956",
+                    "attributes": {
+                        "name": "Axis Bank Indigo Credit Card",
+                        "unique_identifier": "axis-indigo-credit-card",
+                        "cashback_button_text": "Upto Rs 2800 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-indigo-credit-card-1771929399.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2963",
+                    "attributes": {
+                        "name": "SBM ZET Credit Card",
+                        "unique_identifier": "sbm-zet-credit-card",
+                        "cashback_button_text": "Upto Rs 2800 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sbm-zet-credit-card-1772792298.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2965",
+                    "attributes": {
+                        "name": "JiViSa",
+                        "unique_identifier": "jivisa-store-new",
+                        "cashback_button_text": "Flat 52.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/jivisa-store-1756460670.png"
+                    },
+                    "meta": {
+                        "group": "J"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2969",
+                    "attributes": {
+                        "name": "Decathlon",
+                        "unique_identifier": "decathlon-store-new",
+                        "cashback_button_text": "Upto 2.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/decathalon-store-1763035136.png"
+                    },
+                    "meta": {
+                        "group": "D"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2970",
+                    "attributes": {
+                        "name": "AU Bank Altura Plus Credit Card",
+                        "unique_identifier": "au-bank-alturaplus-credit-card",
+                        "cashback_button_text": "Flat Rs 1540 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-bank-alturaplus-credit-card-1777276218.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2971",
+                    "attributes": {
+                        "name": "AU Bank Vetta Credit Card",
+                        "unique_identifier": "au-bank-vetta-credit-card",
+                        "cashback_button_text": "Flat Rs 1540 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-bank-vetta-credit-card-1773678015.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2972",
+                    "attributes": {
+                        "name": "Tata Neu Plus SBI Credit Card",
+                        "unique_identifier": "tata-neu-plus-sbi-credit-card",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tata-neu-plus-sbi-credit-card-1773733882.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2973",
+                    "attributes": {
+                        "name": "Tata Neu Infinity SBI Credit Card",
+                        "unique_identifier": "tata-neu-infinity-sbi-credit-card",
+                        "cashback_button_text": "Flat Rs 2240 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/tata-neu-infinity-sbi-credit-card-1773733928.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2983",
+                    "attributes": {
+                        "name": "Kotak League Platinum Credit Card",
+                        "unique_identifier": "kotak-league-platinum-credit-card",
+                        "cashback_button_text": "Upto Rs 1400 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kotak-league-platinum-credit-card-1774518519.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2984",
+                    "attributes": {
+                        "name": "Kotak Cashback Plus Credit Card",
+                        "unique_identifier": "kotak-cashback-plus-credit-card",
+                        "cashback_button_text": "Upto Rs 1750 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kotak-cashback-plus-credit-card-1774518540.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2991",
+                    "attributes": {
+                        "name": "Amex Platinum Charge Credit Card",
+                        "unique_identifier": "amex-platinum-charge-credit-card",
+                        "cashback_button_text": "Flat Rs 4550 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/amex-platinum-charge-credit-card-1775653415.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2993",
+                    "attributes": {
+                        "name": "Amex Platinum Reserve Credit Card",
+                        "unique_identifier": "amex-platinum-reserve-credit-card",
+                        "cashback_button_text": "Flat Rs 2450 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/amex-platinum-reserve-credit-card-1775653377.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2994",
+                    "attributes": {
+                        "name": "Angel One New",
+                        "unique_identifier": "angelone-store-new",
+                        "cashback_button_text": "Flat Rs 320 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/angel-one-1695382051.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2995",
+                    "attributes": {
+                        "name": "HDFC Swiggy Ornge Credit Card",
+                        "unique_identifier": "hdfc-swiggy-ornge-credit-card",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-swiggy-ornge-credit-card-1775721648.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2996",
+                    "attributes": {
+                        "name": "HDFC Swiggy BLCK Credit Card",
+                        "unique_identifier": "hdfc-swiggy-blck-credit-card",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-swiggy-blck-credit-card-1775721681.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2997",
+                    "attributes": {
+                        "name": "Nippon Paint FX 10",
+                        "unique_identifier": "nippon-paint-fx10-store",
+                        "cashback_button_text": "Flat 49% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/nippon-paint-fx10-store-1776059654.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "2999",
+                    "attributes": {
+                        "name": "Airtel Payments Bank",
+                        "unique_identifier": "airtel-payments-bank-store",
+                        "cashback_button_text": "Flat Rs 170 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/airtelpaymentsbank-store-1734936479.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3000",
+                    "attributes": {
+                        "name": "Art of Puja",
+                        "unique_identifier": "art-of-puja-store",
+                        "cashback_button_text": "Flat 20% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/art-of-puja-store-1779710814.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3004",
+                    "attributes": {
+                        "name": "WoW",
+                        "unique_identifier": "wow-skin-care-new-store1",
+                        "cashback_button_text": "Flat 14% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/wow-skin-care-1591489432.png"
+                    },
+                    "meta": {
+                        "group": "W"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3007",
+                    "attributes": {
+                        "name": "AU Zenith Credit Card",
+                        "unique_identifier": "au-zenith-credit-card",
+                        "cashback_button_text": "Flat Rs 1540 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-zenith-credit-card-1777286161.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3009",
+                    "attributes": {
+                        "name": "AU Bank Ananta Credit Card",
+                        "unique_identifier": "au-ananta-credit-card",
+                        "cashback_button_text": "Flat Rs 1540 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-ananta-credit-card-1778142492.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3010",
+                    "attributes": {
+                        "name": "AU Bank Laksya Credit Card",
+                        "unique_identifier": "au-laksya-credit-card",
+                        "cashback_button_text": "Flat Rs 1540 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-laksya-credit-card-1778142524.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3011",
+                    "attributes": {
+                        "name": "AU Bank Prathama Credit Card",
+                        "unique_identifier": "au-prathama-credit-card",
+                        "cashback_button_text": "Flat Rs 1540 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-prathama-credit-card-1778142552.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3012",
+                    "attributes": {
+                        "name": "AU Bank Tejas Credit Card",
+                        "unique_identifier": "au-tejas-credit-card",
+                        "cashback_button_text": "Flat Rs 1540 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/au-tejas-credit-card-1778142576.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3015",
+                    "attributes": {
+                        "name": "IOB Zet FD Credit Card",
+                        "unique_identifier": "iob-zet-fd-credit-card",
+                        "cashback_button_text": "Upto Rs 2800 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/iob-zet-credit-card-1778645809.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3016",
+                    "attributes": {
+                        "name": "Uni GoldX Credit Card",
+                        "unique_identifier": "uni-goldx-credit-card",
+                        "cashback_button_text": "Flat Rs 1260 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/uni-goldx-credit-card-1778746537.png"
+                    },
+                    "meta": {
+                        "group": "U"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3020",
+                    "attributes": {
+                        "name": "NRoute",
+                        "unique_identifier": "nroute-store",
+                        "cashback_button_text": "Flat 46% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/nroute-store-1779344101.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3022",
+                    "attributes": {
+                        "name": "Axis Select Credit Card",
+                        "unique_identifier": "axis-select-credit-card",
+                        "cashback_button_text": "Upto Rs 2800 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/axis-select-credit-card-1780561053.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3023",
+                    "attributes": {
+                        "name": "HDFC Bank BizPower Credit Card",
+                        "unique_identifier": "hdfc-bank-bizpower-credit-card",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-bank-bizpower-credit-card-1780900770.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3024",
+                    "attributes": {
+                        "name": "HDFC Bank BizFirst Credit Card",
+                        "unique_identifier": "hdfc-bank-bizfirst-credit-card",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-bank-bizfirst-credit-card-1780900914.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3025",
+                    "attributes": {
+                        "name": "HDFC Bank BizGrow Credit Card",
+                        "unique_identifier": "hdfc-bank-bizgrow-credit-card",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-bank-bizgrow-credit-card-1780900962.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3026",
+                    "attributes": {
+                        "name": "HDFC Bank BizBlack Credit Card",
+                        "unique_identifier": "hdfc-bank-bizblack-credit-card",
+                        "cashback_button_text": "Flat Rs 1500 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hdfc-bank-bizblack-credit-card-1780901067.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3028",
+                    "attributes": {
+                        "name": "AJIO Luxe",
+                        "unique_identifier": "ajio-luxe-store",
+                        "cashback_button_text": "Upto 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ajio-luxe-store-1780921863.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3029",
+                    "attributes": {
+                        "name": "Kotak Air Credit Card",
+                        "unique_identifier": "kotak-air-credit-card",
+                        "cashback_button_text": "Upto Rs 1890 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kotak-air-credit-card-1781161581.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3030",
+                    "attributes": {
+                        "name": "Kotak Air Plus Credit Card",
+                        "unique_identifier": "kotak-air-plus-credit-card",
+                        "cashback_button_text": "Upto Rs 2590 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kotak-air-plus-credit-card-1781162141.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3031",
+                    "attributes": {
+                        "name": "Niyo Global",
+                        "unique_identifier": "niyo-global-store",
+                        "cashback_button_text": "Flat Rs 700 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/niyo-global-store-1781679537.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3032",
+                    "attributes": {
+                        "name": "Kotak811 Super Savings Account",
+                        "unique_identifier": "kotak-super-savings-account-store",
+                        "cashback_button_text": "Flat Rs 780 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kotak-super-savings-account-store-1781786884.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3033",
+                    "attributes": {
+                        "name": "Etihad Airways",
+                        "unique_identifier": "etihad-airways-store-new",
+                        "cashback_button_text": "Flat 1.4% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/etihad-airways-store-1745930697.png"
+                    },
+                    "meta": {
+                        "group": "E"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3034",
+                    "attributes": {
+                        "name": "Sirona",
+                        "unique_identifier": "sirona-store",
+                        "cashback_button_text": "Flat 21% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/sirona-store-1734343036.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3048",
+                    "attributes": {
+                        "name": "SalarySe",
+                        "unique_identifier": "salaryse-store",
+                        "cashback_button_text": "Flat Rs 1260 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/salaryse-store-1784540193.png"
+                    },
+                    "meta": {
+                        "group": "S"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3055",
+                    "attributes": {
+                        "name": "Ramam Group",
+                        "unique_identifier": "ramam-group-store-ns",
+                        "cashback_button_text": "Flat 30% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ramam-store-1750161483.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3056",
+                    "attributes": {
+                        "name": "Autodesk",
+                        "unique_identifier": "autodesk-store",
+                        "cashback_button_text": "Flat 4% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/autodesk-store-1778072738.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3061",
+                    "attributes": {
+                        "name": "Kapiva Store",
+                        "unique_identifier": "kapiva-new-store-ns",
+                        "cashback_button_text": "Upto 12% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/kapiva-store-live-1644313508.png"
+                    },
+                    "meta": {
+                        "group": "K"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3066",
+                    "attributes": {
+                        "name": "Baby Forest",
+                        "unique_identifier": "baby-forest-store-ns",
+                        "cashback_button_text": "Flat 7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/baby-forest-store-1756105616.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3078",
+                    "attributes": {
+                        "name": "Protium Business Loan",
+                        "unique_identifier": "protium-business-loan-store",
+                        "cashback_button_text": "Flat 1.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/protium-business-loan-store-1784631756.png"
+                    },
+                    "meta": {
+                        "group": "P"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3081",
+                    "attributes": {
+                        "name": "BBlunt",
+                        "unique_identifier": "bblunt-store",
+                        "cashback_button_text": "Flat 14% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/bblunt-store-1779442113.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3084",
+                    "attributes": {
+                        "name": "Levis",
+                        "unique_identifier": "levis-store-ns",
+                        "cashback_button_text": "Flat 8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/levis-store-1629456527.png"
+                    },
+                    "meta": {
+                        "group": "L"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3088",
+                    "attributes": {
+                        "name": "IHG",
+                        "unique_identifier": "ihg-store-new-ns",
+                        "cashback_button_text": "Flat 7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ihg-store-new-ns-1779696268.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3090",
+                    "attributes": {
+                        "name": "Linen Club",
+                        "unique_identifier": "linen-club-store",
+                        "cashback_button_text": "Flat 6% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/linen-club-store-1780487956.png"
+                    },
+                    "meta": {
+                        "group": "L"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3091",
+                    "attributes": {
+                        "name": "The Moms Co",
+                        "unique_identifier": "the-moms-co-store",
+                        "cashback_button_text": "Flat 35% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/the-moms-co-store-1781073261.png"
+                    },
+                    "meta": {
+                        "group": "T"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3097",
+                    "attributes": {
+                        "name": "Beco",
+                        "unique_identifier": "beco-store-ns",
+                        "cashback_button_text": "Flat 12% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/beco-store-1683808673.jpg"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3098",
+                    "attributes": {
+                        "name": "Cahoot",
+                        "unique_identifier": "cahoot-store-ns",
+                        "cashback_button_text": "Upto 8% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/cahoot-store-ns-1781870141.png"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3099",
+                    "attributes": {
+                        "name": "Campus Shoes",
+                        "unique_identifier": "campus-shoes-store-new",
+                        "cashback_button_text": "Flat 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/campus-store-1715152890.png"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3100",
+                    "attributes": {
+                        "name": "Haute Sauce",
+                        "unique_identifier": "hautesauce-store-ns",
+                        "cashback_button_text": "Upto 7% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hautesauce-store-1719896369.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3103",
+                    "attributes": {
+                        "name": "BoAt store",
+                        "unique_identifier": "boat-store-new1-ns",
+                        "cashback_button_text": "Flat 6% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/boat-store-1607926097.png"
+                    },
+                    "meta": {
+                        "group": "B"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3108",
+                    "attributes": {
+                        "name": "Daily Objects",
+                        "unique_identifier": "daily-objects-store",
+                        "cashback_button_text": "Upto 12% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/daily-objects-store-1781769177.png"
+                    },
+                    "meta": {
+                        "group": "D"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3109",
+                    "attributes": {
+                        "name": "Ghar Soaps",
+                        "unique_identifier": "ghar-soaps-store",
+                        "cashback_button_text": "Flat 11% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ghar-soaps-store-1765966524.png"
+                    },
+                    "meta": {
+                        "group": "G"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3110",
+                    "attributes": {
+                        "name": "IBA Cosmetics",
+                        "unique_identifier": "ibacosmetics-store-new-ns",
+                        "cashback_button_text": "Flat 12.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ibacosmetics-store-1750846690.png"
+                    },
+                    "meta": {
+                        "group": "I"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3112",
+                    "attributes": {
+                        "name": "Gritzo",
+                        "unique_identifier": "gritzo-direct-ns",
+                        "cashback_button_text": "Flat 6% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/gritzo-store-1677484321.png"
+                    },
+                    "meta": {
+                        "group": "G"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3113",
+                    "attributes": {
+                        "name": "Perfora",
+                        "unique_identifier": "perfora-store-new-ns",
+                        "cashback_button_text": "Upto 10% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/perforacare-store-1724138670.png"
+                    },
+                    "meta": {
+                        "group": "P"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3118",
+                    "attributes": {
+                        "name": "Ram Fincorp Personal Loan",
+                        "unique_identifier": "ram-fincorp-personal-loan-store",
+                        "cashback_button_text": "Flat 2.25% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ram-fincorp-personal-loan-store-1784887592.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3119",
+                    "attributes": {
+                        "name": "ZapCash Personal Loan",
+                        "unique_identifier": "zapcash-personal-loan-store",
+                        "cashback_button_text": "Flat 2.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/zapcash-personal-loan-store-1784889778.png"
+                    },
+                    "meta": {
+                        "group": "Z"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3122",
+                    "attributes": {
+                        "name": "AGEasy",
+                        "unique_identifier": "ageasy-store",
+                        "cashback_button_text": "Flat 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/ageasy-store-1782213550.png"
+                    },
+                    "meta": {
+                        "group": "A"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3123",
+                    "attributes": {
+                        "name": "WorldofAsaya",
+                        "unique_identifier": "worldofasaya-store-ns",
+                        "cashback_button_text": "Upto 28% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/world-of-asaya-1714049938.png"
+                    },
+                    "meta": {
+                        "group": "W"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3125",
+                    "attributes": {
+                        "name": "Rage Coffee",
+                        "unique_identifier": "rage-coffee-store-ns",
+                        "cashback_button_text": "Flat 16% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rage-coffee-store-1693910370.jpg"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3130",
+                    "attributes": {
+                        "name": "Nutslane",
+                        "unique_identifier": "nutslane-store",
+                        "cashback_button_text": "Flat 20% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/nutslane-store-1782475965.png"
+                    },
+                    "meta": {
+                        "group": "N"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3132",
+                    "attributes": {
+                        "name": "Curiously Positive",
+                        "unique_identifier": "curiously-positive-store",
+                        "cashback_button_text": "Flat 65% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/curiously-positive-store-1783405315.png"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3133",
+                    "attributes": {
+                        "name": "Hummel",
+                        "unique_identifier": "hummel-store",
+                        "cashback_button_text": "Flat 23% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/hummel-store-1783667893.png"
+                    },
+                    "meta": {
+                        "group": "H"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3134",
+                    "attributes": {
+                        "name": "Meesho",
+                        "unique_identifier": "meesho-store-ns",
+                        "cashback_button_text": "Flat 1% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/meesho-store-1783579255.png"
+                    },
+                    "meta": {
+                        "group": "M"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3151",
+                    "attributes": {
+                        "name": "DCB Novio Credit Card",
+                        "unique_identifier": "dcb-novio-credit-card",
+                        "cashback_button_text": "Upto Rs 2800 Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/dcb-novio-credit-card-1785482661.png"
+                    },
+                    "meta": {
+                        "group": "D"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3153",
+                    "attributes": {
+                        "name": "Rasayanam",
+                        "unique_identifier": "rasayanam-store",
+                        "cashback_button_text": "Flat 17% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/rasayanam-store-1785743599.png"
+                    },
+                    "meta": {
+                        "group": "R"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3157",
+                    "attributes": {
+                        "name": "Dr. Sheth’s",
+                        "unique_identifier": "dr-sheths-store",
+                        "cashback_button_text": "Flat 15% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/dr-sheths-store-1785911400.png"
+                    },
+                    "meta": {
+                        "group": "D"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "3159",
+                    "attributes": {
+                        "name": "CreditSea Personal Loan",
+                        "unique_identifier": "creditsea-personal-loan-store",
+                        "cashback_button_text": "Flat 2% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/creditsea-personal-loan-store-1786519366.png"
+                    },
+                    "meta": {
+                        "group": "C"
+                    }
+                },
+                {
+                    "type": "offers",
+                    "id": "899",
+                    "attributes": {
+                        "name": "Dyson",
+                        "unique_identifier": "dyson",
+                        "cashback_button_text": "Flat 2.5% Profit",
+                        "image_url": "https://asset21.ckassets.com/resources/image/stores/dyson-store-1628253190.png"
+                    },
+                    "meta": {
+                        "group": "D"
+                    }
+                }
+            ]
+        },
+        "isUserLoggedIn": true
+    },
+    "__N_SSP": true
+}

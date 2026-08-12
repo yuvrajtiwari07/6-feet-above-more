@@ -26,7 +26,10 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
   const [activeIndex, setActiveIndex] = useState(0);
   const flatRef = useRef<FlatList>(null);
 
-  const recommendation = getProductRecommendation(product.verdicts, height, bodyType);
+  const isWellnessProduct = (product.vertical ?? 'fashion') === 'wellness';
+  const recommendation = isWellnessProduct
+    ? null
+    : getProductRecommendation(product.verdicts, height, bodyType);
   const memberPrice = Math.floor(product.priceAtRetailer * 0.88);
 
   const handleShop = () => {
@@ -35,6 +38,14 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
   };
 
   const renderBadge = () => {
+    if (isWellnessProduct) {
+      const label = product.dietTags?.[0] || product.form || product.productType || 'Wellness';
+      return (
+        <View className={`flex-row items-center gap-1 rounded-full ${isSm ? 'px-2 py-0.5' : 'px-3 py-1'}`} style={{ backgroundColor: '#0E7C5A' }}>
+          <Text className={`text-white font-black uppercase tracking-wider ${isSm ? 'text-[8px]' : 'text-[9px]'}`}>{label}</Text>
+        </View>
+      );
+    }
     if (!recommendation) {
       return (
         <View className={`flex-row items-center gap-1 bg-black rounded-full ${isSm ? 'px-2 py-0.5' : 'px-3 py-1'}`}>
@@ -135,7 +146,9 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
         <View className={`flex-row items-center justify-between ${isSm ? 'mb-1' : 'mb-2'}`}>
           <Text className={`text-black font-black uppercase tracking-wider ${isSm ? 'text-[10px]' : 'text-[12px]'}`}>{product.brand}</Text>
           <View className="bg-black rounded px-1.5 py-0.5">
-            <Text className={`text-white font-bold uppercase ${isSm ? 'text-[8px]' : 'text-[10px]'}`}>{product.fitType}</Text>
+            <Text className={`text-white font-bold uppercase ${isSm ? 'text-[8px]' : 'text-[10px]'}`}>
+              {isWellnessProduct ? (product.netQuantity || product.form || product.productType) : product.fitType}
+            </Text>
           </View>
         </View>
 

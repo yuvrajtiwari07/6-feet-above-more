@@ -5,6 +5,7 @@ import { Catalog } from '../types';
 function rowToCatalog(row: any): Catalog {
   return {
     id:           row.id,
+    vertical:     row.vertical ?? 'fashion',
     title:        row.title,
     slug:         row.slug,
     description:  row.description,
@@ -23,12 +24,17 @@ function rowToCatalog(row: any): Catalog {
 
 export const catalogRepository = {
   async findAll(filters?: {
+    vertical?: string;
     category?: string;
     publishedOnly?: boolean;
   }): Promise<Catalog[]> {
     let text = 'SELECT * FROM catalogs WHERE 1=1';
     const params: any[] = [];
     let idx = 1;
+    if (filters?.vertical) {
+      text += ` AND COALESCE(vertical, 'fashion') = LOWER($${idx++})`;
+      params.push(filters.vertical);
+    }
     if (filters?.category) {
       text += ` AND LOWER(category_name) = LOWER($${idx++})`;
       params.push(filters.category);
@@ -50,8 +56,8 @@ export const catalogRepository = {
     const rows = await query(
       `INSERT INTO catalogs
          (title, slug, description, category_id, category_name, cover_image,
-          product_ids, affiliate_url, is_published, sort_order, tags)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+          product_ids, affiliate_url, is_published, sort_order, tags, vertical)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        RETURNING *`,
       [
         data.title, data.slug, data.description ?? null,
@@ -59,6 +65,7 @@ export const catalogRepository = {
         data.coverImage ?? null, data.productIds ?? [],
         data.affiliateUrl ?? null, data.isPublished ?? true,
         data.sortOrder ?? 0, data.tags ?? [],
+        data.vertical ?? 'fashion',
       ]
     );
     return rowToCatalog(rows[0]);
@@ -70,7 +77,7 @@ export const catalogRepository = {
       categoryId: 'category_id', categoryName: 'category_name',
       coverImage: 'cover_image', productIds: 'product_ids',
       affiliateUrl: 'affiliate_url', isPublished: 'is_published',
-      sortOrder: 'sort_order', tags: 'tags',
+      sortOrder: 'sort_order', tags: 'tags', vertical: 'vertical',
     };
     const setClauses: string[] = [];
     const params: any[] = [];

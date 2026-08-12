@@ -11,9 +11,9 @@ interface Props {
 
 export const CatalogAdmin: React.FC<Props> = ({ onOpenImportModal }) => {
   const {
-    catalogs,
-    catalogCategories,
-    products,
+    allCatalogs: catalogs,
+    allCatalogCategories: catalogCategories,
+    allProducts: products,
     addCatalog,
     updateCatalog,
     deleteCatalog,
@@ -174,6 +174,7 @@ export const CatalogAdmin: React.FC<Props> = ({ onOpenImportModal }) => {
       description: description.trim() || undefined,
       categoryId,
       categoryName: selectedCategory.name,
+      vertical: selectedCategory.vertical === 'wellness' ? 'wellness' as const : 'fashion' as const,
       coverImage: coverImage.trim() || undefined,
       productIds,
       affiliateUrl: affiliateUrl.trim() || undefined,
@@ -302,7 +303,9 @@ export const CatalogAdmin: React.FC<Props> = ({ onOpenImportModal }) => {
                 className="px-3.5 py-2.5 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs bg-white"
               >
                 {catalogCategories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  <option key={cat.id} value={cat.id}>
+                    {cat.vertical === 'wellness' ? '🌿 ' : '👕 '}{cat.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -377,7 +380,10 @@ export const CatalogAdmin: React.FC<Props> = ({ onOpenImportModal }) => {
               Assemble Products
             </label>
             <ProductPickerInline
-              products={products}
+              products={products.filter(p => {
+                const catVertical = catalogCategories.find(c => c.id === categoryId)?.vertical ?? 'fashion';
+                return (p.vertical ?? 'fashion') === catVertical;
+              })}
               selectedIds={productIds}
               onChange={setProductIds}
               onImportNewProduct={handleImportNewProduct}

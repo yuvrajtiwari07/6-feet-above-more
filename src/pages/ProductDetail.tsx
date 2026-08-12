@@ -20,7 +20,7 @@ export const ProductDetail: React.FC = () => {
     savedProductIds, 
     trackAffiliateClick, 
     navigate, 
-    products,
+    allProducts: products,
     user,
     loginWithGoogle
   } = useApp();
@@ -134,6 +134,8 @@ export const ProductDetail: React.FC = () => {
   const similarProducts = products
     .filter(p => p.category === product.category && p.id !== product.id && !p.outOfStock)
     .slice(0, 4);
+
+  const isWellnessProduct = (product.vertical ?? 'fashion') === 'wellness';
 
   // Retrieve recommendation for user selected tall selection
   const recommendation = getProductRecommendation(product.verdicts, height, bodyType);
@@ -383,7 +385,76 @@ export const ProductDetail: React.FC = () => {
               </span>
             </div>
 
-            {/* Prominent Sizing Verdict indicator */}
+            {/* Wellness spec sheet — replaces the tall-fit verdict card */}
+            {isWellnessProduct && (
+              <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm text-left">
+                <div className="flex items-center justify-between mb-4 border-b border-black/5 pb-3">
+                  <span className="font-grotesk font-black text-[10px] uppercase tracking-wider text-[#112133]/50">
+                    Product Facts
+                  </span>
+                  <span className="bg-[#0E7C5A]/10 text-[#0E7C5A] font-black text-[10px] tracking-wide px-2.5 py-1 rounded-full uppercase">
+                    {product.category}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                  {[
+                    { label: 'Type', value: product.productType },
+                    { label: 'Form', value: product.form },
+                    { label: 'Net Quantity', value: product.netQuantity },
+                  ].filter(f => f.value).map(f => (
+                    <div key={f.label} className="bg-[#F7FAF8] border border-[#112133]/8 rounded-xl p-3">
+                      <span className="block text-[9px] font-black uppercase tracking-wider text-[#112133]/45 mb-1">{f.label}</span>
+                      <span className="block text-xs font-black text-[#112133]">{f.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {(product.concerns?.length ?? 0) > 0 && (
+                  <div className="mb-4">
+                    <span className="block text-[9px] font-black uppercase tracking-wider text-[#112133]/45 mb-2">Helps with</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.concerns!.map(c => (
+                        <span key={c} className="bg-[#0E7C5A] text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(product.keyIngredients?.length ?? 0) > 0 && (
+                  <div className="mb-4">
+                    <span className="block text-[9px] font-black uppercase tracking-wider text-[#112133]/45 mb-2">Key ingredients</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.keyIngredients!.map(i => (
+                        <span key={i} className="bg-[#112133]/5 text-[#112133] text-[10px] font-bold px-2.5 py-1 rounded-full border border-[#112133]/10">
+                          {i}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(product.dietTags?.length ?? 0) > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {product.dietTags!.map(d => (
+                      <span key={d} className="bg-[#FFD43B] text-black text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border border-black/10">
+                        ✓ {d}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-[10px] text-[#112133]/45 leading-relaxed border-t border-black/5 pt-3">
+                  Not a medicine. This product is not intended to diagnose, treat or cure any condition —
+                  check with a doctor before starting something new.
+                </p>
+              </div>
+            )}
+
+            {/* Prominent Sizing Verdict indicator — fashion only */}
+            {!isWellnessProduct && (
             <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm">
               <div className="flex items-center justify-between mb-3 border-b border-black/5 pb-3">
                 <span className="font-grotesk font-black text-[10px] uppercase tracking-wider text-[#112133]/50">
@@ -452,9 +523,10 @@ export const ProductDetail: React.FC = () => {
                 </div>
               </div>
             </div>
+            )}
 
             {/* Measurement analyzer vs selected height (Only if measurements present) */}
-            {product.measurements && Object.keys(product.measurements).length > 0 && (
+            {!isWellnessProduct && product.measurements && Object.keys(product.measurements).length > 0 && (
               <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm">
                 <h3 className="font-grotesk font-black text-xs uppercase tracking-wide text-[#7D2AE8] mb-4 flex items-center gap-1.5 text-left">
                   <Ruler size={14} />
@@ -578,7 +650,9 @@ export const ProductDetail: React.FC = () => {
         {/* Review Form */}
         {showReviewForm && user && (
           <form onSubmit={handleSubmitReview} className="mb-8 p-5 bg-[#FAF9F6] rounded-2xl border border-black/5 space-y-4">
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#7D2AE8]">Submit Fit Report</h3>
+            <h3 className="text-xs font-black uppercase tracking-wider text-[#7D2AE8]">
+              {isWellnessProduct ? 'Submit Your Review' : 'Submit Fit Report'}
+            </h3>
             
             {reviewError && <div className="p-3 bg-red-100 text-red-700 text-xs font-bold rounded-lg">{reviewError}</div>}
             {reviewSuccess && <div className="p-3 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg">{reviewSuccess}</div>}
@@ -591,14 +665,27 @@ export const ProductDetail: React.FC = () => {
                   onChange={(e) => setReviewRating(Number(e.target.value))}
                   className="w-full px-3 py-2 border border-black/15 rounded-lg text-xs font-bold bg-white"
                 >
-                  <option value={5}>5 Stars (Flawless Tall Fit)</option>
-                  <option value={4}>4 Stars (Good Length)</option>
-                  <option value={3}>3 Stars (Acceptable)</option>
-                  <option value={2}>2 Stars (Runs slightly short)</option>
-                  <option value={1}>1 Star (Too short / Boxy)</option>
+                  {isWellnessProduct ? (
+                    <>
+                      <option value={5}>5 Stars (Worked great)</option>
+                      <option value={4}>4 Stars (Good)</option>
+                      <option value={3}>3 Stars (Okay)</option>
+                      <option value={2}>2 Stars (Underwhelming)</option>
+                      <option value={1}>1 Star (Did not work for me)</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value={5}>5 Stars (Flawless Tall Fit)</option>
+                      <option value={4}>4 Stars (Good Length)</option>
+                      <option value={3}>3 Stars (Acceptable)</option>
+                      <option value={2}>2 Stars (Runs slightly short)</option>
+                      <option value={1}>1 Star (Too short / Boxy)</option>
+                    </>
+                  )}
                 </select>
               </div>
 
+              {!isWellnessProduct && (
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-black/45 font-bold block mb-1">Your Height</label>
                 <select
@@ -611,7 +698,9 @@ export const ProductDetail: React.FC = () => {
                   ))}
                 </select>
               </div>
+              )}
 
+              {!isWellnessProduct && (
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-black/45 font-bold block mb-1">Body Build</label>
                 <select
@@ -625,6 +714,7 @@ export const ProductDetail: React.FC = () => {
                   <option value="Heavy Build">Heavy Build</option>
                 </select>
               </div>
+              )}
 
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-black/45 font-bold block mb-1">Weight (optional)</label>

@@ -11,7 +11,8 @@ import { COMPLETE_FITS } from '../../lib/utils/mockData';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function SavedScreen() {
-  const { products, savedProductIds, savedFitIds, cardSize } = useApp();
+  // Saved items stay visible regardless of which storefront is active.
+  const { allProducts: products, savedProductIds, savedFitIds, cardSize } = useApp();
   const savedProducts = products.filter(p => savedProductIds.includes(p.id));
   const savedFits = COMPLETE_FITS.filter(f => savedFitIds.includes(f.id));
   const numCols = cardSize === 'small' ? 3 : cardSize === 'large' ? 1 : 2;

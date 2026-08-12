@@ -16,8 +16,9 @@ const router = Router();
 // ───────────────────────────────────────────────
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { category, brand, search, featured, limit, offset } = req.query;
+    const { vertical, category, brand, search, featured, limit, offset } = req.query;
     const { products, total } = await productService.getAll({
+      vertical:   vertical === 'fashion' || vertical === 'wellness' ? vertical : undefined,
       category:   category as string | undefined,
       brand:      brand as string | undefined,
       search:     search as string | undefined,

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, Search, Heart, User, Sparkles } from 'lucide-react-native';
+import { Home, Search, Sparkles } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_ICON_SIZE = 22;
@@ -54,20 +54,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Sparkles size={TAB_ICON_SIZE} color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="saved"
-        options={{
-          title: 'Saved',
-          tabBarIcon: ({ color }) => <Heart size={TAB_ICON_SIZE} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <User size={TAB_ICON_SIZE} color={color} />,
-        }}
-      />
+      {/*
+        Saved and Profile are reachable from the header on every screen, so they
+        are kept off the tab bar to avoid duplicating the same two destinations.
+        `href: null` hides the button while leaving the routes navigable.
+      */}
+      <Tabs.Screen name="saved" options={{ href: null, title: 'Saved' }} />
+      <Tabs.Screen name="profile" options={{ href: null, title: 'Profile' }} />
     </Tabs>
   );
 }

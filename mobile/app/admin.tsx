@@ -11,7 +11,7 @@ import { useApp } from '../lib/context/AppContext';
 const STOCK_FILTERS = ['All', 'In stock', 'Out of stock'] as const;
 
 export default function AdminScreen() {
-  const { user, logout, products, refetchProducts, deleteProduct, updateProduct, isAdmin } = useApp();
+  const { user, logout, allProducts: products, refetchProducts, deleteProduct, updateProduct, isAdmin } = useApp();
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [stockFilter, setStockFilter] = useState<typeof STOCK_FILTERS[number]>('All');

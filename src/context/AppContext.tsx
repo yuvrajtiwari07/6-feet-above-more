@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { HeightBand, UserPreferences, Product, Catalog, CatalogCategory } from '../types';
+import { HeightBand, UserPreferences, Product, Catalog, CatalogCategory, Vertical } from '../types';
 import {
   supabase,
   signInWithGoogle,
@@ -29,6 +29,7 @@ export type RouteType =
 interface RouteState {
   current: RouteType;
   params: Record<string, string>;
+  vertical: Vertical;
 }
 
 // ── Context type ──────────────────────────────────────────────────────────────
@@ -57,6 +58,11 @@ interface AppContextType {
   navigate: (target: RouteType, params?: Record<string, string>) => void;
   goBack: () => void;
 
+  // Vertical (fashion = tall-only apparel, wellness = nutrition/body/health)
+  vertical: Vertical;
+  setVertical: (v: Vertical) => void;
+  isWellness: boolean;
+
   // Affiliate Click Tracker
   trackAffiliateClick: (productId: string, retailer: string, url: string) => Promise<void>;
   clickLogs: { productId: string; timestamp: Date; retailer: string }[];
@@ -67,8 +73,9 @@ interface AppContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 
-  // Products
+  // Products — `products` is scoped to the active vertical, `allProducts` is not
   products: Product[];
+  allProducts: Product[];
   loadingProducts: boolean;
   isAdmin: boolean;
   addProduct: (p: Product) => Promise<void>;
@@ -76,9 +83,11 @@ interface AppContextType {
   deleteProduct: (id: string) => Promise<void>;
   refetchProducts: () => Promise<void>;
 
-  // Catalogs
+  // Catalogs — also scoped to the active vertical
   catalogs: Catalog[];
   catalogCategories: CatalogCategory[];
+  allCatalogs: Catalog[];
+  allCatalogCategories: CatalogCategory[];
   loadingCatalogs: boolean;
   addCatalog: (c: Partial<Catalog>) => Promise<Catalog>;
   updateCatalog: (id: string, c: Partial<Catalog>) => Promise<void>;
@@ -484,15 +493,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // ── Routing ──────────────────────────────────────────────────────────────
-  const [route, setRoute] = useState<RouteState>({ current: 'home', params: {} });
-  const [routeHistory, setRouteHistory] = useState<RouteState[]>([]);
+  // The wellness storefront lives under a `w/` hash prefix so every link
+  // (category, product, catalog) stays shareable and lands in the right world.
+  const WELLNESS_HASH_PREFIX = 'w';
+  const storedVertical: Vertical =
+    localStorage.getItem('lamba_vertical') === 'wellness' ? 'wellness' : 'fashion';
 
   const parseHash = (hashString: string): RouteState => {
     if (!hashString || hashString === '#' || hashString === '#/') {
-      return { current: 'home', params: {} };
+      // Cold start with no hash — resume the storefront the user last used.
+      return { current: 'home', params: {}, vertical: storedVertical };
     }
     const cleanHash = hashString.replace(/^#\/?/, '');
     const segments = cleanHash.split('/');
+
+    let vertical: Vertical = 'fashion';
+    if (segments[0] === WELLNESS_HASH_PREFIX) {
+      vertical = 'wellness';
+      segments.shift();
+    }
+
     const current = segments[0] as RouteType;
     const params: Record<string, string> = {};
     if (segments[1]) {
@@ -501,37 +521,68 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       else if (current === 'search')                            params.query        = decodeURIComponent(segments[1]);
       else if (current === 'catalog-detail')                    params.catalogId    = decodeURIComponent(segments[1]);
     }
-    return { current: current || 'home', params };
+    return { current: current || 'home', params, vertical };
   };
 
-  const navigate = (target: RouteType, params?: Record<string, string>) => {
-    let hash = `#${target}`;
+  // Seed from the hash on the very first render — otherwise a shared link like
+  // #w/category/Skin%20Care paints the fashion home first and then transitions.
+  const [route, setRoute] = useState<RouteState>(() => parseHash(window.location.hash));
+  const [routeHistory, setRouteHistory] = useState<RouteState[]>([]);
+
+  const vertical = route.vertical;
+  const isWellness = vertical === 'wellness';
+
+  const buildHash = (target: RouteType, params?: Record<string, string>, v: Vertical = vertical) => {
+    let hash = v === 'wellness' ? `#${WELLNESS_HASH_PREFIX}/${target}` : `#${target}`;
     if (params) {
       if (params.categoryName) hash += `/${encodeURIComponent(params.categoryName)}`;
       else if (params.productId) hash += `/${encodeURIComponent(params.productId)}`;
       else if (params.query) hash += `/${encodeURIComponent(params.query)}`;
       else if (params.catalogId) hash += `/${encodeURIComponent(params.catalogId)}`;
     }
+    return hash;
+  };
+
+  const navigate = (target: RouteType, params?: Record<string, string>) => {
     setRouteHistory(prev => [...prev, route]);
-    window.location.hash = hash;
+    window.location.hash = buildHash(target, params);
+  };
+
+  const setVertical = (v: Vertical) => {
+    if (v === vertical) return;
+    localStorage.setItem('lamba_vertical', v);
+    setRouteHistory(prev => [...prev, route]);
+    // Taxonomies do not overlap, so switching worlds always lands on its home.
+    window.location.hash = buildHash('home', undefined, v);
   };
 
   const goBack = () => {
     if (routeHistory.length > 0) {
       const prev = routeHistory[routeHistory.length - 1];
       setRouteHistory(h => h.slice(0, -1));
-      navigate(prev.current, prev.params);
+      window.location.hash = buildHash(prev.current, prev.params, prev.vertical);
     } else {
       navigate('home');
     }
   };
 
   useEffect(() => {
-    const handleHashChange = () => setRoute(parseHash(window.location.hash));
+    const handleHashChange = () => {
+      const next = parseHash(window.location.hash);
+      setRoute(next);
+      localStorage.setItem('lamba_vertical', next.vertical);
+    };
     window.addEventListener('hashchange', handleHashChange);
     handleHashChange();
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // ── Vertical scoping ──────────────────────────────────────────────────────
+  // Pages read `products`/`catalogs` and therefore only ever see the active
+  // storefront; admin screens read the `all*` lists instead.
+  const visibleProducts = products.filter(p => (p.vertical ?? 'fashion') === vertical);
+  const visibleCatalogs = catalogs.filter(c => (c.vertical ?? 'fashion') === vertical);
+  const visibleCatalogCategories = catalogCategories.filter(c => (c.vertical ?? 'fashion') === vertical);
 
   // ── Affiliate click tracking ──────────────────────────────────────────────
   const trackAffiliateClick = async (productId: string, retailer: string, url: string) => {
@@ -565,21 +616,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         route,
         navigate,
         goBack,
+        vertical,
+        setVertical,
+        isWellness,
         trackAffiliateClick,
         clickLogs,
         user,
         loadingFirebase,
         loginWithGoogle,
         logout,
-        products,
+        products: visibleProducts,
+        allProducts: products,
         loadingProducts,
         isAdmin,
         addProduct,
         updateProduct,
         deleteProduct,
         refetchProducts: fetchProducts,
-        catalogs,
-        catalogCategories,
+        catalogs: visibleCatalogs,
+        catalogCategories: visibleCatalogCategories,
+        allCatalogs: catalogs,
+        allCatalogCategories: catalogCategories,
         loadingCatalogs,
         addCatalog,
         updateCatalog,

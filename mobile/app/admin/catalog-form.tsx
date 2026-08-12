@@ -17,7 +17,7 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').repla
 
 export default function CatalogFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const { catalogs, catalogCategories, products, addCatalog, updateCatalog } = useApp();
+  const { allCatalogs: catalogs, allCatalogCategories: catalogCategories, allProducts: products, addCatalog, updateCatalog } = useApp();
   const editing = catalogs.find(c => c.id === id);
   const isEdit = !!editing;
 

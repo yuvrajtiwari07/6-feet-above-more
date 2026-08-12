@@ -1,6 +1,16 @@
 import React, { useState, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
-import { Product, FitVerdict, HeightBand, VerdictStatus } from '../types';
+import { Product, FitVerdict, HeightBand, VerdictStatus, Vertical } from '../types';
+import {
+  WELLNESS_CATEGORIES,
+  WELLNESS_CATEGORY_NAMES,
+  WELLNESS_CONCERNS,
+  WELLNESS_DIET_TAGS,
+  WELLNESS_FORMS,
+  getWellnessCategory,
+  isWellnessCategory,
+  wellnessTypesFor,
+} from '../data/wellness';
 import type { ImportedProduct } from '../lib/importers/types';
 import { getAccessToken } from '../supabase';
 import {
@@ -135,7 +145,7 @@ function detectSegmentAndType(title: string, category: string, subCategory: stri
 
 export const Admin: React.FC = () => {
   const {
-    products,
+    allProducts: products,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -169,6 +179,7 @@ export const Admin: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [stockFilter, setStockFilter] = useState('All');
+  const [verticalFilter, setVerticalFilter] = useState<'All' | 'fashion' | 'wellness'>('All');
 
   // Form states
   const [showForm, setShowForm] = useState(false);
@@ -206,6 +217,67 @@ export const Admin: React.FC = () => {
   const [tags, setTags] = useState<string[]>(['tall-friendly']);
   const [newTagInput, setNewTagInput] = useState('');
   const [material, setMaterial] = useState('');
+
+  // ── Vertical (Fashion = tall-only apparel, Wellness = everyone) ─────────
+  const [vertical, setVertical] = useState<Vertical>('fashion');
+  const isWellness = vertical === 'wellness';
+
+  // Wellness-only fields
+  const [wellnessCategory, setWellnessCategory] = useState<string>(WELLNESS_CATEGORY_NAMES[0]);
+  const [form, setForm] = useState('');
+  const [netQuantity, setNetQuantity] = useState('');
+  const [concerns, setConcerns] = useState<string[]>([]);
+  const [dietTags, setDietTags] = useState<string[]>([]);
+  const [keyIngredients, setKeyIngredients] = useState<string[]>([]);
+  const [newIngredientInput, setNewIngredientInput] = useState('');
+
+  const handleAddIngredient = () => {
+    const cleaned = newIngredientInput.trim();
+    if (cleaned && !keyIngredients.includes(cleaned)) {
+      setKeyIngredients([...keyIngredients, cleaned]);
+      setNewIngredientInput('');
+    }
+  };
+
+  /** Switching vertical resets the taxonomy that does not carry across. */
+  const handleSwitchVertical = (next: Vertical) => {
+    if (next === vertical) return;
+    setVertical(next);
+    if (next === 'wellness') {
+      const cat = WELLNESS_CATEGORIES[0];
+      setWellnessCategory(cat.name);
+      setProductSegment(cat.name);
+      setProductType(cat.types[0]);
+      setCategories([cat.name]);
+      setSizes([]);
+      setOccasions([]);
+      setSeasons([]);
+      setColors([]);
+      setTags([]);
+      setFitType('');
+      setTallFriendly(false);
+      setAdminVerdicts([]);
+    } else {
+      setProductSegment('Upperwear');
+      setProductType('T-Shirt');
+      setCategories(['Casual Wear']);
+      setSizes(getSizeOptions('Upperwear').slice(1, 5));
+      setOccasions(['Daily Wear']);
+      setSeasons(['All Season']);
+      setColors(['Black']);
+      setTags(['tall-friendly']);
+      setFitType('Regular Tall');
+      setTallFriendly(true);
+      setAdminVerdicts(DEFAULT_HEIGHT_BANDS.map(range => ({
+        heightRange: range, bodyTypes: [], fitRecommendation: 'Good Fit',
+      })));
+      setForm('');
+      setNetQuantity('');
+      setConcerns([]);
+      setDietTags([]);
+      setKeyIngredients([]);
+    }
+  };
 
   // Image Management
   const [imageSource, setImageSource] = useState<'imported' | 'upload'>('imported');
@@ -462,6 +534,41 @@ export const Admin: React.FC = () => {
     }
   }, [id]);
 
+  /** Wellness imports carry a different payload — map it onto the wellness fields. */
+  const applyCuratedWellnessResponse = useCallback((data: any) => {
+    setBrand(data.brand || '');
+    setTitle(data.title || '');
+    setDescription(data.description || '');
+    setRetailer(data.retailer || '');
+    setPriceAtRetailer(data.price || 0);
+    if (data.images && data.images.length > 0) setImages(data.images);
+    setAffiliateUrl(importUrl.trim());
+    setMerchantLinks([{
+      store: data.retailer || 'Retailer',
+      url: importUrl.trim(),
+      price: data.price || 0,
+    }]);
+
+    const cat = isWellnessCategory(data.category) ? data.category : WELLNESS_CATEGORY_NAMES[0];
+    setWellnessCategory(cat);
+    setProductSegment(cat);
+    setCategories([cat]);
+
+    const types = wellnessTypesFor(cat);
+    setProductType(types.includes(data.productType) ? data.productType : types[0]);
+
+    setForm(WELLNESS_FORMS.includes(data.form) ? data.form : '');
+    setNetQuantity(data.netQuantity || '');
+    setConcerns(Array.isArray(data.concerns) ? data.concerns.filter((c: string) => WELLNESS_CONCERNS.includes(c)) : []);
+    setDietTags(Array.isArray(data.dietTags) ? data.dietTags.filter((d: string) => WELLNESS_DIET_TAGS.includes(d)) : []);
+    setKeyIngredients(Array.isArray(data.keyIngredients) ? data.keyIngredients.filter(Boolean) : []);
+    setTags(Array.isArray(data.tags) ? data.tags.map((t: string) => String(t).toLowerCase()) : []);
+
+    if (data.title && !id.startsWith('prod-')) {
+      setId(data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60));
+    }
+  }, [id, importUrl]);
+
   const applyCuratedUrlResponse = useCallback((data: any) => {
     setBrand(data.brand || '');
     setTitle(data.title || '');
@@ -610,7 +717,7 @@ export const Admin: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ url: importUrl.trim() }),
+        body: JSON.stringify({ url: importUrl.trim(), vertical }),
       });
 
       const data = await res.json();
@@ -619,7 +726,8 @@ export const Admin: React.FC = () => {
       }
 
       setDetectedRetailer(data.retailer ?? '');
-      applyCuratedUrlResponse(data);
+      if (isWellness) applyCuratedWellnessResponse(data);
+      else applyCuratedUrlResponse(data);
       setImportStatus('success');
       setImportMessage(`Imported and Curated via ${data.source || 'AI'}! Review all settings before creating.`);
 
@@ -655,9 +763,30 @@ export const Admin: React.FC = () => {
         }
 
         setDetectedRetailer(data.retailerName ?? '');
-        applyImportedProduct(data.product);
+        if (isWellness) {
+          // The standard parser only classifies apparel — take the neutral
+          // fields and leave the wellness taxonomy for the admin to pick.
+          const p = data.product ?? {};
+          if (p.brand) setBrand(p.brand);
+          if (p.title) setTitle(p.title);
+          if (p.description) setDescription(p.description);
+          if (p.price) setPriceAtRetailer(p.price);
+          if (p.retailer) setRetailer(p.retailer);
+          if (p.images?.length) setImages(p.images);
+          if (p.retailerUrl) {
+            setAffiliateUrl(p.retailerUrl);
+            setMerchantLinks([{ store: p.retailer || 'Retailer', url: p.retailerUrl, price: p.price || 0 }]);
+          }
+          if (p.title && !id.startsWith('prod-')) {
+            setId(String(p.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60));
+          }
+        } else {
+          applyImportedProduct(data.product);
+        }
         setImportStatus('success');
-        setImportMessage('Imported successfully using standard parser. Review tall curation settings.');
+        setImportMessage(isWellness
+          ? 'Imported basics using the standard parser. Pick the category, form and concerns below.'
+          : 'Imported successfully using standard parser. Review tall curation settings.');
 
         const trimmedImportUrl = importUrl.trim();
         setOriginalUrl(trimmedImportUrl);
@@ -688,30 +817,52 @@ export const Admin: React.FC = () => {
     setTitle('');
     setDescription('');
     setPriceAtRetailer(1999);
-    setRetailer('Ajio');
+    setRetailer(isWellness ? '' : 'Ajio');
     setAffiliateUrl('');
-    setFitType('Regular Tall');
+    setFitType(isWellness ? '' : 'Regular Tall');
     setVerifiedTier('verified');
     setOutOfStock(false);
     setIsFeatured(false);
     setDiscountPercent('0');
-    setProductSegment('Upperwear');
-    setProductType('T-Shirt');
-    setCategories(['Casual Wear']);
-    setOccasions(['Daily Wear']);
-    setSeasons(['All Season']);
-    setColors(['Black']);
-    setTags(['tall-friendly']);
     setMaterial('');
     setImages([]);
-    setTallFriendly(true);
-    setSizes(['L', 'XL', 'XXL']);
-    setAdminVerdicts(DEFAULT_HEIGHT_BANDS.map(range => ({
-      heightRange: range,
-      bodyTypes: [],
-      fitRecommendation: 'Good Fit'
-    })));
     setMerchantLinks([]);
+
+    if (isWellness) {
+      // Stay in the wellness form so several products can be added in a row.
+      const cat = WELLNESS_CATEGORIES[0];
+      setWellnessCategory(cat.name);
+      setProductSegment(cat.name);
+      setProductType(cat.types[0]);
+      setCategories([cat.name]);
+      setOccasions([]);
+      setSeasons([]);
+      setColors([]);
+      setTags([]);
+      setSizes([]);
+      setTallFriendly(false);
+      setAdminVerdicts([]);
+      setForm('');
+      setNetQuantity('');
+      setConcerns([]);
+      setDietTags([]);
+      setKeyIngredients([]);
+    } else {
+      setProductSegment('Upperwear');
+      setProductType('T-Shirt');
+      setCategories(['Casual Wear']);
+      setOccasions(['Daily Wear']);
+      setSeasons(['All Season']);
+      setColors(['Black']);
+      setTags(['tall-friendly']);
+      setTallFriendly(true);
+      setSizes(['L', 'XL', 'XXL']);
+      setAdminVerdicts(DEFAULT_HEIGHT_BANDS.map(range => ({
+        heightRange: range,
+        bodyTypes: [],
+        fitRecommendation: 'Good Fit'
+      })));
+    }
 
     // Reset affiliate states
     setOriginalUrl('');
@@ -731,6 +882,17 @@ export const Admin: React.FC = () => {
     setShowForm(true);
     setFormError('');
     setFormSuccess('');
+
+    const editingWellness = p.vertical === 'wellness';
+    setVertical(editingWellness ? 'wellness' : 'fashion');
+    setWellnessCategory(
+      editingWellness && isWellnessCategory(p.category) ? p.category : WELLNESS_CATEGORY_NAMES[0]
+    );
+    setForm(p.form || '');
+    setNetQuantity(p.netQuantity || '');
+    setConcerns(p.concerns || []);
+    setDietTags(p.dietTags || []);
+    setKeyIngredients(p.keyIngredients || []);
 
     setId(p.id);
     setBrand(p.brand);
@@ -894,11 +1056,12 @@ export const Admin: React.FC = () => {
 
     const finalProduct: Product = {
       id,
+      vertical,
       brand,
       title,
-      category: categories[0] || 'Casual Wear',
-      categories,
-      productSegment,
+      category: isWellness ? wellnessCategory : (categories[0] || 'Casual Wear'),
+      categories: isWellness ? [wellnessCategory] : categories,
+      productSegment: isWellness ? wellnessCategory : productSegment,
       productType,
       description,
       priceAtRetailer: Number(priceAtRetailer),
@@ -906,19 +1069,29 @@ export const Admin: React.FC = () => {
       affiliateUrl: affiliateUrl || 'https://6feetabove.com/redirect',
       fitType,
       verifiedTier,
-      images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&auto=format&fit=crop'],
-      occasions,
-      seasons,
-      colors,
-      sizes,
-      verdicts: updatedVerdicts,
+      images: images.length > 0
+        ? images
+        : [isWellness
+            ? 'https://placehold.co/800x1066/F4FAF7/0E7C5A?text=No+Image'
+            : 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&auto=format&fit=crop'],
+      occasions: isWellness ? [] : occasions,
+      seasons: isWellness ? [] : seasons,
+      colors: isWellness ? [] : colors,
+      sizes: isWellness ? [] : sizes,
+      verdicts: isWellness ? [] : updatedVerdicts,
       outOfStock,
       merchantLinks,
       material,
       tags,
       discountPercent: Number(discountPercent) || 0,
       isFeatured,
-      tallFriendly,
+      tallFriendly: isWellness ? false : tallFriendly,
+      // Wellness attributes (ignored server-side for fashion rows)
+      form: isWellness ? form : '',
+      netQuantity: isWellness ? netQuantity : '',
+      concerns: isWellness ? concerns : [],
+      keyIngredients: isWellness ? keyIngredients : [],
+      dietTags: isWellness ? dietTags : [],
     };
 
     try {
@@ -968,7 +1141,8 @@ export const Admin: React.FC = () => {
     const matchesStock = stockFilter === 'All' ||
       (stockFilter === 'In Stock' && !p.outOfStock) ||
       (stockFilter === 'Out of Stock' && p.outOfStock);
-    return matchesSearch && matchesCategory && matchesStock;
+    const matchesVertical = verticalFilter === 'All' || (p.vertical ?? 'fashion') === verticalFilter;
+    return matchesSearch && matchesCategory && matchesStock && matchesVertical;
   });
 
   const hasAccess = isAdmin;
@@ -1084,8 +1258,8 @@ export const Admin: React.FC = () => {
           onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}
         >
           <div className="relative w-full max-w-4xl bg-white border-2 border-[#7D2AE8]/20 rounded-3xl p-6 md:p-8 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-black/10 pb-4 mb-6">
-            <h2 className="font-display text-2xl uppercase tracking-wider text-[#7D2AE8] font-bold">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 pb-4 mb-6">
+            <h2 className="font-display text-xl md:text-2xl uppercase tracking-wider text-[#7D2AE8] font-bold">
               {editMode ? 'Edit Curated Product' : 'Create New Curated Product'}
             </h2>
             <button
@@ -1094,6 +1268,42 @@ export const Admin: React.FC = () => {
             >
               Discard
             </button>
+          </div>
+
+          {/* VERTICAL SWITCH — decides which half of the form is shown */}
+          <div className="mb-6">
+            <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
+              Which storefront is this product for?
+            </label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {([
+                { key: 'fashion' as Vertical, label: 'Fashion', hint: '6ft+ only · tall fit curation' },
+                { key: 'wellness' as Vertical, label: 'Nutrition & Health', hint: 'For everyone · no height gate' },
+              ]).map(v => (
+                <button
+                  key={v.key}
+                  type="button"
+                  onClick={() => handleSwitchVertical(v.key)}
+                  disabled={editMode}
+                  className={`flex-1 text-left px-4 py-3 rounded-2xl border-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                    vertical === v.key
+                      ? 'bg-[#7D2AE8] border-[#7D2AE8] text-white shadow-sm'
+                      : 'bg-white border-black/15 text-black/70 hover:border-[#7D2AE8]/50'
+                  }`}
+                  id={`admin-vertical-${v.key}`}
+                >
+                  <span className="block text-xs font-black uppercase tracking-wider">{v.label}</span>
+                  <span className={`block text-[10px] mt-0.5 ${vertical === v.key ? 'text-white/70' : 'text-black/45'}`}>
+                    {v.hint}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {editMode && (
+              <p className="text-[10px] text-black/40 mt-2">
+                A product cannot change storefront after it is created — delete and re-add it instead.
+              </p>
+            )}
           </div>
 
           {/* URL IMPORT IS PRIMARY */}
@@ -1109,7 +1319,9 @@ export const Admin: React.FC = () => {
                 </span>
               </div>
               <p className="text-[10px] text-black/45 mb-4 font-sans">
-                Paste product URL from Myntra, AJIO, Amazon, Flipkart, H&amp;M, Zara, Snitch, Rare Rabbit, Urbanic, Bewakoof etc.
+                {isWellness
+                  ? 'Paste a product URL from Nutrabay, HealthKart, The Derma Co, Kapiva, mCaffeine, Netmeds, PharmEasy, Sirona etc.'
+                  : 'Paste product URL from Myntra, AJIO, Amazon, Flipkart, H&M, Zara, Snitch, Rare Rabbit, Urbanic, Bewakoof etc.'}
               </p>
 
               <div className="flex gap-3 items-stretch">
@@ -1119,7 +1331,9 @@ export const Admin: React.FC = () => {
                     type="url"
                     value={importUrl}
                     onChange={(e) => setImportUrl(e.target.value)}
-                    placeholder="https://www.myntra.com/shirts/brand/product-id"
+                    placeholder={isWellness
+                      ? 'https://nutrabay.com/product/whey-protein-isolate'
+                      : 'https://www.myntra.com/shirts/brand/product-id'}
                     disabled={importStatus === 'loading'}
                     className="w-full pl-9 pr-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-mono disabled:opacity-60"
                   />
@@ -1169,7 +1383,79 @@ export const Admin: React.FC = () => {
               </div>
             )}
 
+            {/* WELLNESS CATEGORY & TYPE SELECTORS */}
+            {isWellness && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FAF9F6] p-5 rounded-2xl border border-black/5">
+                <div>
+                  <label className="text-[10px] text-[#0E7C5A] font-black uppercase tracking-wider block mb-1.5">
+                    Wellness Category *
+                  </label>
+                  <select
+                    value={wellnessCategory}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setWellnessCategory(next);
+                      setProductSegment(next);
+                      setCategories([next]);
+                      const types = wellnessTypesFor(next);
+                      if (types.length > 0) setProductType(types[0]);
+                    }}
+                    className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#0E7C5A] text-xs font-bold bg-white"
+                    id="admin-wellness-category"
+                  >
+                    {WELLNESS_CATEGORIES.map(c => (
+                      <option key={c.name} value={c.name}>{c.icon}  {c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-[#0E7C5A] font-black uppercase tracking-wider block mb-1.5">
+                    Product Type *
+                  </label>
+                  <select
+                    value={productType}
+                    onChange={(e) => setProductType(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#0E7C5A] text-xs font-bold bg-white"
+                    id="admin-wellness-type"
+                  >
+                    {wellnessTypesFor(wellnessCategory).map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-[#0E7C5A] font-black uppercase tracking-wider block mb-1.5">
+                    Form
+                  </label>
+                  <select
+                    value={form}
+                    onChange={(e) => setForm(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#0E7C5A] text-xs font-bold bg-white"
+                  >
+                    <option value="">— Select —</option>
+                    {WELLNESS_FORMS.map(f => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-[#0E7C5A] font-black uppercase tracking-wider block mb-1.5">
+                    Net Quantity
+                  </label>
+                  <input
+                    type="text"
+                    value={netQuantity}
+                    onChange={(e) => setNetQuantity(e.target.value)}
+                    placeholder="e.g. 60 capsules, 1 kg, 100 ml"
+                    className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#0E7C5A] text-xs font-bold"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* SEGMENT & TYPE SELECTORS */}
+            {!isWellness && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FAF9F6] p-5 rounded-2xl border border-black/5">
               <div>
                 <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block mb-1.5">
@@ -1210,8 +1496,10 @@ export const Admin: React.FC = () => {
                 </select>
               </div>
             </div>
+            )}
 
             {/* Sizes list (Dynamic based on Segment) */}
+            {!isWellness && (
             <div className="bg-[#FAF9F6] p-5 rounded-2xl border border-black/5 space-y-3">
               <label className="text-[10px] text-[#7D2AE8] font-black uppercase tracking-wider block border-b border-black/5 pb-1.5">
                 Select Curated Sizes Available (Tailored Proportions)
@@ -1236,6 +1524,7 @@ export const Admin: React.FC = () => {
                 })}
               </div>
             </div>
+            )}
 
             {/* BASIC METADATA */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -1282,19 +1571,22 @@ export const Admin: React.FC = () => {
 
             {/* DESCRIPTION & FABRIC */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              <div className="md:col-span-8">
+              <div className={isWellness ? 'md:col-span-12' : 'md:col-span-8'}>
                 <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
                   Description
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the silhouette, fit, drape, and tall suitability details..."
+                  placeholder={isWellness
+                    ? 'What it is and what it helps with. Do not claim it treats or cures anything.'
+                    : 'Describe the silhouette, fit, drape, and tall suitability details...'}
                   rows={3}
                   className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-sans"
                 />
               </div>
 
+              {!isWellness && (
               <div className="md:col-span-4">
                 <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
                   Material / Fabric
@@ -1307,15 +1599,104 @@ export const Admin: React.FC = () => {
                   className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
                 />
               </div>
+              )}
             </div>
 
             {/* TAXONOMY CHIP PICKERS */}
             <div className="space-y-6 bg-[#FAF9F6] p-6 rounded-2xl border border-black/5">
               <h3 className="text-xs font-black uppercase tracking-wider text-black/60 border-b border-black/10 pb-2">
-                Garment Taxonomy &amp; Tags
+                {isWellness ? 'Wellness Attributes & Tags' : 'Garment Taxonomy & Tags'}
               </h3>
 
+              {/* Wellness: concerns, diet tags, key ingredients */}
+              {isWellness && (
+                <>
+                  <div>
+                    <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
+                      Concerns It Helps With (Select Multiple)
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {WELLNESS_CONCERNS.map(c => {
+                        const isSelected = concerns.includes(c);
+                        return (
+                          <button
+                            type="button"
+                            key={c}
+                            onClick={() => toggleSelection(c, concerns, setConcerns)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isSelected
+                              ? 'bg-[#0E7C5A] text-white shadow-sm'
+                              : 'bg-white text-black/65 border border-black/15 hover:border-[#0E7C5A]/50'
+                              }`}
+                          >
+                            {c}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
+                      Diet &amp; Safety Tags
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {WELLNESS_DIET_TAGS.map(d => {
+                        const isSelected = dietTags.includes(d);
+                        return (
+                          <button
+                            type="button"
+                            key={d}
+                            onClick={() => toggleSelection(d, dietTags, setDietTags)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${isSelected
+                              ? 'bg-[#0E7C5A] text-white shadow-sm'
+                              : 'bg-white text-black/65 border border-black/15 hover:border-[#0E7C5A]/50'
+                              }`}
+                          >
+                            {d}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                      Key Ingredients (Type and press Enter)
+                    </label>
+                    <div className="flex gap-2 mb-3">
+                      <input
+                        type="text"
+                        value={newIngredientInput}
+                        onChange={(e) => setNewIngredientInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddIngredient())}
+                        placeholder="e.g. Whey Isolate, Niacinamide 10%"
+                        className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddIngredient}
+                        className="px-4 bg-[#0E7C5A] hover:bg-[#0a5f45] text-white font-grotesk font-black text-xs uppercase tracking-wider rounded-xl"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {keyIngredients.map(ing => (
+                        <span key={ing} className="flex items-center gap-1.5 px-3 py-1 bg-[#0E7C5A]/10 text-[#0E7C5A] border border-[#0E7C5A]/20 rounded-full text-[10px] font-black uppercase tracking-wider">
+                          <span>{ing}</span>
+                          <button type="button" onClick={() => setKeyIngredients(keyIngredients.filter(i => i !== ing))} className="hover:text-red-500">
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Broad Category */}
+              {!isWellness && (
+              <>
               <div>
                 <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-2">
                   Broad Categories (Select Multiple)
@@ -1454,6 +1835,8 @@ export const Admin: React.FC = () => {
                   />
                 </div>
               </div>
+              </>
+              )}
 
               {/* Tags */}
               <div>
@@ -1615,7 +1998,8 @@ export const Admin: React.FC = () => {
               )}
             </div>
 
-            {/* TALL FIT CURATION - HERO SECTION */}
+            {/* TALL FIT CURATION - HERO SECTION (fashion only) */}
+            {!isWellness && (
             <div className="border-2 border-[#7D2AE8] rounded-3xl p-6 bg-gradient-to-br from-[#7D2AE8]/5 to-transparent space-y-6 shadow-sm">
               <div className="flex items-center justify-between border-b border-[#7D2AE8]/20 pb-3">
                 <div className="flex items-center gap-2">
@@ -1845,6 +2229,7 @@ export const Admin: React.FC = () => {
                 </div>
               </div>
             </div>
+            )}
 
             {/* PRICING & AVAILABILITY */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-[#FAF9F6] p-5 rounded-2xl border border-black/5">
@@ -2060,12 +2445,24 @@ export const Admin: React.FC = () => {
 
             <div className="flex flex-wrap items-center gap-3">
               <select
+                value={verticalFilter}
+                onChange={(e) => setVerticalFilter(e.target.value as 'All' | 'fashion' | 'wellness')}
+                className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white"
+                id="admin-filter-vertical"
+              >
+                <option value="All">Both Storefronts</option>
+                <option value="fashion">Fashion only</option>
+                <option value="wellness">Nutrition &amp; Health only</option>
+              </select>
+
+              <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="px-3.5 py-2.5 rounded-xl border border-black/15 text-xs font-bold bg-white"
               >
                 <option value="All">All Categories</option>
-                {BROAD_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                {(verticalFilter === 'wellness' ? WELLNESS_CATEGORY_NAMES : BROAD_CATEGORIES)
+                  .map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
 
               <select
@@ -2123,6 +2520,13 @@ export const Admin: React.FC = () => {
                         <span className="line-clamp-2 max-w-xs">{p.title}</span>
                       </td>
                       <td className="py-4 px-6">
+                        <span className={`inline-block mb-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                          (p.vertical ?? 'fashion') === 'wellness'
+                            ? 'bg-[#0E7C5A]/10 text-[#0E7C5A]'
+                            : 'bg-[#7D2AE8]/10 text-[#7D2AE8]'
+                        }`}>
+                          {(p.vertical ?? 'fashion') === 'wellness' ? 'Wellness' : 'Fashion'}
+                        </span>
                         <span className="block text-[10px] text-black/55">{p.productSegment}</span>
                         <span className="block font-black text-[#00C4CC]">{p.productType}</span>
                       </td>

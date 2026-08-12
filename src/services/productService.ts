@@ -28,8 +28,10 @@ function validateProduct(p: Partial<Product>): string | null {
 }
 
 function sanitizeProduct(p: Product): Product {
+  const vertical = p.vertical === 'wellness' ? 'wellness' : 'fashion';
   return {
     ...p,
+    vertical,
     id:             p.id.trim().toLowerCase(),
     brand:          p.brand.trim(),
     title:          p.title.trim(),
@@ -51,11 +53,22 @@ function sanitizeProduct(p: Product): Product {
     heightRanges:   (p.heightRanges ?? []).filter(Boolean),
     bodyTypes:      (p.bodyTypes ?? []).filter(Boolean),
     fitHighlights:  (p.fitHighlights ?? []).filter(Boolean),
+    // Wellness fields
+    form:           p.form?.trim() ?? '',
+    netQuantity:    p.netQuantity?.trim() ?? '',
+    concerns:       (p.concerns ?? []).filter(Boolean),
+    keyIngredients: (p.keyIngredients ?? []).filter(Boolean),
+    dietTags:       (p.dietTags ?? []).filter(Boolean),
+    // A wellness product has no fit — never let a stale tall verdict ride along.
+    ...(vertical === 'wellness'
+      ? { fitType: '', verdicts: [], measurements: {}, sizes: [], tallFriendly: false, heightRanges: [], bodyTypes: [], fitHighlights: [] }
+      : {}),
   };
 }
 
 export const productService = {
   async getAll(filters?: {
+    vertical?: string;
     category?: string;
     brand?: string;
     search?: string;

@@ -9,10 +9,10 @@ import { getProductRecommendation, isPositiveRecommendation } from '../utils/fit
 const PAGE_SIZE = 24;
 
 export const SearchFilters: React.FC = () => {
-  const { height, bodyType, setHeight, cardSize, products, loadingProducts } = useApp();
+  const { height, bodyType, setHeight, cardSize, products, loadingProducts, isWellness, route } = useApp();
 
-  // Search input state
-  const [query, setQuery] = useState<string>('');
+  // Search input state — seeded from the hash so /search/<term> links work
+  const [query, setQuery] = useState<string>(route.params?.query ?? '');
 
   // Active filter states
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -22,6 +22,11 @@ export const SearchFilters: React.FC = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>('All');
   const [selectedSilhouette, setSelectedSilhouette] = useState<string>('All');
 
+  // Wellness-only facets
+  const [selectedConcern, setSelectedConcern] = useState<string>('All');
+  const [selectedForm, setSelectedForm] = useState<string>('All');
+  const [selectedDietTag, setSelectedDietTag] = useState<string>('All');
+
   // Mobile filters expansion state
   const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState<boolean>(false);
 
@@ -29,6 +34,20 @@ export const SearchFilters: React.FC = () => {
   const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.category)))], [products]);
   const brands = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.brand)))], [products]);
   
+  // Wellness facet values come from the live catalogue so empty filters never show
+  const concernOptions = useMemo(
+    () => ['All', ...Array.from(new Set(products.flatMap(p => p.concerns ?? []).filter(Boolean)))],
+    [products]
+  );
+  const formOptions = useMemo(
+    () => ['All', ...Array.from(new Set(products.map(p => p.form).filter(Boolean) as string[]))],
+    [products]
+  );
+  const dietTagOptions = useMemo(
+    () => ['All', ...Array.from(new Set(products.flatMap(p => p.dietTags ?? []).filter(Boolean)))],
+    [products]
+  );
+
   const occasions = ['All', 'Office', 'College', 'Casual', 'Travel', 'Vacation', 'Wedding', 'Date Night', 'Festive', 'Gym'];
   const colors = ['All', 'White', 'Blue', 'Navy', 'Aqua', 'Black', 'Grey', 'Green', 'Gold', 'Ivory', 'Beige', 'Sage', 'Lemon', 'Yellow', 'Burgundy', 'Brown', 'Red', 'Khaki', 'Indigo'];
   const seasons = ['All', 'Summer', 'Winter'];
@@ -43,6 +62,9 @@ export const SearchFilters: React.FC = () => {
     setSelectedColor('All');
     setSelectedSeason('All');
     setSelectedSilhouette('All');
+    setSelectedConcern('All');
+    setSelectedForm('All');
+    setSelectedDietTag('All');
   };
 
   // Perform exhaustive multi-variant filter calculations
@@ -54,11 +76,14 @@ export const SearchFilters: React.FC = () => {
       // 1. Text Search query matching title, brand, category, subCategory
       if (query.trim()) {
         const q = query.toLowerCase();
-        const matchesText = 
+        const matchesText =
           product.title.toLowerCase().includes(q) ||
           product.brand.toLowerCase().includes(q) ||
           product.category.toLowerCase().includes(q) ||
-          (product.subCategory && product.subCategory.toLowerCase().includes(q));
+          (product.subCategory && product.subCategory.toLowerCase().includes(q)) ||
+          product.productType?.toLowerCase().includes(q) ||
+          (product.concerns ?? []).some(c => c.toLowerCase().includes(q)) ||
+          (product.keyIngredients ?? []).some(i => i.toLowerCase().includes(q));
         if (!matchesText) return false;
       }
 
@@ -69,6 +94,14 @@ export const SearchFilters: React.FC = () => {
           product.category?.toLowerCase() === selCat ||
           (product.categories && product.categories.some(c => c.toLowerCase() === selCat));
         if (!matchesCategory) return false;
+      }
+
+      // 3a. Wellness facets
+      if (isWellness) {
+        if (selectedConcern !== 'All' && !(product.concerns ?? []).includes(selectedConcern)) return false;
+        if (selectedForm !== 'All' && product.form !== selectedForm) return false;
+        if (selectedDietTag !== 'All' && !(product.dietTags ?? []).includes(selectedDietTag)) return false;
+        return true;
       }
 
       // 3. Occasion matching array
@@ -100,6 +133,8 @@ export const SearchFilters: React.FC = () => {
 
       return true;
     }).sort((a, b) => {
+      // Wellness has no fit verdicts — keep the catalogue order (newest first)
+      if (isWellness) return 0;
       // Sort priority: Tall verify status for active height and bodyType
       const recA = getProductRecommendation(a.verdicts, height, bodyType);
       const recB = getProductRecommendation(b.verdicts, height, bodyType);
@@ -107,15 +142,23 @@ export const SearchFilters: React.FC = () => {
       const scoreB = recB && recB.fitRecommendation.includes('Highly') ? 2 : (recB && isPositiveRecommendation(recB.fitRecommendation) ? 1 : 0);
       return scoreB - scoreA;
     });
-  }, [query, selectedCategory, selectedOccasion, selectedBrand, selectedColor, selectedSeason, selectedSilhouette, height, bodyType]);
+  }, [products, isWellness, query, selectedCategory, selectedOccasion, selectedBrand, selectedColor,
+      selectedSeason, selectedSilhouette, selectedConcern, selectedForm, selectedDietTag, height, bodyType]);
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // Follow the hash when a concern chip navigates here with a new query
+  const routeQuery = route.params?.query;
+  useEffect(() => {
+    if (routeQuery !== undefined) setQuery(routeQuery);
+  }, [routeQuery]);
+
   // Reset to first page whenever any filter changes
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [query, selectedCategory, selectedOccasion, selectedBrand, selectedColor, selectedSeason, selectedSilhouette, height, bodyType]);
+  }, [query, selectedCategory, selectedOccasion, selectedBrand, selectedColor, selectedSeason,
+      selectedSilhouette, selectedConcern, selectedForm, selectedDietTag, height, bodyType]);
 
   // Auto-load more when sentinel scrolls into view
   useEffect(() => {
@@ -173,7 +216,8 @@ export const SearchFilters: React.FC = () => {
           </div>
 
           <div className={`${isMobileFiltersExpanded ? 'space-y-6 block' : 'hidden lg:block lg:space-y-6'}`}>
-            {/* Sizing Height calibrator inside filter pane */}
+            {/* Sizing Height calibrator inside filter pane — fashion only */}
+            {!isWellness && (
             <div>
               <h4 className="text-[10px] font-black uppercase tracking-widest text-[#7D2AE8] mb-3 font-grotesk">
                 Height Calibrator
@@ -195,6 +239,7 @@ export const SearchFilters: React.FC = () => {
                 })}
               </div>
             </div>
+            )}
 
             {/* Category selection */}
             <div>
@@ -216,7 +261,55 @@ export const SearchFilters: React.FC = () => {
               </div>
             </div>
 
+            {/* Wellness: concerns, form, diet */}
+            {isWellness && (
+              <>
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2.5">
+                    By Concern
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {concernOptions.map(c => (
+                      <button
+                        key={c}
+                        onClick={() => setSelectedConcern(c)}
+                        className={`px-3 py-1.5 text-[11px] rounded-lg transition font-sans font-bold uppercase tracking-wide ${
+                          selectedConcern === c ? 'bg-[#0E7C5A] text-white' : 'bg-[#112133]/5 text-[#112133]/65 hover:bg-[#112133]/10'
+                        }`}
+                      >
+                        {c === 'All' ? 'All Concerns' : c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-[9px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">Form</h4>
+                    <select
+                      value={selectedForm}
+                      onChange={(e) => setSelectedForm(e.target.value)}
+                      className="bg-[#112133]/5 border border-[#112133]/10 rounded-lg p-2.5 text-xs w-full font-sans font-semibold text-[#112133]/80 focus:border-[#0E7C5A] outline-none"
+                    >
+                      {formOptions.map(f => <option key={f} value={f}>{f}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <h4 className="text-[9px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">Diet Tag</h4>
+                    <select
+                      value={selectedDietTag}
+                      onChange={(e) => setSelectedDietTag(e.target.value)}
+                      className="bg-[#112133]/5 border border-[#112133]/10 rounded-lg p-2.5 text-xs w-full font-sans font-semibold text-[#112133]/80 focus:border-[#0E7C5A] outline-none"
+                    >
+                      {dietTagOptions.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* Occasions selection */}
+            {!isWellness && (
             <div>
               <h4 className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2.5">
                 By Occasion
@@ -235,6 +328,7 @@ export const SearchFilters: React.FC = () => {
                 ))}
               </div>
             </div>
+            )}
 
             {/* Brand select */}
             <div>
@@ -256,7 +350,8 @@ export const SearchFilters: React.FC = () => {
               </div>
             </div>
 
-            {/* Colour and silhouette filter blocks */}
+            {/* Colour and silhouette filter blocks — fashion only */}
+            {!isWellness && (
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h4 className="text-[9px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">Color Hue</h4>
@@ -279,6 +374,7 @@ export const SearchFilters: React.FC = () => {
                 </select>
               </div>
             </div>
+            )}
           </div>
 
         </div>
@@ -295,7 +391,9 @@ export const SearchFilters: React.FC = () => {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search specifications (e.g. Linen shirt, Manyavar Kurta, 36L Inseam, hoodies Zara)..."
+              placeholder={isWellness
+                ? 'Search products, brands or ingredients (e.g. whey isolate, niacinamide, ashwagandha)...'
+                : 'Search specifications (e.g. Linen shirt, Manyavar Kurta, 36L Inseam, hoodies Zara)...'}
               className="w-full bg-white border border-[#112133]/15 hover:border-[#112133]/20 focus:border-[#7D2AE8] rounded-2xl py-4.5 pl-12 pr-4 text-sm font-sans font-medium text-[#112133] placeholder-[#112133]/40 outline-none transition shadow-sm"
               id="search-input-field"
             />
@@ -317,9 +415,12 @@ export const SearchFilters: React.FC = () => {
                 </span>
               ) : (
                 <span className="font-black text-sm uppercase tracking-wider text-[#112133]">
-                  {visibleCount < filteredProducts.length
-                    ? `Showing ${visibleCount} of ${filteredProducts.length} Garments`
-                    : `${filteredProducts.length} Garments Found`}
+                  {(() => {
+                    const noun = isWellness ? 'Products' : 'Garments';
+                    return visibleCount < filteredProducts.length
+                      ? `Showing ${visibleCount} of ${filteredProducts.length} ${noun}`
+                      : `${filteredProducts.length} ${noun} Found`;
+                  })()}
                 </span>
               )}
             </div>
@@ -380,7 +481,9 @@ export const SearchFilters: React.FC = () => {
               <X size={32} className="text-accent-coral mx-auto mb-3" />
               <h4 className="text-[#112133] font-display text-xl uppercase tracking-wider mb-2">No specs matched</h4>
               <p className="text-[#112133]/60 text-xs leading-relaxed mb-6">
-                No garments matched the specific cross-section of colors, brands or sizes. Let's restart our selectors to extend choices.
+                {isWellness
+                  ? 'Nothing matched that combination of concern, form and diet tags. Reset the filters to widen the search.'
+                  : "No garments matched the specific cross-section of colors, brands or sizes. Let's restart our selectors to extend choices."}
               </p>
               <button
                 onClick={handleResetFilters}

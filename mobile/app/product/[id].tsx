@@ -41,7 +41,8 @@ export default function ProductDetailScreen() {
   }
 
   const isSaved = savedProductIds.includes(product.id);
-  const rec = getProductRecommendation(product.verdicts, height, bodyType);
+  const isWellnessProduct = (product.vertical ?? 'fashion') === 'wellness';
+  const rec = isWellnessProduct ? null : getProductRecommendation(product.verdicts, height, bodyType);
   const positive = rec && isPositiveRecommendation(rec.fitRecommendation);
   const images = product.images?.length ? product.images : [''];
 
@@ -143,6 +144,59 @@ export default function ProductDetailScreen() {
             </Pressable>
           )}
 
+          {/* Wellness fact sheet */}
+          {isWellnessProduct && (
+            <View className="bg-[#F4FAF7] rounded-2xl p-4 mb-4 border border-[#0E7C5A]/15">
+              <View className="flex-row flex-wrap gap-2 mb-3">
+                {[product.productType, product.form, product.netQuantity].filter(Boolean).map(v => (
+                  <View key={v as string} className="bg-white border border-black/5 px-3 py-1.5 rounded-xl">
+                    <Text className="text-[10px] font-black uppercase text-[#112133]/70">{v}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {(product.concerns?.length ?? 0) > 0 && (
+                <>
+                  <Text className="text-[9px] font-black uppercase tracking-widest text-[#112133]/45 mb-1.5">Helps with</Text>
+                  <View className="flex-row flex-wrap gap-1.5 mb-3">
+                    {product.concerns!.map(c => (
+                      <View key={c} className="bg-[#0E7C5A] px-2.5 py-1 rounded-full">
+                        <Text className="text-[10px] font-black uppercase text-white">{c}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {(product.keyIngredients?.length ?? 0) > 0 && (
+                <>
+                  <Text className="text-[9px] font-black uppercase tracking-widest text-[#112133]/45 mb-1.5">Key ingredients</Text>
+                  <View className="flex-row flex-wrap gap-1.5 mb-3">
+                    {product.keyIngredients!.map(i => (
+                      <View key={i} className="bg-[#112133]/5 border border-black/5 px-2.5 py-1 rounded-full">
+                        <Text className="text-[10px] font-bold text-[#112133]">{i}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {(product.dietTags?.length ?? 0) > 0 && (
+                <View className="flex-row flex-wrap gap-1.5 mb-3">
+                  {product.dietTags!.map(d => (
+                    <View key={d} className="bg-[#FFD43B] border border-black/10 px-2.5 py-1 rounded-full">
+                      <Text className="text-[10px] font-black uppercase text-black">✓ {d}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              <Text className="text-[10px] text-[#112133]/45 leading-relaxed border-t border-black/5 pt-2.5">
+                Not a medicine. Check with a doctor before starting something new.
+              </Text>
+            </View>
+          )}
+
           {/* CTA button */}
           {!!product.affiliateUrl && !product.outOfStock && (
             <Pressable onPress={() => Linking.openURL(product.affiliateUrl)}
@@ -153,7 +207,7 @@ export default function ProductDetailScreen() {
           )}
 
           {/* Tags row */}
-          {(product.occasions?.length > 0 || product.seasons?.length > 0) && (
+          {!isWellnessProduct && (product.occasions?.length > 0 || product.seasons?.length > 0) && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5">
               <View className="flex-row gap-2">
                 {product.occasions?.map(occ => (
@@ -185,7 +239,7 @@ export default function ProductDetailScreen() {
           )}
 
           {/* Verdicts table */}
-          {product.verdicts && product.verdicts.length > 0 && (
+          {!isWellnessProduct && product.verdicts && product.verdicts.length > 0 && (
             <View className="border-t border-black/5 pt-4">
               <Text className="text-sm font-black text-[#112133] uppercase tracking-wide mb-3">Fit by Height</Text>
               <View className="rounded-2xl overflow-hidden border border-black/5">

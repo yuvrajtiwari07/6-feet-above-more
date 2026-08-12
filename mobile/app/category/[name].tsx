@@ -6,6 +6,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { useApp } from '../../lib/context/AppContext';
 import { ProductCard, ProductCardSkeleton } from '../../components/product/ProductCard';
 import { getProductRecommendation, isPositiveRecommendation } from '../../lib/utils/fitEngine';
+import { getWellnessCategory } from '../../lib/data/wellness';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PAGE_SIZE = 24;
@@ -20,12 +21,15 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; accent: string
 
 export default function CategoryScreen() {
   const { name } = useLocalSearchParams<{ name: string }>();
-  const { products, height, bodyType, cardSize, loadingProducts } = useApp();
+  const { products, height, bodyType, cardSize, loadingProducts, isWellness } = useApp();
   const [selectedBrand, setSelectedBrand] = useState('All');
   const [visibleCount, setVisibleCount]   = useState(PAGE_SIZE);
 
   const decodedName = decodeURIComponent(name ?? '');
-  const theme = CATEGORY_COLORS[decodedName] ?? { bg: '#112133', text: '#fff', accent: '#FFD43B' };
+  const wellnessCat = getWellnessCategory(decodedName);
+  const theme = wellnessCat
+    ? { bg: wellnessCat.bg, text: wellnessCat.text, accent: wellnessCat.accent }
+    : CATEGORY_COLORS[decodedName] ?? { bg: '#112133', text: '#fff', accent: '#FFD43B' };
 
   const filtered = useMemo(() => {
     return products.filter(p => {
@@ -34,13 +38,14 @@ export default function CategoryScreen() {
       if (selectedBrand !== 'All' && p.brand !== selectedBrand) return false;
       return true;
     }).sort((a, b) => {
+      if (isWellness) return 0; // no fit verdicts to rank by
       const ra = getProductRecommendation(a.verdicts, height, bodyType);
       const rb = getProductRecommendation(b.verdicts, height, bodyType);
       const sa = ra?.fitRecommendation.includes('Highly') ? 2 : ra && isPositiveRecommendation(ra.fitRecommendation) ? 1 : 0;
       const sb = rb?.fitRecommendation.includes('Highly') ? 2 : rb && isPositiveRecommendation(rb.fitRecommendation) ? 1 : 0;
       return sb - sa;
     });
-  }, [products, decodedName, selectedBrand, height, bodyType]);
+  }, [products, decodedName, selectedBrand, height, bodyType, isWellness]);
 
   const brands = useMemo(() => ['All', ...Array.from(new Set(
     products.filter(p => p.category?.toLowerCase() === decodedName.toLowerCase()).map(p => p.brand)
@@ -68,8 +73,15 @@ export default function CategoryScreen() {
           {decodedName}
         </Text>
         <Text className="text-xs font-bold" style={{ color: theme.accent }}>
-          {filtered.length} garments · sorted by fit for {height}
+          {isWellness
+            ? `${filtered.length} products · open to everyone`
+            : `${filtered.length} garments · sorted by fit for ${height}`}
         </Text>
+        {wellnessCat && (
+          <Text className="text-[11px] mt-2 leading-relaxed" style={{ color: theme.text, opacity: 0.7 }}>
+            {wellnessCat.desc}
+          </Text>
+        )}
       </View>
 
       {/* Brand filter chips */}
@@ -128,7 +140,9 @@ export default function CategoryScreen() {
         ListEmptyComponent={
           <View className="items-center justify-center py-16 px-8">
             <Text className="text-[#112133] font-black text-lg uppercase tracking-wider mb-2">Nothing here yet</Text>
-            <Text className="text-[#112133]/50 text-xs text-center">Products in this category are coming soon.</Text>
+            <Text className="text-[#112133]/50 text-xs text-center">
+              {isWellness ? 'This aisle is still being stocked.' : 'Products in this category are coming soon.'}
+            </Text>
           </View>
         }
       />

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { HeightBand, UserPreferences, Product, Catalog, CatalogCategory } from '../types';
+import { HeightBand, UserPreferences, Product, Catalog, CatalogCategory, Vertical } from '../types';
 import { supabase, signInWithGoogle, signOut, getAccessToken, User } from '../supabase';
 
 const ADMIN_EMAILS = ['ytiwari@argusoft.com', 'rajtiwari07102001@gmail.com'];
@@ -15,6 +15,7 @@ const KEYS = {
   preferences:     'lamba_preferences',
   cardSize:        'lamba_card_size',
   productsCache:   'lamba_products_cache',
+  vertical:        'lamba_vertical',
 } as const;
 
 const PRODUCT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -39,7 +40,15 @@ interface AppContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: boolean;
+
+  /** Active storefront: 'fashion' (6ft+ apparel) or 'wellness' (open to all). */
+  vertical: Vertical;
+  setVertical: (v: Vertical) => Promise<void>;
+  isWellness: boolean;
+
+  /** Scoped to the active vertical. `allProducts` ignores the vertical. */
   products: Product[];
+  allProducts: Product[];
   loadingProducts: boolean;
   addProduct: (p: Product) => Promise<void>;
   updateProduct: (id: string, p: Partial<Product>) => Promise<void>;
@@ -47,6 +56,8 @@ interface AppContextType {
   refetchProducts: () => Promise<void>;
   catalogs: Catalog[];
   catalogCategories: CatalogCategory[];
+  allCatalogs: Catalog[];
+  allCatalogCategories: CatalogCategory[];
   loadingCatalogs: boolean;
   addCatalog: (c: Partial<Catalog>) => Promise<Catalog>;
   updateCatalog: (id: string, c: Partial<Catalog>) => Promise<void>;
@@ -97,6 +108,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cardSize, setCardSizeState]    = useState<'small' | 'medium' | 'large'>('medium');
   const [clickLogs, setClickLogs]       = useState<{ productId: string; timestamp: Date; retailer: string }[]>([]);
   const [hydrated, setHydrated]         = useState(false);
+  const [vertical, setVerticalState]    = useState<Vertical>('fashion');
 
   // ── Auth ─────────────────────────────────────────────────
   const [user, setUser]                 = useState<User | null>(null);
@@ -113,7 +125,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     AsyncStorage.multiGet([
       KEYS.height, KEYS.bodyType, KEYS.savedProducts,
-      KEYS.savedFits, KEYS.preferences, KEYS.cardSize,
+      KEYS.savedFits, KEYS.preferences, KEYS.cardSize, KEYS.vertical,
     ]).then(pairs => {
       const map = Object.fromEntries(pairs.map(([k, v]) => [k, v]));
       if (map[KEYS.height])        setHeightState(map[KEYS.height]!);
@@ -122,6 +134,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (map[KEYS.savedFits])     { try { setSavedFitIds(JSON.parse(map[KEYS.savedFits]!)); } catch {} }
       if (map[KEYS.preferences])   { try { setPreferences(JSON.parse(map[KEYS.preferences]!)); } catch {} }
       if (map[KEYS.cardSize])      setCardSizeState(map[KEYS.cardSize] as any);
+      if (map[KEYS.vertical] === 'wellness') setVerticalState('wellness');
       setHydrated(true);
     }).catch(() => setHydrated(true));
   }, []);
@@ -223,6 +236,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await AsyncStorage.multiSet([[KEYS.bodyType, bt], [KEYS.preferences, JSON.stringify(updatedPrefs)]]);
   };
 
+  const setVertical = async (v: Vertical) => {
+    setVerticalState(v);
+    await AsyncStorage.setItem(KEYS.vertical, v);
+  };
+
   const setCardSize = async (size: 'small' | 'medium' | 'large') => {
     setCardSizeState(size);
     await AsyncStorage.setItem(KEYS.cardSize, size);
@@ -322,6 +340,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     apiFetch('/api/products/track', { method: 'POST', body: JSON.stringify({ productId, retailer, affiliateUrl: url }) }).catch(() => {});
   };
 
+  // ── Vertical scoping ──────────────────────────────────────
+  // Screens read `products`/`catalogs` and only ever see the active storefront.
+  const visibleProducts = products.filter(p => (p.vertical ?? 'fashion') === vertical);
+  const visibleCatalogs = catalogs.filter(c => (c.vertical ?? 'fashion') === vertical);
+  const visibleCatalogCategories = catalogCategories.filter(c => (c.vertical ?? 'fashion') === vertical);
+
   // ── Auth actions ──────────────────────────────────────────
   const loginWithGoogle = async () => { await signInWithGoogle(); };
   const logout = async () => { await signOut(); };
@@ -335,8 +359,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       savedProductIds, toggleSaveProduct,
       savedFitIds, toggleSaveFit,
       user, loadingFirebase, loginWithGoogle, logout, isAdmin,
-      products, loadingProducts, addProduct, updateProduct, deleteProduct, refetchProducts,
-      catalogs, catalogCategories, loadingCatalogs,
+      vertical, setVertical, isWellness: vertical === 'wellness',
+      products: visibleProducts, allProducts: products,
+      loadingProducts, addProduct, updateProduct, deleteProduct, refetchProducts,
+      catalogs: visibleCatalogs, catalogCategories: visibleCatalogCategories,
+      allCatalogs: catalogs, allCatalogCategories: catalogCategories,
+      loadingCatalogs,
       addCatalog, updateCatalog, deleteCatalog,
       addCatalogCategory, updateCatalogCategory, deleteCatalogCategory, refreshCatalogs,
       clickLogs, trackAffiliateClick,

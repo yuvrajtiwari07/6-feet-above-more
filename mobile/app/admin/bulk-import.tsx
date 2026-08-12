@@ -5,6 +5,7 @@ import { ArrowLeft, UploadCloud, CheckCircle2, XCircle, Copy } from 'lucide-reac
 import { router } from 'expo-router';
 import { apiFetch } from '../../lib/context/AppContext';
 import { useApp } from '../../lib/context/AppContext';
+import { Vertical } from '../../lib/types';
 
 const MAX_URLS = 300;
 const BATCH = 5;
@@ -19,6 +20,7 @@ function extractUrls(text: string): string[] {
 
 export default function BulkImportScreen() {
   const { refetchProducts } = useApp();
+  const [vertical, setVertical] = useState<Vertical>('fashion');
   const [textInput, setTextInput] = useState('');
   const [runStatus, setRunStatus] = useState<'idle' | 'running' | 'done'>('idle');
   const [statuses, setStatuses] = useState<Record<string, UrlStatus>>({});
@@ -46,7 +48,7 @@ export default function BulkImportScreen() {
       const batch = parsedUrls.slice(i, i + BATCH);
       setStatuses(prev => { const next = { ...prev }; batch.forEach(u => { next[u] = 'processing'; }); return next; });
       try {
-        const data = await apiFetch('/api/admin/bulk-import', { method: 'POST', body: JSON.stringify({ urls: batch }) });
+        const data = await apiFetch('/api/admin/bulk-import', { method: 'POST', body: JSON.stringify({ urls: batch, vertical }) });
         const batchResults: BulkResult[] = data.results ?? [];
         allResults.push(...batchResults);
         setStatuses(prev => {
@@ -85,6 +87,36 @@ export default function BulkImportScreen() {
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
         {runStatus === 'idle' && (
           <>
+            <Text className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">
+              Import all of these into
+            </Text>
+            <View className="flex-row gap-2 mb-4">
+              {([
+                { key: 'fashion' as Vertical, label: 'Fashion', hint: '6ft+ tall fit' },
+                { key: 'wellness' as Vertical, label: 'Nutrition & Health', hint: 'For everyone' },
+              ]).map(v => {
+                const active = vertical === v.key;
+                return (
+                  <Pressable
+                    key={v.key}
+                    onPress={() => setVertical(v.key)}
+                    className="flex-1 rounded-2xl border-2 px-3 py-2.5"
+                    style={{
+                      backgroundColor: active ? '#7D2AE8' : '#FFFFFF',
+                      borderColor: active ? '#7D2AE8' : 'rgba(0,0,0,0.12)',
+                    }}
+                  >
+                    <Text className="text-[11px] font-black uppercase tracking-wider" style={{ color: active ? '#fff' : '#112133' }}>
+                      {v.label}
+                    </Text>
+                    <Text className="text-[9px] font-bold mt-0.5" style={{ color: active ? 'rgba(255,255,255,0.7)' : 'rgba(17,33,51,0.45)' }}>
+                      {v.hint}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
             <Text className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">
               Paste product URLs (one or more per line, up to {MAX_URLS})
             </Text>

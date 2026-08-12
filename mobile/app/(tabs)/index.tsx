@@ -9,11 +9,12 @@ import { Header } from '../../components/layout/Header';
 import { GridDensitySelector } from '../../components/layout/GridDensitySelector';
 import { ProductCard, ProductCardSkeleton } from '../../components/product/ProductCard';
 import { getProductRecommendation } from '../../lib/utils/fitEngine';
+import { WELLNESS_CATEGORIES } from '../../lib/data/wellness';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 48) / 2; // 2-col with padding
 
-const CATEGORIES = [
+const FASHION_CATEGORIES = [
   { name: 'Streetwear', icon: '⚡', color: '#0F0F10', textColor: '#fff', accent: '#FFCC00' },
   { name: 'Formals',    icon: '👔', color: '#fff',    textColor: '#112133', accent: '#FFD43B' },
   { name: 'Ethnic Wear',icon: '🔱', color: '#FFD43B', textColor: '#000',   accent: '#7D2AE8' },
@@ -21,13 +22,21 @@ const CATEGORIES = [
   { name: 'Winter',     icon: '❄️', color: '#112133', textColor: '#fff',   accent: '#FFD43B' },
 ];
 
-const BRANDS = ['ZARA', 'H&M', 'MYNTRA', 'RAYMOND', 'MANYAVAR', 'WESTSIDE', 'UNIQLO'];
+const WELLNESS_TILES = WELLNESS_CATEGORIES.map(c => ({
+  name: c.name, icon: c.icon, color: c.bg, textColor: c.text, accent: c.accent,
+}));
+
+const FASHION_BRANDS = ['ZARA', 'H&M', 'MYNTRA', 'RAYMOND', 'MANYAVAR', 'WESTSIDE', 'UNIQLO'];
+const WELLNESS_BRANDS = ['NUTRABAY', 'THE DERMA CO', 'KAPIVA', 'MUSCLEBLAZE', 'NETMEDS', 'MCAFFEINE'];
 
 export default function HomeScreen() {
-  const { height, bodyType, cardSize, products, loadingProducts, catalogCategories } = useApp();
+  const { height, bodyType, cardSize, products, loadingProducts, catalogCategories, isWellness } = useApp();
   const activeCatalogCategories = catalogCategories.filter(c => c.isActive).slice(0, 6);
 
-  const verifiedProducts = products.filter(p => {
+  const CATEGORIES = isWellness ? WELLNESS_TILES : FASHION_CATEGORIES;
+  const BRANDS = isWellness ? WELLNESS_BRANDS : FASHION_BRANDS;
+
+  const verifiedProducts = isWellness ? [] : products.filter(p => {
     const rec = getProductRecommendation(p.verdicts, height, bodyType);
     return rec && (rec.fitRecommendation === 'Highly Recommended' || rec.fitRecommendation === 'Recommended') && !p.outOfStock;
   }).slice(0, 6);
@@ -47,42 +56,75 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
 
         {/* 1. Hero */}
-        <View className="bg-[#0F0F10] mx-4 mt-4 rounded-[28px] overflow-hidden p-7 min-h-[300px]">
+        <View
+          className="mx-4 mt-4 rounded-[28px] overflow-hidden p-7 min-h-[300px]"
+          style={{ backgroundColor: isWellness ? '#0E2A21' : '#0F0F10' }}
+        >
           <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'timing', duration: 500 }}>
-            <View className="flex-row items-center gap-2 bg-[#FFD43B] self-start px-4 py-2 rounded-full mb-5 border-2 border-black">
+            <View
+              className="flex-row items-center gap-2 self-start px-4 py-2 rounded-full mb-5 border-2 border-black"
+              style={{ backgroundColor: isWellness ? '#7BE3B4' : '#FFD43B' }}
+            >
               <Star size={11} color="#000" fill="#000" />
-              <Text className="text-[10px] font-black uppercase tracking-widest text-black">EXCLUSIVELY FOR 6FT & ABOVE</Text>
+              <Text className="text-[10px] font-black uppercase tracking-widest text-black">
+                {isWellness ? 'FOR EVERY HEIGHT, EVERY BODY' : 'EXCLUSIVELY FOR 6FT & ABOVE'}
+              </Text>
             </View>
           </MotiView>
-          <Text className="text-4xl font-black text-white leading-tight tracking-tighter mb-2">
-            CLOTHES THAT{'\n'}
-            <Text className="text-[#FFD43B]">FINALLY{'\n'}</Text>
-            FIT YOU.
-          </Text>
+
+          {isWellness ? (
+            <Text className="text-4xl font-black text-white leading-tight tracking-tighter mb-2">
+              NUTRITION,{'\n'}
+              <Text className="text-[#7BE3B4]">SKIN & HEALTH{'\n'}</Text>
+              CARE.
+            </Text>
+          ) : (
+            <Text className="text-4xl font-black text-white leading-tight tracking-tighter mb-2">
+              CLOTHES THAT{'\n'}
+              <Text className="text-[#FFD43B]">FINALLY{'\n'}</Text>
+              FIT YOU.
+            </Text>
+          )}
+
           <Text className="text-xs text-neutral-300 font-semibold leading-relaxed mb-6 max-w-xs">
-            Curated clothing for taller frames. Better proportions, better comfort,{' '}
-            <Text className="text-[#FFD43B] font-bold">better you.</Text>
+            {isWellness ? (
+              <>
+                Supplements, ayurveda and body care picked for what is actually in them.{' '}
+                <Text className="text-[#7BE3B4] font-bold">No height gate.</Text>
+              </>
+            ) : (
+              <>
+                Curated clothing for taller frames. Better proportions, better comfort,{' '}
+                <Text className="text-[#FFD43B] font-bold">better you.</Text>
+              </>
+            )}
           </Text>
+
           <View className="flex-row gap-3 flex-wrap">
             <Pressable
               onPress={() => router.push('/(tabs)/search')}
-              className="flex-row items-center gap-2 bg-[#FFD43B] px-6 py-3 rounded-2xl border-2 border-black"
+              className="flex-row items-center gap-2 px-6 py-3 rounded-2xl border-2 border-black"
+              style={{ backgroundColor: isWellness ? '#7BE3B4' : '#FFD43B' }}
             >
               <Text className="text-black font-black text-xs uppercase tracking-wider">Explore</Text>
               <ArrowRight size={13} color="#000" />
             </Pressable>
-            <Pressable
-              onPress={() => router.push('/fit-finder')}
-              className="flex-row items-center gap-2 border-2 border-[#FFD43B] px-6 py-3 rounded-2xl"
-            >
-              <Text className="text-[#FFD43B] font-black text-xs uppercase tracking-wider">Find My Fit</Text>
-            </Pressable>
+            {!isWellness && (
+              <Pressable
+                onPress={() => router.push('/fit-finder')}
+                className="flex-row items-center gap-2 border-2 border-[#FFD43B] px-6 py-3 rounded-2xl"
+              >
+                <Text className="text-[#FFD43B] font-black text-xs uppercase tracking-wider">Find My Fit</Text>
+              </Pressable>
+            )}
           </View>
         </View>
 
         {/* 2. Category tiles */}
         <View className="mt-6 px-4">
-          <Text className="text-[#112133] font-black text-xl uppercase tracking-tight mb-4">Browse Worlds</Text>
+          <Text className="text-[#112133] font-black text-xl uppercase tracking-tight mb-4">
+            {isWellness ? 'Browse Aisles' : 'Browse Worlds'}
+          </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-4 px-4">
             <View className="flex-row gap-3">
               {CATEGORIES.map(cat => (
@@ -142,9 +184,13 @@ export default function HomeScreen() {
             <View>
               <View className="flex-row items-center gap-1.5 mb-1">
                 <Shield size={13} color="#FFD43B" />
-                <Text className="text-[9px] text-black/50 font-black uppercase tracking-widest">Human-Tested</Text>
+                <Text className="text-[9px] text-black/50 font-black uppercase tracking-widest">
+                {isWellness ? 'Label Checked' : 'Human-Tested'}
+              </Text>
               </View>
-              <Text className="text-[#112133] font-black text-lg uppercase tracking-tight">Handpicked Fits</Text>
+              <Text className="text-[#112133] font-black text-lg uppercase tracking-tight">
+                {isWellness ? 'Picked For You' : 'Handpicked Fits'}
+              </Text>
             </View>
             <View className="flex-row items-center gap-3">
               <GridDensitySelector />

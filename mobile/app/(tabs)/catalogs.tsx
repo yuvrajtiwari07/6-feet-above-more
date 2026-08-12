@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, FlatList, ActivityIndicator, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Header } from '../../components/layout/Header';
 import { Image } from 'expo-image';
 import { Sparkles, LayoutGrid, ArrowRight } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -20,21 +20,29 @@ const TILE_THEMES = [
 ];
 
 export default function CatalogsScreen() {
-  const { catalogCategories, catalogs, loadingCatalogs } = useApp();
+  const { catalogCategories, catalogs, loadingCatalogs, isWellness } = useApp();
   const activeCategories = catalogCategories.filter(c => c.isActive);
 
   const countForCategory = (name: string) =>
     catalogs.filter(c => c.categoryName === name && c.isPublished).length;
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F9F8F6]" edges={['top']}>
-      <View className="px-4 pt-4 pb-4 bg-[#0F0F10]">
+    <View className="flex-1 bg-[#F9F8F6]">
+      <Header />
+      <View className="px-4 pt-4 pb-4" style={{ backgroundColor: isWellness ? '#0E2A21' : '#0F0F10' }}>
         <View className="flex-row items-center gap-1.5 mb-1">
-          <Sparkles size={14} color="#FFCC00" />
-          <Text className="text-[10px] text-[#FFCC00] font-black uppercase tracking-widest">Curated Collections</Text>
+          <Sparkles size={14} color={isWellness ? '#7BE3B4' : '#FFCC00'} />
+          <Text
+            className="text-[10px] font-black uppercase tracking-widest"
+            style={{ color: isWellness ? '#7BE3B4' : '#FFCC00' }}
+          >
+            Curated Collections
+          </Text>
         </View>
         <Text className="text-3xl font-black text-white uppercase tracking-tight">Catalogs</Text>
-        <Text className="text-xs text-white/50 mt-1">Multiple products, one perfect style story.</Text>
+        <Text className="text-xs text-white/50 mt-1">
+          {isWellness ? 'Routines and stacks, bundled.' : 'Multiple products, one perfect style story.'}
+        </Text>
       </View>
 
       {loadingCatalogs ? (
@@ -82,6 +90,6 @@ export default function CatalogsScreen() {
           }}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }

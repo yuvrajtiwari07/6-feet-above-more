@@ -1,21 +1,52 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../supabase';
-import { Ruler, Heart, Sparkles, Search, User, ChevronDown, Smartphone } from 'lucide-react';
+import { Ruler, Heart, Sparkles, Search, User, ChevronDown, Smartphone, Shirt, Leaf } from 'lucide-react';
 
 const ANDROID_APK_URL = supabase.storage.from('downloads').getPublicUrl('6feetabove-more.apk').data.publicUrl;
 
 export const Header: React.FC = () => {
-  const { height, setHeight, navigate, savedProductIds, savedFitIds, route, user } = useApp();
+  const { height, setHeight, navigate, savedProductIds, savedFitIds, route, user, vertical, setVertical, isWellness } = useApp();
   const [showHeightMenu, setShowHeightMenu] = useState(false);
 
   const totalSaved = savedProductIds.length + savedFitIds.length;
   const heightOptions = ["6'0", "6'1", "6'2", "6'3", "6'4", "6'5", "6'6+"];
 
+  const VERTICALS = [
+    { key: 'fashion' as const, label: 'Fashion', sub: '6ft & above', icon: Shirt, active: 'bg-[#FFD43B] text-black border-black' },
+    { key: 'wellness' as const, label: 'Nutrition & Health', sub: 'for everyone', icon: Leaf, active: 'bg-[#0E7C5A] text-white border-black' },
+  ];
+
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 text-near-black backdrop-blur-xl border-b border-near-black/5 px-4 md:px-8 py-3 transition-all shadow-sm">
-      <div className="w-full max-w-none mx-auto flex items-center justify-between">
-        
+
+      {/* Storefront switcher — swaps the whole catalogue */}
+      <div className="w-full max-w-none mx-auto flex items-center gap-2 mb-2.5 overflow-x-auto scroller-hide">
+        {VERTICALS.map(v => {
+          const Icon = v.icon;
+          const isActive = vertical === v.key;
+          return (
+            <button
+              key={v.key}
+              onClick={() => setVertical(v.key)}
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-xl border-2 transition-all shrink-0 ${
+                isActive ? `${v.active} shadow-sm` : 'bg-black/5 text-black/55 border-transparent hover:bg-black/10'
+              }`}
+              id={`vertical-switch-${v.key}`}
+              aria-pressed={isActive}
+            >
+              <Icon size={14} className={isActive ? '' : 'opacity-70'} />
+              <span className="font-grotesk font-black text-[11px] uppercase tracking-wider whitespace-nowrap">{v.label}</span>
+              <span className={`hidden sm:inline text-[9px] font-bold uppercase tracking-widest ${isActive ? 'opacity-60' : 'opacity-45'}`}>
+                {v.sub}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="w-full max-w-none mx-auto flex items-center justify-between gap-2">
+
         {/* Brand Block */}
         <div 
           onClick={() => navigate('home')} 
@@ -37,7 +68,7 @@ export const Header: React.FC = () => {
               6Feet<span className="text-[#D5A021] font-extrabold">n</span>Above
             </span>
             <span className="text-[8px] uppercase tracking-[0.2em] text-black/40 font-black font-grotesk mt-0.5 leading-none">
-              Clothes that finally fit
+              {isWellness ? 'Nutrition, skin & health care' : 'Clothes that finally fit'}
             </span>
           </div>
         </div>
@@ -50,7 +81,7 @@ export const Header: React.FC = () => {
             id="desktop-search-btn"
           >
             <Search size={15} />
-            Translate Search
+            {isWellness ? 'Browse Store' : 'Translate Search'}
           </button>
           
           <button
@@ -78,7 +109,8 @@ export const Header: React.FC = () => {
         {/* Global Controls */}
         <div className="flex items-center gap-3">
           
-          {/* Height Pill Selector */}
+          {/* Height Pill Selector — fashion only; wellness has no height gate */}
+          {!isWellness && (
           <div className="relative">
             <button
                onClick={() => setShowHeightMenu(!showHeightMenu)}
@@ -121,8 +153,10 @@ export const Header: React.FC = () => {
               </>
             )}
           </div>
+          )}
 
-          {/* Quick Fit Finder CTA */}
+          {/* Quick Fit Finder CTA — fashion only */}
+          {!isWellness && (
           <button
             onClick={() => navigate('fit-finder')}
             className={`hidden md:flex items-center gap-1.5 bg-[#FFD43B] text-black text-white text-xs font-grotesk font-black tracking-wide uppercase px-4 py-2.5 rounded-xl border border-black shadow-sm hover:scale-102 transition ${route.current === 'fit-finder' ? 'ring-2 ring-black' : ''}`}
@@ -130,6 +164,7 @@ export const Header: React.FC = () => {
           >
             Fit Finder (99% Match)
           </button>
+          )}
 
           {/* Saved Folder Counter */}
           <button

@@ -14,8 +14,12 @@ function validate(data: Partial<Catalog>): string | null {
 }
 
 export const catalogService = {
-  async getAll(filters?: { category?: string }): Promise<Catalog[]> {
-    return catalogRepository.findAll({ category: filters?.category, publishedOnly: true });
+  async getAll(filters?: { category?: string; vertical?: string }): Promise<Catalog[]> {
+    return catalogRepository.findAll({
+      category: filters?.category,
+      vertical: filters?.vertical,
+      publishedOnly: true,
+    });
   },
 
   async getAllForAdmin(): Promise<Catalog[]> {
@@ -57,6 +61,7 @@ export const catalogService = {
       isPublished:  data.isPublished ?? true,
       sortOrder:    data.sortOrder ?? 0,
       tags:         data.tags ?? [],
+      vertical:     data.vertical === 'wellness' ? 'wellness' : 'fashion',
     });
     return { catalog };
   },

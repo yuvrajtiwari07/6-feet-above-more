@@ -5,7 +5,16 @@ import { ArrowLeft, Wand2, Save } from 'lucide-react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useApp } from '../../lib/context/AppContext';
 import { apiFetch } from '../../lib/context/AppContext';
-import { Product, FitVerdict } from '../../lib/types';
+import { Product, FitVerdict, Vertical } from '../../lib/types';
+import {
+  WELLNESS_CATEGORIES,
+  WELLNESS_CATEGORY_NAMES,
+  WELLNESS_CONCERNS,
+  WELLNESS_DIET_TAGS,
+  WELLNESS_FORMS,
+  isWellnessCategory,
+  wellnessTypesFor,
+} from '../../lib/data/wellness';
 
 const BROAD_CATEGORIES = [
   'Casual Wear', 'Formal Wear', 'Athleisure', 'Streetwear',
@@ -69,9 +78,23 @@ const Input: React.FC<React.ComponentProps<typeof TextInput>> = (props) => (
 
 export default function ProductFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const { products, addProduct, updateProduct } = useApp();
-  const editing = products.find(p => p.id === id);
+  const { allProducts, addProduct, updateProduct } = useApp();
+  const editing = allProducts.find(p => p.id === id);
   const isEdit = !!editing;
+
+  // Which storefront this product belongs to — decides the whole form below.
+  const [vertical, setVertical] = useState<Vertical>(editing?.vertical === 'wellness' ? 'wellness' : 'fashion');
+  const isWellnessForm = vertical === 'wellness';
+
+  // Wellness-only fields
+  const [wellnessCategory, setWellnessCategory] = useState(
+    editing && isWellnessCategory(editing.category) ? editing.category : WELLNESS_CATEGORY_NAMES[0]
+  );
+  const [form, setForm] = useState(editing?.form ?? '');
+  const [netQuantity, setNetQuantity] = useState(editing?.netQuantity ?? '');
+  const [concerns, setConcerns] = useState<string[]>(editing?.concerns ?? []);
+  const [dietTags, setDietTags] = useState<string[]>(editing?.dietTags ?? []);
+  const [ingredientsText, setIngredientsText] = useState((editing?.keyIngredients ?? []).join(', '));
 
   const [productId, setProductId] = useState(editing?.id ?? `prod-${Date.now().toString().slice(-4)}`);
   const [idTouched, setIdTouched] = useState(isEdit);
@@ -120,7 +143,7 @@ export default function ProductFormScreen() {
     try {
       let data: any;
       try {
-        data = await apiFetch('/api/curate/import-url', { method: 'POST', body: JSON.stringify({ url: importUrl.trim() }) });
+        data = await apiFetch('/api/curate/import-url', { method: 'POST', body: JSON.stringify({ url: importUrl.trim(), vertical }) });
       } catch {
         const fallback = await apiFetch('/api/admin/import-product', { method: 'POST', body: JSON.stringify({ url: importUrl.trim() }) });
         data = { ...fallback.product, images: fallback.product?.images };
@@ -129,6 +152,27 @@ export default function ProductFormScreen() {
       if (data.brand) setBrand(data.brand);
       if (data.title) setTitle(data.title);
       if (data.description) setDescription(data.description);
+
+      if (isWellnessForm) {
+        const cat = isWellnessCategory(data.category) ? data.category : WELLNESS_CATEGORY_NAMES[0];
+        setWellnessCategory(cat);
+        setCategory(cat);
+        setProductSegment(cat);
+        const types = wellnessTypesFor(cat);
+        setProductType(types.includes(data.productType) ? data.productType : types[0]);
+        if (WELLNESS_FORMS.includes(data.form)) setForm(data.form);
+        if (data.netQuantity) setNetQuantity(data.netQuantity);
+        if (Array.isArray(data.concerns)) setConcerns(data.concerns.filter((c: string) => WELLNESS_CONCERNS.includes(c)));
+        if (Array.isArray(data.dietTags)) setDietTags(data.dietTags.filter((d: string) => WELLNESS_DIET_TAGS.includes(d)));
+        if (Array.isArray(data.keyIngredients)) setIngredientsText(data.keyIngredients.join(', '));
+        if (data.retailer) setRetailer(data.retailer);
+        if (typeof data.price === 'number') setPriceAtRetailer(String(data.price));
+        if (Array.isArray(data.images) && data.images.length) setImagesText(data.images.join('\n'));
+        if (data.retailerUrl && !affiliateUrl) setAffiliateUrl(data.retailerUrl);
+        Alert.alert('Imported', 'Form pre-filled from the URL. Review and save.');
+        return;
+      }
+
       if (data.category) setCategory(data.category);
       if (data.subCategory) setSubCategory(data.subCategory);
       if (data.material) setMaterial(data.material);
@@ -165,29 +209,37 @@ export default function ProductFormScreen() {
     }
     const payload: Product = {
       id: productId.trim().toLowerCase(),
+      vertical,
       brand: brand.trim(),
       title: title.trim(),
-      category,
-      subCategory: subCategory.trim() || undefined,
-      productSegment,
+      category: isWellnessForm ? wellnessCategory : category,
+      categories: isWellnessForm ? [wellnessCategory] : undefined,
+      subCategory: isWellnessForm ? (productType.trim() || undefined) : (subCategory.trim() || undefined),
+      productSegment: isWellnessForm ? wellnessCategory : productSegment,
       productType: productType.trim(),
       images: imagesText.split('\n').map(x => x.trim()).filter(Boolean),
-      occasions,
-      seasons,
-      colors: csv(colorsText),
-      fitType: fitType.trim(),
+      occasions: isWellnessForm ? [] : occasions,
+      seasons: isWellnessForm ? [] : seasons,
+      colors: isWellnessForm ? [] : csv(colorsText),
+      fitType: isWellnessForm ? '' : fitType.trim(),
       retailer: retailer.trim(),
       affiliateUrl: affiliateUrl.trim(),
       priceAtRetailer: Number(priceAtRetailer),
-      verdicts,
+      verdicts: isWellnessForm ? [] : verdicts,
       verifiedTier: verifiedTier ?? 'community',
       description: description.trim() || undefined,
       outOfStock,
-      sizes: csv(sizesText),
+      sizes: isWellnessForm ? [] : csv(sizesText),
       tags: csv(tagsText),
       discountPercent: discountPercent ? Number(discountPercent) : undefined,
       isFeatured,
-      tallFriendly,
+      tallFriendly: isWellnessForm ? false : tallFriendly,
+      // Wellness attributes
+      form: isWellnessForm ? form : '',
+      netQuantity: isWellnessForm ? netQuantity.trim() : '',
+      concerns: isWellnessForm ? concerns : [],
+      keyIngredients: isWellnessForm ? csv(ingredientsText) : [],
+      dietTags: isWellnessForm ? dietTags : [],
     };
 
     setSaving(true);
@@ -221,6 +273,55 @@ export default function ProductFormScreen() {
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
 
+        {/* Storefront switch — swaps the fields below */}
+        <Text className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-2">Storefront</Text>
+        <View className="flex-row gap-2 mb-4">
+          {([
+            { key: 'fashion' as Vertical, label: 'Fashion', hint: '6ft+ tall fit' },
+            { key: 'wellness' as Vertical, label: 'Nutrition & Health', hint: 'For everyone' },
+          ]).map(v => {
+            const active = vertical === v.key;
+            return (
+              <Pressable
+                key={v.key}
+                onPress={() => {
+                  if (isEdit || active) return;
+                  setVertical(v.key);
+                  if (v.key === 'wellness') {
+                    const cat = WELLNESS_CATEGORIES[0];
+                    setWellnessCategory(cat.name);
+                    setCategory(cat.name);
+                    setProductSegment(cat.name);
+                    setProductType(cat.types[0]);
+                    setOccasions([]); setSeasons([]); setSizesText(''); setColorsText('');
+                    setFitType(''); setTallFriendly(false); setVerdicts([]);
+                  } else {
+                    setCategory(BROAD_CATEGORIES[0]);
+                    setProductSegment(PRODUCT_SEGMENTS[0]);
+                    setProductType('');
+                    setTallFriendly(true);
+                    setVerdicts(emptyVerdicts());
+                  }
+                }}
+                disabled={isEdit}
+                className="flex-1 rounded-2xl border-2 px-3 py-2.5"
+                style={{
+                  backgroundColor: active ? '#7D2AE8' : '#FFFFFF',
+                  borderColor: active ? '#7D2AE8' : 'rgba(0,0,0,0.12)',
+                  opacity: isEdit && !active ? 0.4 : 1,
+                }}
+              >
+                <Text className="text-[11px] font-black uppercase tracking-wider" style={{ color: active ? '#fff' : '#112133' }}>
+                  {v.label}
+                </Text>
+                <Text className="text-[9px] font-bold mt-0.5" style={{ color: active ? 'rgba(255,255,255,0.7)' : 'rgba(17,33,51,0.45)' }}>
+                  {v.hint}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         {!isEdit && (
           <View className="bg-[#7D2AE8]/5 border border-[#7D2AE8]/20 rounded-2xl p-4 mb-2">
             <Text className="text-[10px] font-black uppercase tracking-widest text-[#7D2AE8] mb-2">Import from URL</Text>
@@ -253,21 +354,61 @@ export default function ProductFormScreen() {
         <FieldLabel>Title</FieldLabel>
         <Input value={title} onChangeText={setTitle} placeholder="Premium Structured Navy Suit Blazer" />
 
-        <FieldLabel>Category</FieldLabel>
-        <View className="flex-row flex-wrap">
-          {BROAD_CATEGORIES.map(c => <Chip key={c} label={c} active={category === c} onPress={() => setCategory(c)} />)}
-        </View>
+        {isWellnessForm ? (
+          <>
+            <FieldLabel>Wellness category</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {WELLNESS_CATEGORIES.map(c => (
+                <Chip
+                  key={c.name}
+                  label={`${c.icon} ${c.name}`}
+                  active={wellnessCategory === c.name}
+                  onPress={() => {
+                    setWellnessCategory(c.name);
+                    setCategory(c.name);
+                    setProductSegment(c.name);
+                    setProductType(c.types[0]);
+                  }}
+                />
+              ))}
+            </View>
 
-        <FieldLabel>Product segment</FieldLabel>
-        <View className="flex-row flex-wrap">
-          {PRODUCT_SEGMENTS.map(s => <Chip key={s} label={s} active={productSegment === s} onPress={() => setProductSegment(s)} />)}
-        </View>
+            <FieldLabel>Product type</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {wellnessTypesFor(wellnessCategory).map(t => (
+                <Chip key={t} label={t} active={productType === t} onPress={() => setProductType(t)} />
+              ))}
+            </View>
 
-        <FieldLabel>Product type</FieldLabel>
-        <Input value={productType} onChangeText={setProductType} placeholder="Blazer, T-Shirt, Jeans..." />
+            <FieldLabel>Form</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {WELLNESS_FORMS.map(f => (
+                <Chip key={f} label={f} active={form === f} onPress={() => setForm(form === f ? '' : f)} />
+              ))}
+            </View>
 
-        <FieldLabel>Sub-category</FieldLabel>
-        <Input value={subCategory} onChangeText={setSubCategory} placeholder="Blazers" />
+            <FieldLabel>Net quantity</FieldLabel>
+            <Input value={netQuantity} onChangeText={setNetQuantity} placeholder="60 capsules, 1 kg, 100 ml" />
+          </>
+        ) : (
+          <>
+            <FieldLabel>Category</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {BROAD_CATEGORIES.map(c => <Chip key={c} label={c} active={category === c} onPress={() => setCategory(c)} />)}
+            </View>
+
+            <FieldLabel>Product segment</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {PRODUCT_SEGMENTS.map(s => <Chip key={s} label={s} active={productSegment === s} onPress={() => setProductSegment(s)} />)}
+            </View>
+
+            <FieldLabel>Product type</FieldLabel>
+            <Input value={productType} onChangeText={setProductType} placeholder="Blazer, T-Shirt, Jeans..." />
+
+            <FieldLabel>Sub-category</FieldLabel>
+            <Input value={subCategory} onChangeText={setSubCategory} placeholder="Blazers" />
+          </>
+        )}
 
         <FieldLabel>Retailer</FieldLabel>
         <Input value={retailer} onChangeText={setRetailer} placeholder="Zara India" />
@@ -289,33 +430,64 @@ export default function ProductFormScreen() {
         <FieldLabel>Description</FieldLabel>
         <Input value={description} onChangeText={setDescription} multiline numberOfLines={3} style={{ minHeight: 70, textAlignVertical: 'top' }} />
 
-        <FieldLabel>Material</FieldLabel>
-        <Input value={material} onChangeText={setMaterial} placeholder="Cotton, Linen..." />
+        {!isWellnessForm && (
+          <>
+            <FieldLabel>Material</FieldLabel>
+            <Input value={material} onChangeText={setMaterial} placeholder="Cotton, Linen..." />
 
-        <FieldLabel>Fit type</FieldLabel>
-        <Input value={fitType} onChangeText={setFitType} placeholder="Slim Tall, Oversized Loose..." />
+            <FieldLabel>Fit type</FieldLabel>
+            <Input value={fitType} onChangeText={setFitType} placeholder="Slim Tall, Oversized Loose..." />
+          </>
+        )}
 
         <FieldLabel>Images (one URL per line)</FieldLabel>
         <Input value={imagesText} onChangeText={setImagesText} multiline numberOfLines={3} style={{ minHeight: 70, textAlignVertical: 'top' }} autoCapitalize="none" />
 
-        <FieldLabel>Colors (comma separated)</FieldLabel>
-        <Input value={colorsText} onChangeText={setColorsText} placeholder="Navy, Blue" />
+        {isWellnessForm ? (
+          <>
+            <FieldLabel>Key ingredients (comma separated)</FieldLabel>
+            <Input value={ingredientsText} onChangeText={setIngredientsText} placeholder="Whey Isolate, Niacinamide 10%" />
 
-        <FieldLabel>Sizes (comma separated)</FieldLabel>
-        <Input value={sizesText} onChangeText={setSizesText} placeholder="S, M, L, XL" />
+            <FieldLabel>Concerns it helps with</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {WELLNESS_CONCERNS.map(c => (
+                <Chip key={c} label={c} active={concerns.includes(c)} onPress={() => toggleArrItem(concerns, setConcerns, c)} />
+              ))}
+            </View>
+
+            <FieldLabel>Diet &amp; safety tags</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {WELLNESS_DIET_TAGS.map(d => (
+                <Chip key={d} label={d} active={dietTags.includes(d)} onPress={() => toggleArrItem(dietTags, setDietTags, d)} />
+              ))}
+            </View>
+          </>
+        ) : (
+          <>
+            <FieldLabel>Colors (comma separated)</FieldLabel>
+            <Input value={colorsText} onChangeText={setColorsText} placeholder="Navy, Blue" />
+
+            <FieldLabel>Sizes (comma separated)</FieldLabel>
+            <Input value={sizesText} onChangeText={setSizesText} placeholder="S, M, L, XL" />
+          </>
+        )}
 
         <FieldLabel>Tags (comma separated)</FieldLabel>
         <Input value={tagsText} onChangeText={setTagsText} placeholder="tall-friendly, streetwear" />
 
-        <FieldLabel>Occasions</FieldLabel>
-        <View className="flex-row flex-wrap">
-          {OCCASIONS.map(o => <Chip key={o} label={o} active={occasions.includes(o)} onPress={() => toggleArrItem(occasions, setOccasions, o)} />)}
-        </View>
+        {!isWellnessForm && (
+          <>
+            <FieldLabel>Occasions</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {OCCASIONS.map(o => <Chip key={o} label={o} active={occasions.includes(o)} onPress={() => toggleArrItem(occasions, setOccasions, o)} />)}
+            </View>
 
-        <FieldLabel>Seasons</FieldLabel>
-        <View className="flex-row flex-wrap">
-          {SEASONS.map(s => <Chip key={s} label={s} active={seasons.includes(s)} onPress={() => toggleArrItem(seasons, setSeasons, s)} />)}
-        </View>
+            <FieldLabel>Seasons</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {SEASONS.map(s => <Chip key={s} label={s} active={seasons.includes(s)} onPress={() => toggleArrItem(seasons, setSeasons, s)} />)}
+            </View>
+          </>
+        )}
 
         <FieldLabel>Verified tier</FieldLabel>
         <View className="flex-row flex-wrap">
@@ -330,12 +502,16 @@ export default function ProductFormScreen() {
           <Text className="text-xs font-bold text-[#112133]">Featured</Text>
           <Switch value={isFeatured} onValueChange={setIsFeatured} trackColor={{ true: '#FFD43B' }} />
         </View>
-        <View className="flex-row items-center justify-between mt-2 mb-2 bg-white rounded-xl px-4 py-3 border border-black/5">
-          <Text className="text-xs font-bold text-[#112133]">Tall friendly</Text>
-          <Switch value={tallFriendly} onValueChange={setTallFriendly} trackColor={{ true: '#7D2AE8' }} />
-        </View>
+        {!isWellnessForm && (
+          <View className="flex-row items-center justify-between mt-2 mb-2 bg-white rounded-xl px-4 py-3 border border-black/5">
+            <Text className="text-xs font-bold text-[#112133]">Tall friendly</Text>
+            <Switch value={tallFriendly} onValueChange={setTallFriendly} trackColor={{ true: '#7D2AE8' }} />
+          </View>
+        )}
 
-        {/* Fit by height */}
+        {/* Fit by height — fashion only */}
+        {!isWellnessForm && (
+          <>
         <Text className="text-sm font-black uppercase tracking-wide text-[#112133] mt-6 mb-1">Fit by Height</Text>
         <Text className="text-[10px] text-[#112133]/40 mb-3">Set the recommendation admins see for each height band.</Text>
         {verdicts.map((v, i) => (
@@ -368,6 +544,8 @@ export default function ProductFormScreen() {
               multiline numberOfLines={2} style={{ minHeight: 50, textAlignVertical: 'top' }} placeholder={`Verified by 6'3" — sits perfectly at the knee.`} />
           </View>
         ))}
+          </>
+        )}
 
       </ScrollView>
     </SafeAreaView>

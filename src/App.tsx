@@ -5,6 +5,7 @@ import MobileNav from './components/layout/MobileNav';
 
 // Views
 import Home from './pages/Home';
+import WellnessHome from './pages/WellnessHome';
 import Category from './pages/Category';
 import ProductDetail from './pages/ProductDetail';
 import FitFinder from './pages/FitFinder';
@@ -20,12 +21,12 @@ import CatalogDetail from './pages/catalog/CatalogDetail';
 import { AnimatePresence, motion } from 'motion/react';
 
 const PageRenderer: React.FC = () => {
-  const { route } = useApp();
+  const { route, isWellness } = useApp();
 
   const renderActiveView = () => {
     switch (route.current) {
       case 'home':
-        return <Home />;
+        return isWellness ? <WellnessHome /> : <Home />;
       case 'category':
         return <Category />;
       case 'product':
@@ -49,14 +50,14 @@ const PageRenderer: React.FC = () => {
       case 'catalog-detail':
         return <CatalogDetail />;
       default:
-        return <Home />;
+        return isWellness ? <WellnessHome /> : <Home />;
     }
   };
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={route.current + (route.params?.categoryName || route.params?.productId || '')}
+        key={route.vertical + route.current + (route.params?.categoryName || route.params?.productId || '')}
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -15 }}
