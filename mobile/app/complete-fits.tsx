@@ -46,7 +46,7 @@ export default function CompleteFitsScreen() {
     const thumbs = fitProducts.slice(0, 3);
 
     return (
-      <View className="bg-white rounded-3xl overflow-hidden border border-black/5 mb-4">
+      <View className="bg-white rounded-2xl overflow-hidden border border-black/5 mb-4">
         {/* Collapsed header */}
         <Pressable onPress={() => setExpandedId(isOpen ? null : fit.id)}
           className="flex-row items-center gap-3 p-4">
@@ -54,7 +54,7 @@ export default function CompleteFitsScreen() {
           <View className="flex-row" style={{ width: 80 }}>
             {thumbs.map((p, i) => (
               <View key={p.id} style={{ marginLeft: i === 0 ? 0 : -18, zIndex: thumbs.length - i }}
-                className="w-12 h-14 rounded-xl overflow-hidden border-2 border-white">
+                className="w-12 h-14 rounded-lg overflow-hidden border-2 border-white">
                 <Image source={p.images?.[0]} style={{ width: '100%', height: '100%' }} contentFit="cover" />
               </View>
             ))}
@@ -84,7 +84,7 @@ export default function CompleteFitsScreen() {
                   return (
                     <Pressable key={p.id} onPress={() => router.push(`/product/${p.id}`)}
                       className="w-32">
-                      <View className="w-32 h-40 rounded-2xl overflow-hidden bg-[#F0EEE8] mb-2">
+                      <View className="w-32 h-40 rounded-xl overflow-hidden bg-[#F0EEE8] mb-2">
                         <Image source={p.images?.[0]} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                         {positive && (
                           <View className="absolute top-2 left-2 bg-[#FFD43B] px-1.5 py-0.5 rounded-full">
@@ -131,7 +131,7 @@ export default function CompleteFitsScreen() {
         <View className="flex-row gap-2">
           {OCCASIONS.map(occ => (
             <Pressable key={occ} onPress={() => setSelectedOccasion(occ)}
-              className={`px-4 py-2 rounded-xl ${selectedOccasion === occ ? 'bg-[#7D2AE8]' : 'bg-[#112133]/5'}`}>
+              className={`px-4 py-2 rounded-lg ${selectedOccasion === occ ? 'bg-[#7D2AE8]' : 'bg-[#112133]/5'}`}>
               <Text className={`text-xs font-black uppercase tracking-wide ${selectedOccasion === occ ? 'text-white' : 'text-[#112133]/70'}`}>
                 {occ}
               </Text>

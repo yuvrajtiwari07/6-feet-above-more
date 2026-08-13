@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, User, Ruler, Shirt, Leaf } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { Heart, User, Ruler, Shirt, Leaf, Search } from 'lucide-react-native';
+import { router, usePathname } from 'expo-router';
 import { useApp } from '../../lib/context/AppContext';
 import { Vertical } from '../../lib/types';
 
@@ -18,6 +18,11 @@ const VERTICALS: { key: Vertical; label: string; sub: string; bg: string; fg: st
 
 export const Header: React.FC = () => {
   const { height, setHeight, savedProductIds, vertical, setVertical, isWellness } = useApp();
+  const pathname = usePathname();
+  // The search tab already renders its own live, typable search bar right
+  // below this header — a second search-bar-styled button there would just
+  // be a redundant duplicate, so skip it only on that one screen.
+  const onSearchScreen = pathname?.includes('search');
 
   const handleSwitch = (v: Vertical) => {
     if (v === vertical) return;
@@ -28,8 +33,36 @@ export const Header: React.FC = () => {
 
   return (
     <SafeAreaView edges={['top']} className="bg-white border-b border-black/10">
-      {/* Storefront switcher — swaps the whole catalogue */}
-      <View className="flex-row items-center gap-2 px-4 pt-2 pb-1">
+      {/* Row 1: logo + saved + profile */}
+      <View className="flex-row items-center justify-between px-4 pt-2 pb-1.5">
+        <Pressable onPress={() => router.replace('/(tabs)')} android_ripple={RIPPLE} style={pressFeedback} hitSlop={8}>
+          <Text className="text-base font-black text-black uppercase tracking-tight">
+            6FT <Text className="text-[#FFD43B]">&</Text> Above
+          </Text>
+          <Text className="text-[8px] font-black uppercase tracking-widest text-black/35 mt-0.5">
+            {isWellness ? 'Nutrition, skin & health' : 'Clothes that finally fit'}
+          </Text>
+        </Pressable>
+
+        <View className="flex-row items-center gap-3">
+          <Pressable onPress={() => router.push('/(tabs)/saved')} className="relative"
+            android_ripple={{ ...RIPPLE, radius: 20 }} style={pressFeedback} hitSlop={8}>
+            <Heart size={20} color="#112133" />
+            {savedProductIds.length > 0 && (
+              <View className="absolute -top-1 -right-1 bg-[#FFD43B] rounded-full w-4 h-4 items-center justify-center">
+                <Text className="text-[8px] font-black text-black">{savedProductIds.length}</Text>
+              </View>
+            )}
+          </Pressable>
+          <Pressable onPress={() => router.push('/(tabs)/profile')} className="bg-[#112133]/5 rounded-full p-1.5"
+            android_ripple={{ ...RIPPLE, radius: 18 }} style={pressFeedback}>
+            <User size={18} color="#112133" />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Row 2: storefront switcher */}
+      <View className="flex-row items-center gap-2 px-4 pb-2">
         {VERTICALS.map(v => {
           const isActive = vertical === v.key;
           const Icon = v.key === 'wellness' ? Leaf : Shirt;
@@ -37,7 +70,7 @@ export const Header: React.FC = () => {
             <Pressable
               key={v.key}
               onPress={() => handleSwitch(v.key)}
-              className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl px-2 py-2 border-2"
+              className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg px-2 py-2 border-2"
               style={{
                 backgroundColor: isActive ? v.bg : '#11213308',
                 borderColor: isActive ? '#000000' : 'transparent',
@@ -59,37 +92,21 @@ export const Header: React.FC = () => {
         })}
       </View>
 
-      <View className="flex-row items-center justify-between px-4 py-2">
-        {/* Logo */}
-        <Pressable onPress={() => router.replace('/(tabs)')} android_ripple={RIPPLE} style={pressFeedback} hitSlop={8}>
-          <Text className="text-base font-black text-black uppercase tracking-tight">
-            6FT <Text className="text-[#FFD43B]">&</Text> Above
-          </Text>
-          <Text className="text-[8px] font-black uppercase tracking-widest text-black/35 mt-0.5">
-            {isWellness ? 'Nutrition, skin & health' : 'Clothes that finally fit'}
-          </Text>
-        </Pressable>
-
-        {/* Right actions */}
-        <View className="flex-row items-center gap-3">
-          {/* Saved count */}
-          <Pressable onPress={() => router.push('/(tabs)/saved')} className="relative"
-            android_ripple={{ ...RIPPLE, radius: 20 }} style={pressFeedback} hitSlop={8}>
-            <Heart size={20} color="#112133" />
-            {savedProductIds.length > 0 && (
-              <View className="absolute -top-1 -right-1 bg-[#FFD43B] rounded-full w-4 h-4 items-center justify-center">
-                <Text className="text-[8px] font-black text-black">{savedProductIds.length}</Text>
-              </View>
-            )}
-          </Pressable>
-
-          {/* Profile */}
-          <Pressable onPress={() => router.push('/(tabs)/profile')} className="bg-[#112133]/5 rounded-full p-1.5"
-            android_ripple={{ ...RIPPLE, radius: 18 }} style={pressFeedback}>
-            <User size={18} color="#112133" />
+      {/* Row 3: prominent search entry point (hidden on the search tab itself) */}
+      {!onSearchScreen && (
+        <View className="px-4 pb-2">
+          <Pressable
+            onPress={() => router.push('/(tabs)/search')}
+            className="flex-row items-center gap-2 bg-[#112133]/5 rounded-lg px-3.5 py-2.5"
+            android_ripple={RIPPLE} style={pressFeedback}
+          >
+            <Search size={15} color="#11213366" />
+            <Text className="text-xs text-[#112133]/45 font-medium flex-1" numberOfLines={1}>
+              {isWellness ? 'Search products, brands or ingredients...' : 'Search specifications (e.g. Linen shirt, 36L Inseam)...'}
+            </Text>
           </Pressable>
         </View>
-      </View>
+      )}
 
       {/* Height selector rail — fashion only, wellness has no height gate */}
       {!isWellness && (

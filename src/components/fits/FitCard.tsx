@@ -30,7 +30,7 @@ export const FitCard: React.FC<FitCardProps> = ({ fit }) => {
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
-      className="bg-white border-2 border-black rounded-[32px] hover:pop-shadow duration-300 transition-all flex flex-col justify-between overflow-hidden"
+      className="bg-white border-2 border-black rounded-[22px] hover:pop-shadow duration-300 transition-all flex flex-col justify-between overflow-hidden"
       id={`fit-card-${fit.id}`}
     >
       <div>

@@ -477,7 +477,7 @@ export const SearchFilters: React.FC = () => {
               )}
             </>
           ) : (
-            <div className="bg-[#112133]/5 border border-[#112133]/10 rounded-[30px] p-16 text-center max-w-sm mx-auto my-12">
+            <div className="bg-[#112133]/5 border border-[#112133]/10 rounded-[20px] p-16 text-center max-w-sm mx-auto my-12">
               <X size={32} className="text-accent-coral mx-auto mb-3" />
               <h4 className="text-[#112133] font-display text-xl uppercase tracking-wider mb-2">No specs matched</h4>
               <p className="text-[#112133]/60 text-xs leading-relaxed mb-6">

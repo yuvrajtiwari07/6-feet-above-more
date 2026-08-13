@@ -20,7 +20,7 @@ const CatalogCard: React.FC<Props> = ({ catalog, products, onClick }) => {
       viewport={{ once: true, margin: '-40px' }}
       whileHover={{ y: -4 }}
       onClick={onClick}
-      className="group cursor-pointer bg-white border-2 border-black rounded-[24px] overflow-hidden hover:pop-shadow transition-all duration-300"
+      className="group cursor-pointer bg-white border-2 border-black rounded-[16px] overflow-hidden hover:pop-shadow transition-all duration-300"
       id={`catalog-card-${catalog.id}`}
     >
       {/* Cover image / product strip */}

@@ -15,6 +15,7 @@ import {
   isWellnessCategory,
   wellnessTypesFor,
 } from '../../lib/data/wellness';
+import { getGarmentVersatilityDefaults } from '../../lib/garmentVersatility';
 
 const BROAD_CATEGORIES = [
   'Casual Wear', 'Formal Wear', 'Athleisure', 'Streetwear',
@@ -49,7 +50,7 @@ function detectSegmentAndType(title: string, category: string, subCategory: stri
   if (t.match(/belt|cap|wallet|socks/)) {
     return { productSegment: 'Accessories', productType: t.includes('belt') ? 'Belt' : t.includes('cap') ? 'Cap' : t.includes('wallet') ? 'Wallet' : 'Socks' };
   }
-  return { productSegment: 'Upperwear', productType: t.includes('polo') ? 'Polo T-Shirt' : t.includes('shirt') ? 'Shirt' : 'T-Shirt' };
+  return { productSegment: 'Upperwear', productType: t.includes('polo') ? 'Polo' : t.includes('henley') ? 'Henley' : t.includes('shirt') ? 'Shirt' : 'T-Shirt' };
 }
 
 const csv = (s: string) => s.split(',').map(x => x.trim()).filter(Boolean);
@@ -71,7 +72,7 @@ const FieldLabel: React.FC<{ children: string }> = ({ children }) => (
 const Input: React.FC<React.ComponentProps<typeof TextInput>> = (props) => (
   <TextInput
     placeholderTextColor="#11213360"
-    className="bg-white border border-black/10 rounded-xl px-3.5 py-3 text-sm text-[#112133]"
+    className="bg-white border border-black/10 rounded-lg px-3.5 py-3 text-sm text-[#112133]"
     {...props}
   />
 );
@@ -107,7 +108,7 @@ export default function ProductFormScreen() {
   const [retailer, setRetailer] = useState(editing?.retailer ?? '');
   const [affiliateUrl, setAffiliateUrl] = useState(editing?.affiliateUrl ?? '');
   const [priceAtRetailer, setPriceAtRetailer] = useState(editing?.priceAtRetailer ? String(editing.priceAtRetailer) : '');
-  const [discountPercent, setDiscountPercent] = useState(editing?.discountPercent ? String(editing.discountPercent) : '');
+  const [couponCode, setCouponCode] = useState(editing?.couponCode ?? '');
   const [description, setDescription] = useState(editing?.description ?? '');
   const [material, setMaterial] = useState(editing?.material ?? '');
   const [fitType, setFitType] = useState(editing?.fitType ?? '');
@@ -178,23 +179,34 @@ export default function ProductFormScreen() {
       if (data.material) setMaterial(data.material);
       if (data.retailer) setRetailer(data.retailer);
       if (typeof data.price === 'number') setPriceAtRetailer(String(data.price));
-      if (data.discountPercent) setDiscountPercent(String(data.discountPercent));
       if (Array.isArray(data.images) && data.images.length) setImagesText(data.images.join('\n'));
       if (Array.isArray(data.colors) && data.colors.length) setColorsText(data.colors.join(', '));
       if (Array.isArray(data.sizes) && data.sizes.length) setSizesText(data.sizes.join(', '));
-      if (Array.isArray(data.occasions)) setOccasions(data.occasions);
-      if (Array.isArray(data.seasons)) setSeasons(data.seasons);
       if (data.retailerUrl && !affiliateUrl) setAffiliateUrl(data.retailerUrl);
 
       const { productSegment: seg, productType: typ } = detectSegmentAndType(data.title || title, data.category || category, data.subCategory || subCategory);
       setProductSegment(seg);
       setProductType(typ);
 
+      // A polo/tee/jeans etc. is versatile enough to suit almost every
+      // occasion — union the smart defaults with whatever the AI/scraper
+      // returned instead of trusting a single narrow guess.
+      const versatility = getGarmentVersatilityDefaults(typ);
+      const aiOccasions = Array.isArray(data.occasions) ? data.occasions : [];
+      const aiSeasons = Array.isArray(data.seasons) ? data.seasons : [];
+      setOccasions([...new Set([...(versatility?.occasions ?? []), ...aiOccasions])]);
+      setSeasons([...new Set([...(versatility?.seasons ?? []), ...aiSeasons])]);
+
       if (data.tallFit) {
         if (typeof data.tallFit.tallFriendly === 'boolean') setTallFriendly(data.tallFit.tallFriendly);
       }
 
-      Alert.alert('Imported', 'Form pre-filled from the URL. Review and save.');
+      Alert.alert(
+        'Imported',
+        data.scrapeBlocked
+          ? `${data.retailer || 'This retailer'} blocked the scraper — only the title could be guessed from the URL. Add images and price manually before saving.`
+          : 'Form pre-filled from the URL. Review and save.'
+      );
     } catch (e: any) {
       Alert.alert('Import failed', e.message ?? 'Could not import from that URL.');
     } finally {
@@ -226,12 +238,12 @@ export default function ProductFormScreen() {
       affiliateUrl: affiliateUrl.trim(),
       priceAtRetailer: Number(priceAtRetailer),
       verdicts: isWellnessForm ? [] : verdicts,
-      verifiedTier: verifiedTier ?? 'community',
+      verifiedTier: isWellnessForm ? 'community' : (verifiedTier ?? 'community'),
       description: description.trim() || undefined,
       outOfStock,
       sizes: isWellnessForm ? [] : csv(sizesText),
       tags: csv(tagsText),
-      discountPercent: discountPercent ? Number(discountPercent) : undefined,
+      couponCode: couponCode.trim() || undefined,
       isFeatured,
       tallFriendly: isWellnessForm ? false : tallFriendly,
       // Wellness attributes
@@ -265,7 +277,7 @@ export default function ProductFormScreen() {
           <Text className="text-sm font-black uppercase tracking-wide text-[#112133]">Back</Text>
         </Pressable>
         <Text className="text-sm font-black uppercase text-[#112133]">{isEdit ? 'Edit Product' : 'Add Product'}</Text>
-        <Pressable onPress={handleSave} disabled={saving} className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3.5 py-2 rounded-xl">
+        <Pressable onPress={handleSave} disabled={saving} className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3.5 py-2 rounded-lg">
           {saving ? <ActivityIndicator size="small" color="#fff" /> : <Save size={13} color="#fff" />}
           <Text className="text-[11px] font-black uppercase text-white">Save</Text>
         </Pressable>
@@ -304,7 +316,7 @@ export default function ProductFormScreen() {
                   }
                 }}
                 disabled={isEdit}
-                className="flex-1 rounded-2xl border-2 px-3 py-2.5"
+                className="flex-1 rounded-xl border-2 px-3 py-2.5"
                 style={{
                   backgroundColor: active ? '#7D2AE8' : '#FFFFFF',
                   borderColor: active ? '#7D2AE8' : 'rgba(0,0,0,0.12)',
@@ -323,7 +335,7 @@ export default function ProductFormScreen() {
         </View>
 
         {!isEdit && (
-          <View className="bg-[#7D2AE8]/5 border border-[#7D2AE8]/20 rounded-2xl p-4 mb-2">
+          <View className="bg-[#7D2AE8]/5 border border-[#7D2AE8]/20 rounded-xl p-4 mb-2">
             <Text className="text-[10px] font-black uppercase tracking-widest text-[#7D2AE8] mb-2">Import from URL</Text>
             <View className="flex-row gap-2">
               <Input
@@ -336,7 +348,7 @@ export default function ProductFormScreen() {
                 style={{ flex: 1 }}
               />
               <Pressable onPress={handleImport} disabled={importing || !importUrl.trim()}
-                className={`px-4 items-center justify-center rounded-xl ${importUrl.trim() ? 'bg-[#7D2AE8]' : 'bg-[#112133]/10'}`}>
+                className={`px-4 items-center justify-center rounded-lg ${importUrl.trim() ? 'bg-[#7D2AE8]' : 'bg-[#112133]/10'}`}>
                 {importing ? <ActivityIndicator size="small" color="#fff" /> : <Wand2 size={16} color={importUrl.trim() ? '#fff' : '#112133'} />}
               </Pressable>
             </View>
@@ -422,8 +434,8 @@ export default function ProductFormScreen() {
             <Input value={priceAtRetailer} onChangeText={setPriceAtRetailer} keyboardType="numeric" placeholder="2999" />
           </View>
           <View style={{ flex: 1 }}>
-            <FieldLabel>Discount %</FieldLabel>
-            <Input value={discountPercent} onChangeText={setDiscountPercent} keyboardType="numeric" placeholder="20" />
+            <FieldLabel>Coupon code</FieldLabel>
+            <Input value={couponCode} onChangeText={t => setCouponCode(t.toUpperCase())} autoCapitalize="characters" placeholder="TALL10" />
           </View>
         </View>
 
@@ -489,21 +501,26 @@ export default function ProductFormScreen() {
           </>
         )}
 
-        <FieldLabel>Verified tier</FieldLabel>
-        <View className="flex-row flex-wrap">
-          {VERIFIED_TIERS.map(v => <Chip key={v} label={v!} active={verifiedTier === v} onPress={() => setVerifiedTier(v)} />)}
-        </View>
+        {/* Verified tier is fit-verification language — meaningless for wellness */}
+        {!isWellnessForm && (
+          <>
+            <FieldLabel>Verified tier</FieldLabel>
+            <View className="flex-row flex-wrap">
+              {VERIFIED_TIERS.map(v => <Chip key={v} label={v!} active={verifiedTier === v} onPress={() => setVerifiedTier(v)} />)}
+            </View>
+          </>
+        )}
 
-        <View className="flex-row items-center justify-between mt-5 bg-white rounded-xl px-4 py-3 border border-black/5">
+        <View className="flex-row items-center justify-between mt-5 bg-white rounded-lg px-4 py-3 border border-black/5">
           <Text className="text-xs font-bold text-[#112133]">Out of stock</Text>
           <Switch value={outOfStock} onValueChange={setOutOfStock} trackColor={{ true: '#EF4444' }} />
         </View>
-        <View className="flex-row items-center justify-between mt-2 bg-white rounded-xl px-4 py-3 border border-black/5">
+        <View className="flex-row items-center justify-between mt-2 bg-white rounded-lg px-4 py-3 border border-black/5">
           <Text className="text-xs font-bold text-[#112133]">Featured</Text>
           <Switch value={isFeatured} onValueChange={setIsFeatured} trackColor={{ true: '#FFD43B' }} />
         </View>
         {!isWellnessForm && (
-          <View className="flex-row items-center justify-between mt-2 mb-2 bg-white rounded-xl px-4 py-3 border border-black/5">
+          <View className="flex-row items-center justify-between mt-2 mb-2 bg-white rounded-lg px-4 py-3 border border-black/5">
             <Text className="text-xs font-bold text-[#112133]">Tall friendly</Text>
             <Switch value={tallFriendly} onValueChange={setTallFriendly} trackColor={{ true: '#7D2AE8' }} />
           </View>
@@ -515,7 +532,7 @@ export default function ProductFormScreen() {
         <Text className="text-sm font-black uppercase tracking-wide text-[#112133] mt-6 mb-1">Fit by Height</Text>
         <Text className="text-[10px] text-[#112133]/40 mb-3">Set the recommendation admins see for each height band.</Text>
         {verdicts.map((v, i) => (
-          <View key={v.heightRange} className="bg-white rounded-2xl p-4 mb-3 border border-black/5">
+          <View key={v.heightRange} className="bg-white rounded-xl p-4 mb-3 border border-black/5">
             <Text className="text-xs font-black text-[#112133] mb-2">{v.heightRange}</Text>
 
             <Text className="text-[9px] font-black uppercase tracking-widest text-[#112133]/40 mb-1.5">Body types</Text>

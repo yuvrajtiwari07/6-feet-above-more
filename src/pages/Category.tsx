@@ -327,7 +327,7 @@ export const Category: React.FC = () => {
             )}
           </>
         ) : (
-          <div className="bg-[#112133]/5 border border-[#112133]/10 rounded-[30px] p-16 text-center max-w-lg mx-auto my-12">
+          <div className="bg-[#112133]/5 border border-[#112133]/10 rounded-[20px] p-16 text-center max-w-lg mx-auto my-12">
             {isWellness
               ? <Leaf size={48} className="text-[#0E7C5A]/25 mx-auto mb-4 animate-bounce" />
               : <Shirt size={48} className="text-[#112133]/20 mx-auto mb-4 animate-bounce" />}

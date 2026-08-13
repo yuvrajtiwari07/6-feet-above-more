@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Product, FitVerdict, HeightBand, VerdictStatus, Vertical } from '../types';
 import {
@@ -12,6 +12,7 @@ import {
   wellnessTypesFor,
 } from '../data/wellness';
 import type { ImportedProduct } from '../lib/importers/types';
+import { getGarmentVersatilityDefaults } from '../lib/garmentVersatility';
 import { getAccessToken } from '../supabase';
 import {
   Plus, Edit2, Check, AlertTriangle, ShieldCheck, Trash2,
@@ -134,9 +135,9 @@ function detectSegmentAndType(title: string, category: string, subCategory: stri
         : combinedText.includes('wallet') ? 'Wallet'
           : 'Socks';
   } else {
-    detectedType = combinedText.includes('shirt') ? 'Shirt'
-      : combinedText.includes('polo') ? 'Polo'
-        : combinedText.includes('henley') ? 'Henley'
+    detectedType = combinedText.includes('polo') ? 'Polo'
+      : combinedText.includes('henley') ? 'Henley'
+        : combinedText.includes('shirt') ? 'Shirt'
           : 'T-Shirt';
   }
 
@@ -186,10 +187,17 @@ export const Admin: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
+  // The error banner renders at the top of a long scrollable modal — without
+  // this, clicking Save while the error is off-screen (e.g. scrolled down to
+  // the button) looks like the button did nothing at all.
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (formError) modalScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [formError]);
 
   // Import from URL states
   const [importUrl, setImportUrl] = useState('');
-  const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'warning' | 'error'>('idle');
   const [importMessage, setImportMessage] = useState('');
   const [detectedRetailer, setDetectedRetailer] = useState('');
 
@@ -205,7 +213,7 @@ export const Admin: React.FC = () => {
   const [verifiedTier, setVerifiedTier] = useState<'verified' | 'friendly' | 'community'>('verified');
   const [outOfStock, setOutOfStock] = useState(false);
   const [isFeatured, setIsFeatured] = useState(false);
-  const [discountPercent, setDiscountPercent] = useState<string>('0');
+  const [couponCode, setCouponCode] = useState('');
 
   // Classification & Taxonomy
   const [productSegment, setProductSegment] = useState('Upperwear');
@@ -429,7 +437,6 @@ export const Admin: React.FC = () => {
     if (data.title) setTitle(data.title);
     if (data.description) setDescription(data.description);
     if (data.price) setPriceAtRetailer(data.price);
-    if (data.discountPercent !== undefined) setDiscountPercent(String(data.discountPercent));
     if (data.retailer) setRetailer(data.retailer);
     if (data.retailerUrl) {
       setAffiliateUrl(data.retailerUrl);
@@ -480,35 +487,37 @@ export const Admin: React.FC = () => {
           : combinedText.includes('wallet') ? 'Wallet'
             : 'Socks';
     } else {
-      detectedType = combinedText.includes('shirt') ? 'Shirt'
-        : combinedText.includes('polo') ? 'Polo'
-          : combinedText.includes('henley') ? 'Henley'
+      detectedType = combinedText.includes('polo') ? 'Polo'
+        : combinedText.includes('henley') ? 'Henley'
+          : combinedText.includes('shirt') ? 'Shirt'
             : 'T-Shirt';
     }
 
     setProductSegment(detectedSegment);
     setProductType(detectedType);
 
+    // Smart defaults by garment type — a polo/tee/jeans etc. is versatile
+    // enough to suit almost every category and occasion, so start broad
+    // instead of guessing from a handful of keyword matches. Narrow items
+    // (kurtas, blazers, hoodies) get a correctly narrow default instead.
+    const versatility = getGarmentVersatilityDefaults(detectedType);
+
     // Categories array AI suggestion
-    const suggestedCats: string[] = [];
-    if (detectedSegment === 'Ethnic Wear') suggestedCats.push('Ethnic Wear');
-    if (detectedSegment === 'Footwear') suggestedCats.push('Casual Wear');
-    if (combinedText.match(/formal|office|business/)) suggestedCats.push('Formal Wear', 'Business Casual');
-    if (combinedText.match(/gym|active|sport|run/)) suggestedCats.push('Athleisure', 'Gym Wear');
-    if (combinedText.match(/street|hype|cargo/)) suggestedCats.push('Streetwear', 'Casual Wear');
+    const suggestedCats: string[] = [...(versatility?.categories ?? [])];
+    if (detectedSegment === 'Ethnic Wear' && !suggestedCats.includes('Ethnic Wear')) suggestedCats.push('Ethnic Wear');
+    if (combinedText.match(/formal|office|business/) && !suggestedCats.includes('Formal Wear')) suggestedCats.push('Formal Wear', 'Business Casual');
+    if (combinedText.match(/gym|active|sport|run/) && !suggestedCats.includes('Athleisure')) suggestedCats.push('Athleisure', 'Gym Wear');
+    if (combinedText.match(/street|hype|cargo/) && !suggestedCats.includes('Streetwear')) suggestedCats.push('Streetwear', 'Casual Wear');
     if (suggestedCats.length === 0) suggestedCats.push('Casual Wear');
-    setCategories(suggestedCats);
+    setCategories([...new Set(suggestedCats)]);
 
     // Occasions AI suggestion
-    const suggestedOccs: string[] = ['Daily Wear'];
-    if (combinedText.match(/office|work|business/)) suggestedOccs.push('Office', 'Business Casual');
-    if (combinedText.match(/party|club/)) suggestedOccs.push('Party');
-    if (combinedText.match(/wedding|festive|marry/)) suggestedOccs.push('Wedding', 'Festive');
-    if (combinedText.match(/travel|trip|vacation/)) suggestedOccs.push('Travel', 'Vacation');
-    setOccasions(suggestedOccs);
+    const suggestedOccs: string[] = versatility?.occasions.length ? [...versatility.occasions] : ['Daily Wear'];
+    if (combinedText.match(/wedding|festive|marry/) && !suggestedOccs.includes('Wedding')) suggestedOccs.push('Wedding', 'Festive');
+    setOccasions([...new Set(suggestedOccs)]);
 
     // Seasons suggestion
-    setSeasons(combinedText.match(/winter|jacket|wool|hood/) ? ['Winter'] : ['All Season']);
+    setSeasons(versatility?.seasons.length ? [...versatility.seasons] : ['All Season']);
 
 
 
@@ -583,44 +592,49 @@ export const Admin: React.FC = () => {
       price: data.price || 0
     }]);
 
+    // Product segment/type is detected up front (not only when subCategory is
+    // present) so the versatility lookup below always has something to key on.
+    const { productSegment: detectedSegment, productType: detectedType } =
+      detectSegmentAndType(data.title || '', data.category || '', data.subCategory || '');
+    setProductSegment(detectedSegment);
+    setProductType(detectedType);
+    setSizes(getSizeOptions(detectedSegment).slice(1, 5));
+
+    // Smart defaults by garment type, unioned with whatever the AI returned —
+    // a polo/tee/jeans is versatile enough to suit almost every category and
+    // occasion, so start broad rather than trusting a single AI-picked bucket.
+    const versatility = getGarmentVersatilityDefaults(detectedType);
+
     // Broad Category mapping
-    const selectedCats: string[] = [];
-    if (data.category === 'Ethnic Wear') {
+    const selectedCats: string[] = [...(versatility?.categories ?? [])];
+    if (data.category === 'Ethnic Wear' && !selectedCats.includes('Ethnic Wear')) {
       selectedCats.push('Ethnic Wear');
-    } else if (data.category === 'Formals') {
+    } else if (data.category === 'Formals' && !selectedCats.includes('Formal Wear')) {
       selectedCats.push('Formal Wear', 'Business Casual');
-    } else if (data.category === 'Streetwear') {
+    } else if (data.category === 'Streetwear' && !selectedCats.includes('Streetwear')) {
       selectedCats.push('Streetwear', 'Casual Wear');
-    } else if (data.category === 'Casuals') {
-      selectedCats.push('Casual Wear');
     }
-    setCategories(selectedCats.length > 0 ? selectedCats : ['Casual Wear']);
+    setCategories(selectedCats.length > 0 ? [...new Set(selectedCats)] : ['Casual Wear']);
 
     // Occasions mapping
-    if (data.occasions && Array.isArray(data.occasions)) {
-      const matchedOccs = data.occasions
-        .filter((o: any) => o && typeof o === 'string')
-        .map((o: string) => {
-          const matched = OCCASIONS.find(opt => opt.toLowerCase().includes(o.toLowerCase()));
-          return matched || o.trim();
-        })
-        .filter(Boolean) as string[];
-      setOccasions(matchedOccs.length > 0 ? matchedOccs : ['Daily Wear']);
-    } else {
-      setOccasions(['Daily Wear']);
-    }
+    const aiOccasions = Array.isArray(data.occasions)
+      ? data.occasions
+          .filter((o: any) => o && typeof o === 'string')
+          .map((o: string) => OCCASIONS.find(opt => opt.toLowerCase().includes(o.toLowerCase())) || o.trim())
+          .filter(Boolean) as string[]
+      : [];
+    const mergedOccs = [...new Set([...(versatility?.occasions ?? []), ...aiOccasions])];
+    setOccasions(mergedOccs.length > 0 ? mergedOccs : ['Daily Wear']);
 
     // Seasons mapping
-    if (data.seasons && Array.isArray(data.seasons)) {
-      const matchedSeas = data.seasons
-        .filter((s: any) => s && typeof s === 'string')
-        .map((s: string) => {
-          const matched = SEASONS.find(opt => opt.toLowerCase().includes(s.toLowerCase()));
-          return matched || s.trim();
-        })
-        .filter(Boolean) as string[];
-      setSeasons(matchedSeas.length > 0 ? matchedSeas : ['All Season']);
-    }
+    const aiSeasons = Array.isArray(data.seasons)
+      ? data.seasons
+          .filter((s: any) => s && typeof s === 'string')
+          .map((s: string) => SEASONS.find(opt => opt.toLowerCase().includes(s.toLowerCase())) || s.trim())
+          .filter(Boolean) as string[]
+      : [];
+    const mergedSeasons = [...new Set([...(versatility?.seasons ?? []), ...aiSeasons])];
+    setSeasons(mergedSeasons.length > 0 ? mergedSeasons : ['All Season']);
 
     // Colors mapping
     if (data.colors && Array.isArray(data.colors)) {
@@ -640,14 +654,6 @@ export const Admin: React.FC = () => {
       setColors(matchedColors.length > 0 ? matchedColors : []);
     } else {
       setColors([]);
-    }
-
-    // subCategory & segments detection
-    if (data.subCategory) {
-      const { productSegment: detectedSegment, productType: detectedType } = detectSegmentAndType(data.title || '', data.category || '', data.subCategory || '');
-      setProductSegment(detectedSegment);
-      setProductType(detectedType);
-      setSizes(getSizeOptions(detectedSegment).slice(1, 5));
     }
 
     // Tall Curation centerpiece parameters
@@ -728,8 +734,13 @@ export const Admin: React.FC = () => {
       setDetectedRetailer(data.retailer ?? '');
       if (isWellness) applyCuratedWellnessResponse(data);
       else applyCuratedUrlResponse(data);
-      setImportStatus('success');
-      setImportMessage(`Imported and Curated via ${data.source || 'AI'}! Review all settings before creating.`);
+      if (data.scrapeBlocked) {
+        setImportStatus('warning');
+        setImportMessage(`${data.retailer || 'This retailer'} blocked our scraper — only the title could be guessed from the URL. Add images and price manually before saving.`);
+      } else {
+        setImportStatus('success');
+        setImportMessage(`Imported and Curated via ${data.source || 'AI'}! Review all settings before creating.`);
+      }
 
       const trimmedImportUrl = importUrl.trim();
       setOriginalUrl(trimmedImportUrl);
@@ -783,10 +794,20 @@ export const Admin: React.FC = () => {
         } else {
           applyImportedProduct(data.product);
         }
-        setImportStatus('success');
-        setImportMessage(isWellness
-          ? 'Imported basics using the standard parser. Pick the category, form and concerns below.'
-          : 'Imported successfully using standard parser. Review tall curation settings.');
+
+        // This route has no bot-block detection of its own — a product with
+        // no images and no price is the tell that the retailer served us a
+        // blocked/captcha page instead of the real one.
+        const scrapedNothing = !data.product?.images?.length && !data.product?.price;
+        if (scrapedNothing) {
+          setImportStatus('warning');
+          setImportMessage(`${data.retailerName || 'This retailer'} returned no usable data — it likely blocked the import. Add images and price manually before saving.`);
+        } else {
+          setImportStatus('success');
+          setImportMessage(isWellness
+            ? 'Imported basics using the standard parser. Pick the category, form and concerns below.'
+            : 'Imported successfully using standard parser. Review tall curation settings.');
+        }
 
         const trimmedImportUrl = importUrl.trim();
         setOriginalUrl(trimmedImportUrl);
@@ -823,7 +844,7 @@ export const Admin: React.FC = () => {
     setVerifiedTier('verified');
     setOutOfStock(false);
     setIsFeatured(false);
-    setDiscountPercent('0');
+    setCouponCode('');
     setMaterial('');
     setImages([]);
     setMerchantLinks([]);
@@ -905,7 +926,7 @@ export const Admin: React.FC = () => {
     setVerifiedTier(p.verifiedTier);
     setOutOfStock(!!p.outOfStock);
     setIsFeatured(!!p.isFeatured);
-    setDiscountPercent(p.discountPercent?.toString() || '0');
+    setCouponCode(p.couponCode || '');
     setProductSegment(p.productSegment || 'Upperwear');
     setProductType(p.productType || 'T-Shirt');
 
@@ -1068,7 +1089,7 @@ export const Admin: React.FC = () => {
       retailer,
       affiliateUrl: affiliateUrl || 'https://6feetabove.com/redirect',
       fitType,
-      verifiedTier,
+      verifiedTier: isWellness ? 'community' : verifiedTier,
       images: images.length > 0
         ? images
         : [isWellness
@@ -1083,7 +1104,7 @@ export const Admin: React.FC = () => {
       merchantLinks,
       material,
       tags,
-      discountPercent: Number(discountPercent) || 0,
+      couponCode: couponCode.trim() || undefined,
       isFeatured,
       tallFriendly: isWellness ? false : tallFriendly,
       // Wellness attributes (ignored server-side for fashion rows)
@@ -1253,6 +1274,7 @@ export const Admin: React.FC = () => {
       {/* FORM MODAL */}
       {showForm && (
         <div
+          ref={modalScrollRef}
           className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-8 px-4"
           style={{ background: 'rgba(17,33,51,0.65)', backdropFilter: 'blur(6px)' }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false); }}
@@ -2248,31 +2270,37 @@ export const Admin: React.FC = () => {
 
               <div>
                 <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
-                  Discount Percent (%)
+                  Coupon Code
                 </label>
                 <input
-                  type="number"
-                  value={discountPercent}
-                  onChange={(e) => setDiscountPercent(e.target.value)}
-                  placeholder="0"
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold"
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="TALL10"
+                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold font-mono uppercase"
                 />
+                <p className="text-[9px] text-black/35 mt-1">
+                  Optional. A real code buyers can apply at the retailer's checkout — not a fabricated discount.
+                </p>
               </div>
 
-              <div>
-                <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
-                  Verified Tier *
-                </label>
-                <select
-                  value={verifiedTier}
-                  onChange={(e) => setVerifiedTier(e.target.value as any)}
-                  className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold bg-white"
-                >
-                  <option value="verified">Verified Fit</option>
-                  <option value="friendly">Friendly Fit</option>
-                  <option value="community">Community Fit</option>
-                </select>
-              </div>
+              {/* Verified Tier is fit-verification language — meaningless outside fashion */}
+              {!isWellness && (
+                <div>
+                  <label className="text-[10px] text-black/50 font-black uppercase tracking-wider block mb-1.5">
+                    Verified Tier *
+                  </label>
+                  <select
+                    value={verifiedTier}
+                    onChange={(e) => setVerifiedTier(e.target.value as any)}
+                    className="w-full px-4 py-3 rounded-xl border border-black/15 focus:ring-2 focus:ring-[#7D2AE8] text-xs font-bold bg-white"
+                  >
+                    <option value="verified">Verified Fit</option>
+                    <option value="friendly">Friendly Fit</option>
+                    <option value="community">Community Fit</option>
+                  </select>
+                </div>
+              )}
 
               <div className="flex items-center gap-6 pt-6">
                 <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-black/75">

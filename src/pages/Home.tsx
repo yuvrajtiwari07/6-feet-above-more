@@ -77,7 +77,7 @@ export const Home: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Bento Block 1: Hero Accent (col-span-12) */}
-          <div className="lg:col-span-12 bg-[#0F0F10] text-white rounded-[40px] p-8 md:p-12 relative overflow-hidden group border-2 border-black pop-shadow-lg flex flex-col justify-between min-h-[560px]">
+          <div className="lg:col-span-12 bg-[#0F0F10] text-white rounded-[26px] p-8 md:p-12 relative overflow-hidden group border-2 border-black pop-shadow-lg flex flex-col justify-between min-h-[560px]">
             {/* Model Background Image (absolute right-0) */}
             <div className="absolute right-0 top-0 bottom-0 w-full md:w-[45%] h-full z-0 pointer-events-none">
               <img 
@@ -184,7 +184,7 @@ export const Home: React.FC = () => {
                   key={cat.name}
                   whileHover={{ y: -6 }}
                   onClick={() => navigate('category', { categoryName: cat.name })}
-                  className={`group cursor-pointer relative aspect-[10/13] md:aspect-[3/4] rounded-[30px] overflow-hidden transition-all ${cat.span} ${cat.cardClass}`}
+                  className={`group cursor-pointer relative aspect-[10/13] md:aspect-[3/4] rounded-[20px] overflow-hidden transition-all ${cat.span} ${cat.cardClass}`}
                   id={`cat-tile-${cat.name.replace(' ', '-').toLowerCase()}`}
                 >
                   <img 

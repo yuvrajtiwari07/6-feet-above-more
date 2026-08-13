@@ -68,7 +68,7 @@ export default function CategoryScreen() {
   const ListHeader = () => (
     <>
       {/* Category hero */}
-      <View style={{ backgroundColor: theme.bg }} className="mx-4 mt-4 rounded-3xl p-6 mb-5">
+      <View style={{ backgroundColor: theme.bg }} className="mx-4 mt-4 rounded-2xl p-6 mb-5">
         <Text className="font-black text-3xl uppercase tracking-tight mb-1" style={{ color: theme.text }}>
           {decodedName}
         </Text>
@@ -91,7 +91,7 @@ export default function CategoryScreen() {
             {brands.map(b => (
               <Pressable key={b}
                 onPress={() => { setSelectedBrand(b); setVisibleCount(PAGE_SIZE); }}
-                className={`px-3 py-1.5 rounded-xl border ${selectedBrand === b ? 'bg-[#7D2AE8] border-[#7D2AE8]' : 'border-black/10 bg-white'}`}>
+                className={`px-3 py-1.5 rounded-lg border ${selectedBrand === b ? 'bg-[#7D2AE8] border-[#7D2AE8]' : 'border-black/10 bg-white'}`}>
                 <Text className={`text-xs font-black uppercase tracking-wide ${selectedBrand === b ? 'text-white' : 'text-[#112133]/70'}`}>{b}</Text>
               </Pressable>
             ))}

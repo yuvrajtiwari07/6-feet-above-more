@@ -93,6 +93,7 @@ function rowToProduct(row) {
     material: row.material,
     tags: row.tags ?? [],
     discountPercent: Number(row.discount_percent ?? 0),
+    couponCode: row.coupon_code ?? "",
     isFeatured: row.is_featured,
     // Tall-fit curation fields (fashion)
     tallFriendly: row.tall_friendly ?? true,
@@ -166,11 +167,12 @@ var productRepository = {
         average_rating, measurements, verdicts,
         material, tags, discount_percent, is_featured,
         tall_friendly, height_ranges, body_types, fit_highlights,
-        vertical, form, net_quantity, concerns, key_ingredients, diet_tags
+        vertical, form, net_quantity, concerns, key_ingredients, diet_tags,
+        coupon_code
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
         $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,
-        $35,$36,$37,$38,$39,$40
+        $35,$36,$37,$38,$39,$40,$41
       )
       ON CONFLICT (id) DO UPDATE SET
         brand = EXCLUDED.brand, title = EXCLUDED.title,
@@ -217,7 +219,8 @@ var productRepository = {
       p.netQuantity ?? null,
       p.concerns ?? [],
       p.keyIngredients ?? [],
-      p.dietTags ?? []
+      p.dietTags ?? [],
+      p.couponCode?.trim() || null
     ];
     const rows = await query(text, params);
     return rowToProduct(rows[0]);
@@ -252,6 +255,7 @@ var productRepository = {
       material: "material",
       tags: "tags",
       discountPercent: "discount_percent",
+      couponCode: "coupon_code",
       isFeatured: "is_featured",
       tallFriendly: "tall_friendly",
       heightRanges: "height_ranges",
@@ -320,10 +324,6 @@ function validateProduct(p) {
   if (p.verifiedTier && !validTiers.includes(p.verifiedTier)) {
     return `verifiedTier must be one of: ${validTiers.join(", ")}`;
   }
-  const discountPercent = p.discountPercent;
-  if (discountPercent !== void 0 && (discountPercent < 0 || discountPercent > 100)) {
-    return "discountPercent must be between 0 and 100";
-  }
   return null;
 }
 function sanitizeProduct(p) {
@@ -358,8 +358,14 @@ function sanitizeProduct(p) {
     concerns: (p.concerns ?? []).filter(Boolean),
     keyIngredients: (p.keyIngredients ?? []).filter(Boolean),
     dietTags: (p.dietTags ?? []).filter(Boolean),
+    // We don't run real discounts — never persist a fabricated percentage.
+    discountPercent: void 0,
+    couponCode: p.couponCode?.trim() || void 0,
     // A wellness product has no fit — never let a stale tall verdict ride along.
-    ...vertical === "wellness" ? { fitType: "", verdicts: [], measurements: {}, sizes: [], tallFriendly: false, heightRanges: [], bodyTypes: [], fitHighlights: [] } : {}
+    // "Verified tier" is fit-verification language too, so it's meaningless
+    // for wellness; force it to the neutral default instead of showing the
+    // fit-labeled picker in that form.
+    ...vertical === "wellness" ? { fitType: "", verdicts: [], measurements: {}, sizes: [], tallFriendly: false, heightRanges: [], bodyTypes: [], fitHighlights: [], verifiedTier: "community" } : {}
   };
 }
 var productService = {
@@ -1272,20 +1278,38 @@ import * as cheerio2 from "cheerio";
 
 // src/lib/importers/BaseImporter.ts
 import * as cheerio from "cheerio";
-var BaseImporter = class {
-  // ─── Shared Fetch Utility ────────────────────────────────────────────────
+var BaseImporter = class _BaseImporter {
+  static {
+    // ─── Shared Fetch Utility ────────────────────────────────────────────────
+    // A handful of realistic desktop UAs, rotated per request. This does nothing
+    // against real bot-detection (Akamai/PerimeterX, which key off far more than
+    // the UA string and largely block by *datacenter IP range* — the reason
+    // scraping from a cloud host behaves differently than from a home IP), but
+    // it's a free, harmless improvement against basic UA-sniffing rate limits.
+    this.USER_AGENTS = [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0",
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ];
+  }
   /**
    * Fetches the raw HTML of a page, mimicking a real browser request.
    */
   async fetchPage(url) {
+    const userAgent = _BaseImporter.USER_AGENTS[Math.floor(Math.random() * _BaseImporter.USER_AGENTS.length)];
     const response = await fetch(url, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "User-Agent": userAgent,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
         "Cache-Control": "no-cache",
-        "Pragma": "no-cache"
+        "Pragma": "no-cache",
+        "Referer": "https://www.google.com/",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "cross-site",
+        "Upgrade-Insecure-Requests": "1"
       },
       redirect: "follow",
       signal: AbortSignal.timeout(15e3)
@@ -1381,17 +1405,36 @@ var BaseImporter = class {
   }
   /**
    * Normalizes a JSON-LD offer block into price + discount.
+   * Some sites (esp. AggregateOffer) never set `price`, only `lowPrice`/`highPrice`,
+   * or nest the real offer one level down in an `offers` array — check all of them.
    */
   parseJsonLdOffer(offer) {
     if (!offer) return {};
-    const offers = Array.isArray(offer) ? offer[0] : offer;
-    const price = this.parsePrice(String(offers.price ?? ""));
+    let offers = Array.isArray(offer) ? offer[0] : offer;
+    if (Array.isArray(offers?.offers)) offers = offers.offers[0] ?? offers;
+    const price = this.parsePrice(
+      String(offers.price ?? offers.lowPrice ?? offers.offers?.[0]?.price ?? "")
+    );
     const highPrice = this.parsePrice(String(offers.highPrice ?? ""));
     let discountPercent;
     if (price && highPrice && highPrice > price) {
       discountPercent = Math.round((highPrice - price) / highPrice * 100);
     }
     return { price, originalPrice: highPrice, discountPercent };
+  }
+  /**
+   * Merges images pulled from structured data (JSON-LD/embedded state) with a
+   * DOM gallery scan, deduped, capped to a sane count.
+   *
+   * Structured data on many sites (Shopify JSON-LD in particular) only exposes
+   * the single "featured image", not the full gallery — merging instead of only
+   * falling back when structured data is completely empty is what actually
+   * recovers the rest of the product photos.
+   */
+  mergeImages(structured, html, urlStr, max = 12) {
+    const domImages = this.extractImagesFromDom(html, urlStr);
+    const merged = [.../* @__PURE__ */ new Set([...structured, ...domImages])];
+    return merged.slice(0, max);
   }
   /**
    * Robust fallback to find all product images in a page's HTML
@@ -1428,7 +1471,7 @@ var BaseImporter = class {
       const fullSrc = cleanSrc.startsWith("//") ? `https:${cleanSrc}` : cleanSrc;
       if (images.includes(fullSrc) || imageElements.includes(fullSrc)) return;
       const low = fullSrc.toLowerCase();
-      if (low.includes("logo") || low.includes("icon") || low.includes("tracker") || low.includes("star") || low.includes("banner") || low.includes("badge") || low.includes("placeholder")) {
+      if (low.includes("logo") || low.includes("icon") || low.includes("tracker") || low.includes("star") || low.includes("banner") || low.includes("badge") || low.includes("placeholder") || /\.svg(\?|$)/.test(low)) {
         return;
       }
       if (urlStr.includes("myntra.com") && low.includes("myntassets.com")) {
@@ -1441,6 +1484,9 @@ var BaseImporter = class {
         imageElements.push(fullSrc);
       } else if (urlStr.includes("zara.com") && (low.includes("zara.net") || low.includes("zara.com"))) {
         imageElements.push(fullSrc);
+      } else if (urlStr.includes("flipkart.com") && low.includes("rukminim")) {
+        imageElements.push(fullSrc);
+      } else if (urlStr.includes("flipkart.com")) {
       } else if (low.includes("cdn") || low.includes("product") || low.includes("image") || low.includes("media") || low.includes("upload")) {
         if (!low.includes("avatar") && !low.includes("profile")) {
           imageElements.push(fullSrc);
@@ -1473,17 +1519,35 @@ var BaseImporter = class {
       ".pdp-sp",
       ".price",
       ".sale-price",
+      ".selling-price",
+      ".final-price",
+      ".offer-price",
+      ".discounted-price",
+      ".current-price",
       '[itemprop="price"]',
-      ".product-price",
-      ".current-price"
+      "[data-price]",
+      "[data-product-price]",
+      ".product-price"
     ];
     for (const selector of priceSelectors) {
-      const text = $(selector).first().text();
-      const val = this.parsePrice(text);
+      const el = $(selector).first();
+      const val = this.parsePrice(el.attr("content") || el.attr("data-price") || el.text());
       if (val && val > 0) return val;
     }
+    let scriptPrice;
+    $("script").each((_, el) => {
+      if (scriptPrice) return;
+      const content = $(el).html() ?? "";
+      if (content.length > 2e5) return;
+      const m = content.match(/"(?:sellingPrice|salePrice|finalPrice|discountedPrice|price)"\s*:\s*"?(\d{2,7}(?:\.\d{1,2})?)"?/);
+      if (m && m[1]) {
+        const val = this.parsePrice(m[1]);
+        if (val && val > 0) scriptPrice = val;
+      }
+    });
+    if (scriptPrice) return scriptPrice;
     const textContent = $("body").text().slice(0, 1e4);
-    const match = textContent.match(/(?:Rs\.?|₹)\s*([\d,]+(?:\.\d{2})?)/i);
+    const match = textContent.match(/(?:Rs\.?|₹|INR)\s*([\d,]+(?:\.\d{2})?)/i);
     if (match && match[1]) {
       const val = this.parsePrice(match[1]);
       if (val && val > 0) return val;
@@ -1613,9 +1677,7 @@ var MyntraImporter = class extends BaseImporter {
         }
       }
     }
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    images = this.mergeImages(images, html, url);
     const sizeList = sizes.map((s) => s?.label ?? s?.size ?? s?.displayValue).filter(Boolean);
     const name = pdp?.name ?? pdp?.productDisplayName ?? "";
     const brandName = pdp?.brand?.name ?? pdp?.brandName ?? "";
@@ -1640,10 +1702,8 @@ var MyntraImporter = class extends BaseImporter {
   }
   parseJsonLd(data, url, html) {
     const offers = this.parseJsonLdOffer(data.offers);
-    let images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const structuredImages = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    const images = this.mergeImages(structuredImages, html, url);
     const description = this.stripHtml(data.description) || this.extractDescriptionFromDom(html);
     return {
       brand: data.brand?.name ?? data.brand ?? void 0,
@@ -1704,10 +1764,8 @@ var AjioImporter = class extends BaseImporter {
   }
   parseJsonLd(data, url, html) {
     const offers = this.parseJsonLdOffer(data.offers);
-    let images = Array.isArray(data.image) ? data.image.filter((i) => typeof i === "string") : data.image ? [data.image] : [];
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const structuredImages = Array.isArray(data.image) ? data.image.filter((i) => typeof i === "string") : data.image ? [data.image] : [];
+    const images = this.mergeImages(structuredImages, html, url);
     const sizes = [];
     if (Array.isArray(data.offers)) {
       data.offers.forEach((offer) => {
@@ -1738,10 +1796,8 @@ var AjioImporter = class extends BaseImporter {
         productData = productData.productDetails[keys[0]];
       }
     }
-    let images = (productData?.images ?? productData?.media ?? []).map((img) => img?.url ?? img?.src ?? img).filter((src) => typeof src === "string" && src.startsWith("http"));
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const structuredImages = (productData?.images ?? productData?.media ?? []).map((img) => img?.url ?? img?.src ?? img).filter((src) => typeof src === "string" && src.startsWith("http"));
+    const images = this.mergeImages(structuredImages, html, url);
     const priceVal = productData?.price?.value ?? productData?.salePrice ?? productData?.price;
     const mrpVal = productData?.wasPriceData?.value ?? productData?.mrp ?? productData?.wasPriceData;
     const price = priceVal != null ? this.parsePrice(String(priceVal)) : void 0;
@@ -1796,7 +1852,7 @@ var AmazonImporter = class extends BaseImporter {
     const jsonLd = this.extractJsonLd(html, "Product");
     if (jsonLd?.name) {
       const base = this.parseJsonLd(jsonLd, url);
-      return this.augmentWithDom($, base, url);
+      return this.augmentWithDom($, base, url, html);
     }
     return this.parseDom($, html, url);
   }
@@ -1816,11 +1872,13 @@ var AmazonImporter = class extends BaseImporter {
       retailerUrl: url
     };
   }
-  augmentWithDom($, base, url) {
-    if (!base.images || base.images.length === 0) {
-      const imgData = this.extractAmazonImages($);
-      if (imgData.length > 0) base.images = imgData;
+  augmentWithDom($, base, url, html) {
+    const galleryImages = this.extractAmazonImages($);
+    let merged = [.../* @__PURE__ */ new Set([...base.images ?? [], ...galleryImages])];
+    if (merged.length === 0) {
+      merged = this.extractImagesFromDom(html, url);
     }
+    base.images = merged;
     if (!base.brand) {
       base.brand = $("#bylineInfo").text().replace("Brand: ", "").trim() || void 0;
     }
@@ -1840,9 +1898,10 @@ var AmazonImporter = class extends BaseImporter {
     const averageRating = parseFloat(ratingText) || void 0;
     const reviewsText = $("#acrCustomerReviewText").text();
     const reviewsCount = parseInt(reviewsText.replace(/[^\d]/g, "")) || void 0;
-    const images = this.extractAmazonImages($);
+    let images = this.extractAmazonImages($);
     const ogImage = meta["og:image"];
     if (ogImage && !images.includes(ogImage)) images.unshift(ogImage);
+    if (images.length === 0) images = this.extractImagesFromDom(html, url);
     const sizes = [];
     $('[id*="size_name"] .selection').each((_, el) => {
       const size = $(el).text().trim();
@@ -1907,34 +1966,24 @@ var FlipkartImporter = class extends BaseImporter {
   }
   async importProduct(url) {
     const html = await this.fetchPage(url);
-    const embedded = this.extractEmbeddedState(html, [
-      /window\.__INITIAL_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s,
-      /window\.__PRELOADED_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s
-    ]);
-    if (embedded) {
-      return this.parseEmbeddedData(embedded, url);
-    }
+    const meta = this.extractMetaTags(html);
+    const $ = cheerio5.load(html);
+    const { title: metaTitle, brand: metaBrand } = this.parseFlipkartTitle(meta["og:title"]);
+    const structuredImages = meta["og:image"] ? [meta["og:image"]] : [];
+    const images = this.mergeImages(structuredImages, html, url);
+    const domPrice = this.extractPriceFromDom(html);
+    const description = this.extractDescriptionFromDom(html);
+    const pdp = this.findRealPdpNode(html);
     const jsonLd = this.extractJsonLd(html, "Product");
-    if (jsonLd?.name) {
-      return this.parseJsonLd(jsonLd, url);
-    }
-    return this.parseDom(html, url);
-  }
-  parseEmbeddedData(data, url) {
-    const pdp = this.deepFind(
-      data,
-      (node) => node && typeof node === "object" && (node.productName || node.title)
-    );
-    if (!pdp) return { retailer: "Flipkart", retailerUrl: url };
-    const images = (pdp?.images ?? []).map((img) => img?.url ?? img?.src ?? (typeof img === "string" ? img : null)).filter((s) => typeof s === "string" && s.startsWith("http"));
-    const sizes = (pdp?.sizes ?? []).map((s) => s?.displayId ?? s?.id ?? s).filter(Boolean);
+    const jsonLdOffers = jsonLd ? this.parseJsonLdOffer(jsonLd.offers) : {};
+    const price = domPrice ?? jsonLdOffers.price ?? this.parsePrice(String(pdp?.price?.finalPrice ?? pdp?.finalPrice ?? ""));
+    const sizes = (pdp?.sizes ?? []).map((s) => s?.displayId ?? s?.id ?? s).filter((s) => typeof s === "string");
     return {
-      brand: pdp?.brandName ?? pdp?.brand ?? void 0,
-      title: pdp?.productName ?? pdp?.title ?? void 0,
-      description: this.stripHtml(pdp?.description ?? pdp?.productDescription),
-      price: this.parsePrice(String(pdp?.price?.finalPrice ?? pdp?.finalPrice ?? "")),
-      originalPrice: this.parsePrice(String(pdp?.price?.mrp ?? pdp?.mrp ?? "")),
-      discountPercent: pdp?.price?.discountPercentage ?? void 0,
+      brand: metaBrand ?? pdp?.brandName ?? (jsonLd?.brand?.name ?? jsonLd?.brand) ?? void 0,
+      title: metaTitle ?? pdp?.productName ?? jsonLd?.name ?? $("h1").first().text().trim() ?? void 0,
+      description: description || this.stripHtml(pdp?.description ?? pdp?.productDescription) || this.stripHtml(jsonLd?.description) || void 0,
+      price,
+      originalPrice: jsonLdOffers.originalPrice ?? this.parsePrice(String(pdp?.price?.mrp ?? pdp?.mrp ?? "")),
       images: images.length > 0 ? images : void 0,
       sizes: sizes.length > 0 ? sizes : void 0,
       colors: pdp?.colour ? [pdp.colour] : void 0,
@@ -1945,38 +1994,36 @@ var FlipkartImporter = class extends BaseImporter {
       retailerUrl: url
     };
   }
-  parseJsonLd(data, url) {
-    const offers = this.parseJsonLdOffer(data.offers);
-    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
-    return {
-      brand: data.brand?.name ?? data.brand ?? void 0,
-      title: data.name ?? void 0,
-      description: this.stripHtml(data.description),
-      ...offers,
-      images,
-      material: data.material ?? void 0,
-      averageRating: data.aggregateRating?.ratingValue ? Number(data.aggregateRating.ratingValue) : void 0,
-      reviewsCount: data.aggregateRating?.reviewCount ? Number(data.aggregateRating.reviewCount) : void 0,
-      retailer: "Flipkart",
-      retailerUrl: url
-    };
+  /**
+   * Flipkart's <title>/og:title is consistently formatted as
+   * "{Product Title} - Buy {Product Title} Online at Best Prices in India | Flipkart.com".
+   * Strips the marketing boilerplate, and lifts a leading ALL-CAPS run
+   * (Flipkart lists most brand names in caps, e.g. "METRONAUT Men…") as the
+   * brand. Returns nothing rather than guessing wrong for lowercase/mixed
+   * case brand names — the admin fills those in manually, same as today.
+   */
+  parseFlipkartTitle(raw) {
+    if (!raw) return {};
+    const title = raw.split(/\s+-\s+Buy\s+/i)[0].trim();
+    if (!title) return {};
+    const brandMatch = title.match(/^([A-Z0-9&]+(?:\s[A-Z0-9&]+){0,2})\s+(?=[A-Z][a-z])/);
+    return { title, brand: brandMatch?.[1] };
   }
-  parseDom(html, url) {
-    const $ = cheerio5.load(html);
-    const meta = this.extractMetaTags(html);
-    const title = $("span.B_NuCI").text().trim() || meta["og:title"] || void 0;
-    const price = this.parsePrice($("div._30jeq3._16Jk6d").first().text() || meta["product:price:amount"]);
-    const brand = $("span.G6XhRU").text().trim() || void 0;
-    const images = meta["og:image"] ? [meta["og:image"]] : [];
-    return {
-      brand,
-      title,
-      price,
-      description: meta["og:description"] ?? void 0,
-      images: images.length > 0 ? images : void 0,
-      retailer: "Flipkart",
-      retailerUrl: url
-    };
+  /**
+   * Looks for a genuine PDP object in window.__INITIAL_STATE__ — requires
+   * `productName` specifically (not the generic `.title` key that nav/widget
+   * tiles also use) so a category-nav entry can never match.
+   */
+  findRealPdpNode(html) {
+    const embedded = this.extractEmbeddedState(html, [
+      /window\.__INITIAL_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s,
+      /window\.__PRELOADED_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s
+    ]);
+    if (!embedded) return null;
+    return this.deepFind(
+      embedded,
+      (node) => node && typeof node === "object" && typeof node.productName === "string" && (node.price || node.sizes || node.pageUrl)
+    );
   }
   /** Deep searches an object tree for the first node matching a predicate */
   deepFind(obj, predicate, depth = 0) {
@@ -2016,10 +2063,8 @@ var HmImporter = class extends BaseImporter {
   }
   parseJsonLd(data, url, html) {
     const offers = this.parseJsonLdOffer(data.offers);
-    let images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const structuredImages = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    const images = this.mergeImages(structuredImages, html, url);
     const sizes = [];
     if (Array.isArray(data.offers)) {
       data.offers.forEach((offer) => {
@@ -2053,13 +2098,11 @@ var HmImporter = class extends BaseImporter {
   }
   parseNextData(data, url, html) {
     const product = data?.props?.pageProps?.product ?? data?.props?.pageProps?.initialData?.product ?? data;
-    let images = (product?.images ?? product?.galleryImages ?? []).map((img) => {
+    const structuredImages = (product?.images ?? product?.galleryImages ?? []).map((img) => {
       const src = img?.url ?? img?.src ?? img?.baseUrl;
       return src?.startsWith("http") ? src : src ? `https:${src}` : null;
     }).filter(Boolean);
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const images = this.mergeImages(structuredImages, html, url);
     const sizes = (product?.variants ?? product?.sizes ?? []).map((v) => v?.size ?? v?.value ?? v?.label).filter(Boolean);
     const description = this.stripHtml(product?.description ?? product?.longDescription) || this.extractDescriptionFromDom(html);
     return {
@@ -2256,10 +2299,8 @@ var GenericImporter = class extends BaseImporter {
   }
   parseJsonLd(data, url, html) {
     const offers = this.parseJsonLdOffer(data.offers);
-    let images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const structuredImages = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    const images = this.mergeImages(structuredImages, html, url);
     const sizes = [];
     const colors = [];
     if (Array.isArray(data.offers)) {
@@ -2288,14 +2329,12 @@ var GenericImporter = class extends BaseImporter {
   parseNextData(data, url, html, retailerName) {
     const product = data?.props?.pageProps?.product ?? data?.props?.pageProps?.data?.product ?? data?.props?.pageProps?.productDetails ?? data?.props?.pageProps?.initialData?.product;
     if (!product) return { retailer: retailerName, retailerUrl: url };
-    let images = (product?.images ?? product?.media ?? product?.gallery ?? []).map((img) => {
+    const structuredImages = (product?.images ?? product?.media ?? product?.gallery ?? []).map((img) => {
       const src = img?.url ?? img?.src ?? img?.imageURL ?? (typeof img === "string" ? img : null);
       if (!src) return null;
       return src.startsWith("http") ? src : src.startsWith("//") ? `https:${src}` : null;
     }).filter(Boolean);
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const images = this.mergeImages(structuredImages, html, url);
     const description = this.stripHtml(product?.description ?? product?.shortDescription) || this.extractDescriptionFromDom(html);
     return {
       brand: product?.brand?.name ?? product?.brandName ?? product?.brand ?? void 0,
@@ -2583,6 +2622,54 @@ function wellnessTypesFor(category) {
   return Array.from(new Set(WELLNESS_CATEGORIES.flatMap((c) => c.types)));
 }
 
+// src/lib/garmentVersatility.ts
+var GENERAL_OCCASIONS = [
+  "Daily Wear",
+  "Office",
+  "Travel",
+  "Date Night",
+  "Party",
+  "Outdoor",
+  "Business Casual",
+  "Work From Home",
+  "Vacation"
+];
+var NON_WINTER_SEASONS = ["Summer", "Monsoon", "Spring", "Autumn", "All Season"];
+var ALL_SEASONS = ["Summer", "Winter", "Monsoon", "Spring", "Autumn", "All Season"];
+var VERSATILE = {
+  "T-Shirt": { categories: ["Casual Wear", "Athleisure", "Streetwear"], occasions: GENERAL_OCCASIONS, seasons: NON_WINTER_SEASONS },
+  "Polo": { categories: ["Casual Wear", "Business Casual"], occasions: GENERAL_OCCASIONS, seasons: NON_WINTER_SEASONS },
+  "Henley": { categories: ["Casual Wear"], occasions: GENERAL_OCCASIONS, seasons: NON_WINTER_SEASONS },
+  "Shirt": { categories: ["Formal Wear", "Business Casual", "Casual Wear"], occasions: GENERAL_OCCASIONS, seasons: ALL_SEASONS },
+  "Jeans": { categories: ["Casual Wear", "Streetwear"], occasions: GENERAL_OCCASIONS, seasons: ALL_SEASONS },
+  "Chinos": { categories: ["Casual Wear", "Business Casual"], occasions: GENERAL_OCCASIONS, seasons: ALL_SEASONS },
+  "Joggers": { categories: ["Athleisure", "Casual Wear", "Streetwear"], occasions: ["Daily Wear", "Gym", "Travel", "Outdoor", "Work From Home", "Vacation"], seasons: ALL_SEASONS },
+  "Cargo Pants": { categories: ["Streetwear", "Casual Wear"], occasions: ["Daily Wear", "Travel", "Outdoor", "Vacation"], seasons: ALL_SEASONS },
+  "Sneakers": { categories: ["Casual Wear", "Athleisure", "Streetwear"], occasions: ["Daily Wear", "Gym", "Travel", "Outdoor", "Vacation"], seasons: ALL_SEASONS }
+};
+var NARROW = {
+  "Trousers": { categories: ["Formal Wear", "Business Casual"], occasions: ["Office", "Business Casual", "Party"], seasons: ["All Season"] },
+  "Shorts": { categories: ["Casual Wear", "Athleisure"], occasions: ["Daily Wear", "Gym", "Vacation", "Outdoor"], seasons: ["Summer", "Monsoon"] },
+  "Kurta": { categories: ["Ethnic Wear"], occasions: ["Wedding", "Festive", "Daily Wear"], seasons: ["All Season"] },
+  "Kurta Set": { categories: ["Ethnic Wear"], occasions: ["Wedding", "Festive"], seasons: ["All Season"] },
+  "Nehru Jacket": { categories: ["Ethnic Wear"], occasions: ["Wedding", "Festive", "Party"], seasons: ["All Season"] },
+  "Hoodie": { categories: ["Streetwear", "Winter Wear"], occasions: ["Daily Wear", "Travel", "Outdoor", "Work From Home"], seasons: ["Winter", "Monsoon", "Autumn"] },
+  "Sweatshirt": { categories: ["Streetwear", "Winter Wear"], occasions: ["Daily Wear", "Travel", "Work From Home"], seasons: ["Winter", "Monsoon", "Autumn"] },
+  "Jacket": { categories: ["Winter Wear", "Outdoor Wear"], occasions: ["Travel", "Outdoor", "Daily Wear"], seasons: ["Winter", "Monsoon"] },
+  "Overshirt": { categories: ["Streetwear", "Casual Wear"], occasions: ["Daily Wear", "Travel"], seasons: ["Winter", "Autumn", "Spring"] },
+  "Formal Shoes": { categories: ["Formal Wear", "Business Casual"], occasions: ["Office", "Wedding", "Party", "Business Casual"], seasons: ["All Season"] },
+  "Loafers": { categories: ["Formal Wear", "Business Casual"], occasions: ["Office", "Party", "Business Casual"], seasons: ["All Season"] },
+  "Boots": { categories: ["Streetwear", "Outdoor Wear"], occasions: ["Travel", "Outdoor", "Daily Wear"], seasons: ["Winter", "Monsoon"] },
+  "Belt": { categories: ["Formal Wear", "Casual Wear"], occasions: ["Office", "Daily Wear"], seasons: ["All Season"] },
+  "Cap": { categories: ["Casual Wear", "Athleisure"], occasions: ["Daily Wear", "Travel", "Gym", "Outdoor"], seasons: ["Summer", "Monsoon"] },
+  "Wallet": { categories: ["Formal Wear", "Casual Wear"], occasions: ["Office", "Daily Wear"], seasons: ["All Season"] },
+  "Socks": { categories: ["Casual Wear"], occasions: ["Daily Wear"], seasons: ["All Season"] }
+};
+function getGarmentVersatilityDefaults(productType) {
+  if (!productType) return null;
+  return VERSATILE[productType] ?? NARROW[productType] ?? null;
+}
+
 // src/expressApp.ts
 var __dirname = "";
 try {
@@ -2799,6 +2886,7 @@ app.post(
           success: true,
           source: "gemini-3.5-flash",
           vertical,
+          scrapeBlocked: isBlocked,
           ...parsedResult,
           images: scraped.images && scraped.images.length > 0 ? scraped.images : parsedResult.images || []
         });
@@ -2808,7 +2896,7 @@ app.post(
     }
     try {
       const fallbackResult = vertical === "wellness" ? runWellnessFallbackParser(scraped, parsedUrl.href, retailerName) : runFallbackParser(scraped, parsedUrl.href, retailerName);
-      return res.json(fallbackResult);
+      return res.json({ ...fallbackResult, scrapeBlocked: isBlocked });
     } catch (err) {
       return res.status(502).json({
         success: false,
@@ -3193,7 +3281,7 @@ function detectSegmentAndType(title, category, subCategory) {
     productSegment = "Accessories";
     productType = text.includes("belt") ? "Belt" : text.includes("cap") ? "Cap" : text.includes("wallet") ? "Wallet" : "Socks";
   } else {
-    productType = text.includes("shirt") ? "Shirt" : text.includes("polo") ? "Polo" : text.includes("henley") ? "Henley" : "T-Shirt";
+    productType = text.includes("polo") ? "Polo" : text.includes("henley") ? "Henley" : text.includes("shirt") ? "Shirt" : "T-Shirt";
   }
   return { productSegment, productType };
 }
@@ -3300,8 +3388,11 @@ app.post(
           curated.category || "",
           curated.subCategory || ""
         );
-        const categories = isWellness ? [wellnessCategory] : mapCuratedDataToCategories(curated.category || "");
+        const versatility = isWellness ? null : getGarmentVersatilityDefaults(productType);
+        const categories = isWellness ? [wellnessCategory] : [.../* @__PURE__ */ new Set([...versatility?.categories ?? [], ...mapCuratedDataToCategories(curated.category || "")])];
         const sizes = isWellness ? [] : getSizeOptionsServer(productSegment).slice(0, 4);
+        const mergedOccasions = [.../* @__PURE__ */ new Set([...versatility?.occasions ?? [], ...curated.occasions || []])];
+        const mergedSeasons = [.../* @__PURE__ */ new Set([...versatility?.seasons ?? [], ...curated.seasons || []])];
         const slugId = (curated.title || "product").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 55);
         const newProduct = {
           id: `${slugId}-${Date.now().toString().slice(-5)}`,
@@ -3314,8 +3405,8 @@ app.post(
           productSegment,
           productType,
           images: curated.images || [],
-          occasions: isWellness ? [] : curated.occasions || ["Daily Wear"],
-          seasons: isWellness ? [] : curated.seasons || ["All Season"],
+          occasions: isWellness ? [] : mergedOccasions.length > 0 ? mergedOccasions : ["Daily Wear"],
+          seasons: isWellness ? [] : mergedSeasons.length > 0 ? mergedSeasons : ["All Season"],
           colors: isWellness ? [] : curated.colors || [],
           sizes,
           fitType: isWellness ? "" : "Regular Tall",
@@ -3342,7 +3433,6 @@ app.post(
           reviewsCount: 0,
           averageRating: 0,
           outOfStock: false,
-          discountPercent: 0,
           verificationBadges: [],
           measurements: {},
           merchantLinks2: void 0
@@ -3353,7 +3443,7 @@ app.post(
           const isDup = saveResult.error.includes("already exists");
           results.push({ url, success: isDup ? false : false, duplicate: isDup, error: saveResult.error });
         } else {
-          results.push({ url, success: true, savedId: saveResult.product?.id, noAffiliate: !affiliateInfo.affiliateGenerated });
+          results.push({ url, success: true, savedId: saveResult.product?.id, noAffiliate: !affiliateInfo.affiliateGenerated, scrapeBlocked: isBlocked });
         }
       } catch (err) {
         console.error(`[BulkImport] Save failed for ${url}:`, err?.message);

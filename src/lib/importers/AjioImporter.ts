@@ -39,13 +39,10 @@ export class AjioImporter extends BaseImporter {
 
   private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
-    let images = Array.isArray(data.image)
+    const structuredImages = Array.isArray(data.image)
       ? data.image.filter((i: any) => typeof i === 'string')
       : data.image ? [data.image] : [];
-
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const images = this.mergeImages(structuredImages, html, url);
 
     const sizes: string[] = [];
     if (Array.isArray(data.offers)) {
@@ -92,13 +89,10 @@ export class AjioImporter extends BaseImporter {
       }
     }
 
-    let images = (productData?.images ?? productData?.media ?? [])
+    const structuredImages = (productData?.images ?? productData?.media ?? [])
       .map((img: any) => img?.url ?? img?.src ?? img)
       .filter((src: any) => typeof src === 'string' && src.startsWith('http'));
-
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const images = this.mergeImages(structuredImages, html, url);
 
     // AJIO prices are nested objects: e.g. price: { value: 1299, formattedValue: "Rs. 1,299" }
     const priceVal = productData?.price?.value ?? productData?.salePrice ?? productData?.price;

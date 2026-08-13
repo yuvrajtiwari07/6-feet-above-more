@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../supabase';
-import { Ruler, Heart, Sparkles, Search, User, ChevronDown, Smartphone, Shirt, Leaf } from 'lucide-react';
+import { Ruler, Heart, Sparkles, Search, User, ChevronDown, Smartphone, Shirt, Leaf, X } from 'lucide-react';
 
 const ANDROID_APK_URL = supabase.storage.from('downloads').getPublicUrl('6feetabove-more.apk').data.publicUrl;
 
 export const Header: React.FC = () => {
   const { height, setHeight, navigate, savedProductIds, savedFitIds, route, user, vertical, setVertical, isWellness } = useApp();
   const [showHeightMenu, setShowHeightMenu] = useState(false);
+  const [searchInput, setSearchInput] = useState(route.current === 'search' ? (route.params?.query ?? '') : '');
 
   const totalSaved = savedProductIds.length + savedFitIds.length;
   const heightOptions = ["6'0", "6'1", "6'2", "6'3", "6'4", "6'5", "6'6+"];
@@ -17,54 +18,31 @@ export const Header: React.FC = () => {
     { key: 'wellness' as const, label: 'Nutrition & Health', sub: 'for everyone', icon: Leaf, active: 'bg-[#0E7C5A] text-white border-black' },
   ];
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate('search', searchInput.trim() ? { query: searchInput.trim() } : {});
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/90 text-near-black backdrop-blur-xl border-b border-near-black/5 px-4 md:px-8 py-3 transition-all shadow-sm">
-
-      {/* Storefront switcher — swaps the whole catalogue */}
-      <div className="w-full max-w-none mx-auto flex items-center gap-2 mb-2.5 overflow-x-auto scroller-hide">
-        {VERTICALS.map(v => {
-          const Icon = v.icon;
-          const isActive = vertical === v.key;
-          return (
-            <button
-              key={v.key}
-              onClick={() => setVertical(v.key)}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-xl border-2 transition-all shrink-0 ${
-                isActive ? `${v.active} shadow-sm` : 'bg-black/5 text-black/55 border-transparent hover:bg-black/10'
-              }`}
-              id={`vertical-switch-${v.key}`}
-              aria-pressed={isActive}
-            >
-              <Icon size={14} className={isActive ? '' : 'opacity-70'} />
-              <span className="font-grotesk font-black text-[11px] uppercase tracking-wider whitespace-nowrap">{v.label}</span>
-              <span className={`hidden sm:inline text-[9px] font-bold uppercase tracking-widest ${isActive ? 'opacity-60' : 'opacity-45'}`}>
-                {v.sub}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="w-full max-w-none mx-auto flex items-center justify-between gap-2">
+    <header className="sticky top-0 z-40 w-full bg-white/90 text-near-black backdrop-blur-xl border-b border-near-black/5 transition-all shadow-sm">
+      <div className="w-full max-w-none mx-auto px-4 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
 
         {/* Brand Block */}
-        <div 
-          onClick={() => navigate('home')} 
-          className="cursor-pointer group flex items-center gap-3"
+        <div
+          onClick={() => navigate('home')}
+          className="cursor-pointer group flex items-center gap-2.5 shrink-0"
           id="lamba-logo-btn"
         >
-          {/* Logo Icon representation of 6FEETABOVE (Styled from uploaded assets) */}
-          <div className="relative w-10 h-10 flex items-center justify-center bg-black border border-black rounded-xl shadow-sm group-hover:scale-105 transition-transform duration-300">
-            <svg viewBox="0 0 100 100" className="w-7 h-7 text-white fill-none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round">
+          <div className="relative w-9 h-9 flex items-center justify-center bg-black border border-black rounded-lg shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0">
+            <svg viewBox="0 0 100 100" className="w-6 h-6 text-white fill-none" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="50" cy="65" r="20" className="stroke-[#FFD43B]" fill="none" />
               <path d="M30 65 C30 44, 44 24, 62 24" className="stroke-[#FFD43B]" />
               <path d="M48 24 L62 24 L62 38" className="stroke-[#FFCC00]" strokeWidth="8" />
               <path d="M78 12 L81 19 L88 22 L81 25 L78 32 L75 25 L68 22 L75 19 Z" fill="#FFD43B" stroke="none" />
             </svg>
           </div>
-          
-          <div className="flex flex-col text-left">
-            <span className="font-extrabold tracking-tighter text-md md:text-xl leading-none select-none font-display text-black">
+          <div className="hidden sm:flex flex-col text-left">
+            <span className="font-extrabold tracking-tighter text-md leading-none select-none font-display text-black">
               6Feet<span className="text-[#D5A021] font-extrabold">n</span>Above
             </span>
             <span className="text-[8px] uppercase tracking-[0.2em] text-black/40 font-black font-grotesk mt-0.5 leading-none">
@@ -73,115 +51,83 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Desktop Quick Search & Heights */}
-        <div className="hidden md:flex items-center gap-6">
-          <button 
-            onClick={() => navigate('search')}
-            className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#D5A021] transition ${route.current === 'search' ? 'text-[#D5A021]' : ''}`}
-            id="desktop-search-btn"
-          >
-            <Search size={15} />
-            {isWellness ? 'Browse Store' : 'Translate Search'}
-          </button>
-          
-          <button
-            onClick={() => navigate('catalog-categories')}
-            className={`flex items-center gap-2 text-sm font-grotesk font-black uppercase tracking-wider text-black/75 hover:text-[#D5A021] transition ${route.current === 'catalog-categories' || route.current === 'catalog-list' || route.current === 'catalog-detail' ? 'text-[#D5A021]' : ''}`}
-            id="desktop-catalogs-btn"
-          >
-            <Sparkles size={15} />
-            Catalogs
-          </button>
+        {/* Storefront switcher */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scroller-hide">
+          {VERTICALS.map(v => {
+            const Icon = v.icon;
+            const isActive = vertical === v.key;
+            return (
+              <button
+                key={v.key}
+                onClick={() => setVertical(v.key)}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border-2 transition-all shrink-0 ${
+                  isActive ? `${v.active} shadow-sm` : 'bg-black/5 text-black/55 border-transparent hover:bg-black/10'
+                }`}
+                id={`vertical-switch-${v.key}`}
+                aria-pressed={isActive}
+              >
+                <Icon size={13} className={isActive ? '' : 'opacity-70'} />
+                <span className="font-grotesk font-black text-[10px] sm:text-[11px] uppercase tracking-wider whitespace-nowrap">{v.label}</span>
+                <span className={`hidden lg:inline text-[9px] font-bold uppercase tracking-widest ${isActive ? 'opacity-60' : 'opacity-45'}`}>
+                  {v.sub}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Android App Download */}
-        <a
-          href={ANDROID_APK_URL}
-          download
-          className="flex items-center justify-center gap-1.5 bg-black hover:bg-[#D5A021] text-white text-[11px] font-grotesk font-black uppercase tracking-wider px-2.5 sm:px-3 py-2 rounded-xl border border-black shadow-sm transition shrink-0"
-          id="header-download-app-btn"
-          title="Download the Android app (APK)"
-        >
-          <Smartphone size={14} className="text-[#FFD43B]" />
-          <span className="hidden sm:inline">Download App</span>
-        </a>
-
-        {/* Global Controls */}
-        <div className="flex items-center gap-3">
-          
-          {/* Height Pill Selector — fashion only; wellness has no height gate */}
+        {/* Right controls: height, saved, profile */}
+        <div className="flex items-center gap-2 ml-auto md:ml-0">
           {!isWellness && (
-          <div className="relative">
-            <button
-               onClick={() => setShowHeightMenu(!showHeightMenu)}
-              className="flex items-center gap-1.5 bg-black hover:bg-[#FFD43B] text-black text-white font-grotesk font-black text-xs px-3 py-2 rounded-xl transition border border-black shadow"
-              id="global-height-pill"
-            >
-              <Ruler size={13} className="text-[#FFCC00]" />
-              <span>{height} Fit Selected</span>
-              <ChevronDown size={13} className={`transition-transform duration-300 ${showHeightMenu ? 'rotate-180' : ''}`} />
-            </button>
+            <div className="relative hidden md:block">
+              <button
+                onClick={() => setShowHeightMenu(!showHeightMenu)}
+                className="flex items-center gap-1.5 bg-black hover:bg-[#FFD43B] hover:text-black text-white font-grotesk font-black text-xs px-3 py-2 rounded-lg transition border border-black shadow"
+                id="global-height-pill"
+              >
+                <Ruler size={13} className="text-[#FFCC00]" />
+                <span>{height}</span>
+                <ChevronDown size={13} className={`transition-transform duration-300 ${showHeightMenu ? 'rotate-180' : ''}`} />
+              </button>
 
-            {/* Heights Dropdown List */}
-            {showHeightMenu && (
-              <>
-                <div 
-                  className="fixed inset-0 z-40" 
-                  onClick={() => setShowHeightMenu(false)}
-                />
-                <div className="absolute right-0 mt-2 w-48 bg-white border-2 border-black rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-3 duration-200">
-                  <div className="px-3 py-2 text-[10px] uppercase tracking-wider text-black/40 font-bold mb-1 border-b border-black/10">
-                    Select Your Accurate Height
+              {showHeightMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowHeightMenu(false)} />
+                  <div className="absolute right-0 mt-2 w-48 bg-white border-2 border-black rounded-xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-3 duration-200">
+                    <div className="px-3 py-2 text-[10px] uppercase tracking-wider text-black/40 font-bold mb-1 border-b border-black/10">
+                      Select Your Accurate Height
+                    </div>
+                    {heightOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => { setHeight(opt); setShowHeightMenu(false); }}
+                        className={`w-full text-left px-3 py-2 text-xs rounded-lg font-grotesk font-bold transition uppercase ${
+                          height === opt ? 'bg-[#FFD43B] text-black font-black shadow-sm' : 'text-black hover:bg-black/5'
+                        }`}
+                      >
+                        {opt} {opt.includes('+') ? '' : 'Tall'}
+                      </button>
+                    ))}
                   </div>
-                  {heightOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => {
-                        setHeight(opt);
-                        setShowHeightMenu(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-xs rounded-xl font-grotesk font-bold transition uppercase ${
-                        height === opt 
-                          ? 'bg-[#FFD43B] text-black text-white font-black shadow-sm' 
-                          : 'text-black hover:bg-black/5'
-                      }`}
-                    >
-                      {opt} {opt.includes('+') ? '' : 'Tall'}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
           )}
 
-          {/* Quick Fit Finder CTA — fashion only */}
-          {!isWellness && (
-          <button
-            onClick={() => navigate('fit-finder')}
-            className={`hidden md:flex items-center gap-1.5 bg-[#FFD43B] text-black text-white text-xs font-grotesk font-black tracking-wide uppercase px-4 py-2.5 rounded-xl border border-black shadow-sm hover:scale-102 transition ${route.current === 'fit-finder' ? 'ring-2 ring-black' : ''}`}
-            id="header-fitfinder-btn"
-          >
-            Fit Finder (99% Match)
-          </button>
-          )}
-
-          {/* Saved Folder Counter */}
           <button
             onClick={() => navigate('saved')}
-            className="p-2 relative bg-black/5 hover:bg-black/10 rounded-xl transition text-black"
+            className="p-2 relative bg-black/5 hover:bg-black/10 rounded-lg transition text-black"
             title="Saved wardrobes"
             id="header-saved-btn"
           >
             <Heart size={18} className={totalSaved > 0 ? 'fill-[#FFD43B] text-[#D5A021]' : ''} />
             {totalSaved > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#FFD43B] text-black text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce border border-white">
+              <span className="absolute -top-1 -right-1 bg-[#FFD43B] text-black text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce border border-white">
                 {totalSaved}
               </span>
             )}
           </button>
 
-          {/* User profile button */}
           <button
             onClick={() => navigate('profile')}
             className={`p-0.5 bg-black/5 hover:bg-black/10 rounded-full transition text-black overflow-hidden flex items-center justify-center ${route.current === 'profile' ? 'ring-2 ring-[#FFD43B]' : ''}`}
@@ -190,13 +136,76 @@ export const Header: React.FC = () => {
             {user && user.photoURL ? (
               <img src={user.photoURL} alt={user.displayName || 'Profile'} className="w-8 h-8 object-cover rounded-full" referrerPolicy="no-referrer" />
             ) : (
-              <div className="p-2">
-                <User size={18} />
-              </div>
+              <div className="p-2"><User size={18} /></div>
             )}
           </button>
-
         </div>
+      </div>
+
+      {/* Second row: catalogs · prominent search · fit finder · get the app */}
+      <div className="w-full max-w-none mx-auto px-4 md:px-8 pb-2.5 flex items-center gap-2.5">
+        <button
+          onClick={() => navigate('catalog-categories')}
+          className={`hidden sm:flex items-center gap-1.5 shrink-0 text-xs font-grotesk font-black uppercase tracking-wider px-3 py-2.5 rounded-lg border transition ${
+            route.current === 'catalog-categories' || route.current === 'catalog-list' || route.current === 'catalog-detail'
+              ? 'border-black bg-black text-white'
+              : 'border-black/10 text-black/70 hover:border-black/30 hover:text-black'
+          }`}
+          id="desktop-catalogs-btn"
+        >
+          <Sparkles size={14} />
+          Catalogs
+        </button>
+
+        {/* The search page renders its own live search input as page content
+            right below this — showing a second one here would just be a
+            redundant duplicate, so skip it only on that one route. */}
+        {route.current !== 'search' && (
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-0">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-black/35 pointer-events-none" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder={isWellness
+              ? 'Search products, brands or ingredients (e.g. whey isolate, niacinamide)...'
+              : 'Search specifications (e.g. Linen shirt, Manyavar Kurta, 36L Inseam, hoodies Zara)...'}
+            className="w-full bg-black/5 hover:bg-black/[0.07] focus:bg-white border border-transparent focus:border-black/15 rounded-lg py-2.5 pl-10 pr-9 text-xs font-sans font-medium text-black placeholder-black/40 outline-none transition"
+            id="header-search-input"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-black/40 hover:text-black"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </form>
+        )}
+        {route.current === 'search' && <div className="flex-1 min-w-0" />}
+
+        {!isWellness && (
+          <button
+            onClick={() => navigate('fit-finder')}
+            className={`hidden lg:flex items-center gap-1.5 shrink-0 bg-[#FFD43B] text-black text-xs font-grotesk font-black tracking-wide uppercase px-4 py-2.5 rounded-lg border border-black shadow-sm hover:scale-102 transition ${route.current === 'fit-finder' ? 'ring-2 ring-black' : ''}`}
+            id="header-fitfinder-btn"
+          >
+            Fit Finder
+          </button>
+        )}
+
+        <a
+          href={ANDROID_APK_URL}
+          download
+          className="flex items-center justify-center gap-1.5 shrink-0 bg-black hover:bg-[#D5A021] text-white text-[11px] font-grotesk font-black uppercase tracking-wider px-3 py-2.5 rounded-lg border border-black shadow-sm transition"
+          id="header-download-app-btn"
+          title="Download the Android app (APK)"
+        >
+          <Smartphone size={14} className="text-[#FFD43B]" />
+          <span className="hidden sm:inline">Get The App</span>
+        </a>
       </div>
     </header>
   );

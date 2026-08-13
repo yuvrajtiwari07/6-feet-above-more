@@ -13,7 +13,7 @@ export const GridDensitySelector: React.FC = () => {
   ];
 
   return (
-    <View className="flex-row items-center gap-1 bg-[#112133]/5 rounded-xl p-1">
+    <View className="flex-row items-center gap-1 bg-[#112133]/5 rounded-lg p-1">
       {options.map(({ value, icon }) => (
         <Pressable
           key={value}

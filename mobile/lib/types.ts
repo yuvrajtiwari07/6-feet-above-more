@@ -63,7 +63,10 @@ export interface Product {
   verificationBadges?: string[];
   material?: string;
   tags?: string[];
+  /** @deprecated no longer displayed — we don't offer real discounts. Use `couponCode` instead. */
   discountPercent?: number;
+  /** A retailer/affiliate coupon buyers can apply at checkout, e.g. "TALL10". */
+  couponCode?: string;
   isFeatured?: boolean;
 
   // Tall-fit curation fields (fashion only)

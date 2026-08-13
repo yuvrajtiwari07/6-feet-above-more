@@ -20,10 +20,6 @@ function validateProduct(p: Partial<Product>): string | null {
   if (p.verifiedTier && !validTiers.includes(p.verifiedTier)) {
     return `verifiedTier must be one of: ${validTiers.join(', ')}`;
   }
-  const discountPercent = p.discountPercent;
-  if (discountPercent !== undefined && (discountPercent < 0 || discountPercent > 100)) {
-    return 'discountPercent must be between 0 and 100';
-  }
   return null;
 }
 
@@ -59,9 +55,15 @@ function sanitizeProduct(p: Product): Product {
     concerns:       (p.concerns ?? []).filter(Boolean),
     keyIngredients: (p.keyIngredients ?? []).filter(Boolean),
     dietTags:       (p.dietTags ?? []).filter(Boolean),
+    // We don't run real discounts — never persist a fabricated percentage.
+    discountPercent: undefined,
+    couponCode:     p.couponCode?.trim() || undefined,
     // A wellness product has no fit — never let a stale tall verdict ride along.
+    // "Verified tier" is fit-verification language too, so it's meaningless
+    // for wellness; force it to the neutral default instead of showing the
+    // fit-labeled picker in that form.
     ...(vertical === 'wellness'
-      ? { fitType: '', verdicts: [], measurements: {}, sizes: [], tallFriendly: false, heightRanges: [], bodyTypes: [], fitHighlights: [] }
+      ? { fitType: '', verdicts: [], measurements: {}, sizes: [], tallFriendly: false, heightRanges: [], bodyTypes: [], fitHighlights: [], verifiedTier: 'community' as const }
       : {}),
   };
 }

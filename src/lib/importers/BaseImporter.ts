@@ -12,20 +12,36 @@ export abstract class BaseImporter implements ProductImporter {
 
   // ─── Shared Fetch Utility ────────────────────────────────────────────────
 
+  // A handful of realistic desktop UAs, rotated per request. This does nothing
+  // against real bot-detection (Akamai/PerimeterX, which key off far more than
+  // the UA string and largely block by *datacenter IP range* — the reason
+  // scraping from a cloud host behaves differently than from a home IP), but
+  // it's a free, harmless improvement against basic UA-sniffing rate limits.
+  private static readonly USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  ];
+
   /**
    * Fetches the raw HTML of a page, mimicking a real browser request.
    */
   protected async fetchPage(url: string): Promise<string> {
+    const userAgent = BaseImporter.USER_AGENTS[Math.floor(Math.random() * BaseImporter.USER_AGENTS.length)];
     const response = await fetch(url, {
       headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'User-Agent': userAgent,
         'Accept':
           'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
+        'Referer': 'https://www.google.com/',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'cross-site',
+        'Upgrade-Insecure-Requests': '1',
       },
       redirect: 'follow',
       signal: AbortSignal.timeout(15000),
@@ -153,12 +169,18 @@ export abstract class BaseImporter implements ProductImporter {
 
   /**
    * Normalizes a JSON-LD offer block into price + discount.
+   * Some sites (esp. AggregateOffer) never set `price`, only `lowPrice`/`highPrice`,
+   * or nest the real offer one level down in an `offers` array — check all of them.
    */
   protected parseJsonLdOffer(offer: any): { price?: number; originalPrice?: number; discountPercent?: number } {
     if (!offer) return {};
 
-    const offers = Array.isArray(offer) ? offer[0] : offer;
-    const price = this.parsePrice(String(offers.price ?? ''));
+    let offers = Array.isArray(offer) ? offer[0] : offer;
+    if (Array.isArray(offers?.offers)) offers = offers.offers[0] ?? offers;
+
+    const price = this.parsePrice(
+      String(offers.price ?? offers.lowPrice ?? offers.offers?.[0]?.price ?? '')
+    );
     const highPrice = this.parsePrice(String(offers.highPrice ?? ''));
 
     let discountPercent: number | undefined;
@@ -167,6 +189,21 @@ export abstract class BaseImporter implements ProductImporter {
     }
 
     return { price, originalPrice: highPrice, discountPercent };
+  }
+
+  /**
+   * Merges images pulled from structured data (JSON-LD/embedded state) with a
+   * DOM gallery scan, deduped, capped to a sane count.
+   *
+   * Structured data on many sites (Shopify JSON-LD in particular) only exposes
+   * the single "featured image", not the full gallery — merging instead of only
+   * falling back when structured data is completely empty is what actually
+   * recovers the rest of the product photos.
+   */
+  protected mergeImages(structured: string[], html: string, urlStr: string, max = 12): string[] {
+    const domImages = this.extractImagesFromDom(html, urlStr);
+    const merged = [...new Set([...structured, ...domImages])];
+    return merged.slice(0, max);
   }
 
   /**
@@ -216,9 +253,18 @@ export abstract class BaseImporter implements ProductImporter {
 
       if (images.includes(fullSrc) || imageElements.includes(fullSrc)) return;
 
-      // Filter out tiny UI elements, icons, logos, trackers, stars
+      // Filter out tiny UI elements, icons, logos, trackers, stars.
+      // Product photography is essentially never SVG on any of these sites —
+      // SVG is what nav/header icon sprites use (e.g. Flipkart's whole
+      // static-assets-web.flixcart.com icon set: cart, gifts, help, rewards…
+      // matched the old generic "contains 'image'" rule since it's served
+      // from a path literally called /p/images/).
       const low = fullSrc.toLowerCase();
-      if (low.includes('logo') || low.includes('icon') || low.includes('tracker') || low.includes('star') || low.includes('banner') || low.includes('badge') || low.includes('placeholder')) {
+      if (
+        low.includes('logo') || low.includes('icon') || low.includes('tracker') ||
+        low.includes('star') || low.includes('banner') || low.includes('badge') ||
+        low.includes('placeholder') || /\.svg(\?|$)/.test(low)
+      ) {
         return;
       }
 
@@ -233,6 +279,13 @@ export abstract class BaseImporter implements ProductImporter {
         imageElements.push(fullSrc);
       } else if (urlStr.includes('zara.com') && (low.includes('zara.net') || low.includes('zara.com'))) {
         imageElements.push(fullSrc);
+      } else if (urlStr.includes('flipkart.com') && low.includes('rukminim')) {
+        // Flipkart's actual product-photo CDN (rukminim1/2/3.flixcart.com) —
+        // scoped explicitly so its separate UI-asset CDN never qualifies.
+        imageElements.push(fullSrc);
+      } else if (urlStr.includes('flipkart.com')) {
+        // Any other flixcart/flipkart-hosted asset on a PDP is UI chrome, not
+        // a product photo — skip rather than falling into the generic rule.
       } else if (low.includes('cdn') || low.includes('product') || low.includes('image') || low.includes('media') || low.includes('upload')) {
         if (!low.includes('avatar') && !low.includes('profile')) {
           imageElements.push(fullSrc);
@@ -268,19 +321,36 @@ export abstract class BaseImporter implements ProductImporter {
 
     // 2. Scan DOM elements for price content
     const priceSelectors = [
-      '.pdp-price', '.pdp-sp', '.price', '.sale-price', 
-      '[itemprop="price"]', '.product-price', '.current-price'
+      '.pdp-price', '.pdp-sp', '.price', '.sale-price', '.selling-price',
+      '.final-price', '.offer-price', '.discounted-price', '.current-price',
+      '[itemprop="price"]', '[data-price]', '[data-product-price]', '.product-price',
     ];
 
     for (const selector of priceSelectors) {
-      const text = $(selector).first().text();
-      const val = this.parsePrice(text);
+      const el = $(selector).first();
+      const val = this.parsePrice(el.attr('content') || el.attr('data-price') || el.text());
       if (val && val > 0) return val;
     }
 
-    // 3. Regex match for Rs. or ₹ in text (last resort)
+    // 3. Scan inline <script> JSON blobs for a plausible "price" key — many
+    // React/Next.js storefronts embed their state as JSON even when there is
+    // no dedicated __NEXT_DATA__ tag we recognize (custom hydration setups).
+    let scriptPrice: number | undefined;
+    $('script').each((_, el) => {
+      if (scriptPrice) return;
+      const content = $(el).html() ?? '';
+      if (content.length > 200000) return; // skip huge bundles, not data blobs
+      const m = content.match(/"(?:sellingPrice|salePrice|finalPrice|discountedPrice|price)"\s*:\s*"?(\d{2,7}(?:\.\d{1,2})?)"?/);
+      if (m && m[1]) {
+        const val = this.parsePrice(m[1]);
+        if (val && val > 0) scriptPrice = val;
+      }
+    });
+    if (scriptPrice) return scriptPrice;
+
+    // 4. Regex match for Rs. or ₹ in visible text (last resort)
     const textContent = $('body').text().slice(0, 10000);
-    const match = textContent.match(/(?:Rs\.?|₹)\s*([\d,]+(?:\.\d{2})?)/i);
+    const match = textContent.match(/(?:Rs\.?|₹|INR)\s*([\d,]+(?:\.\d{2})?)/i);
     if (match && match[1]) {
       const val = this.parsePrice(match[1]);
       if (val && val > 0) return val;

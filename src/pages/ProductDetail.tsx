@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { ProductCard } from '../components/product/ProductCard';
-import { 
+import {
   Heart, ExternalLink, Ruler, CheckCircle2, ChevronRight, ChevronLeft,
-  HelpCircle, ShieldCheck, AlertCircle, MessageSquare, Star, 
-  PlusCircle, Loader2, LogIn, Eye
+  HelpCircle, ShieldCheck, AlertCircle, MessageSquare, Star,
+  PlusCircle, Loader2, LogIn, Eye, Copy, Check
 } from 'lucide-react';
 import { getAccessToken } from '../supabase';
 import type { UserReview } from '../types';
@@ -26,6 +26,7 @@ export const ProductDetail: React.FC = () => {
   } = useApp();
 
   const [zoomImg, setZoomImg] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [reviews, setReviews] = useState<UserReview[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [avgRating, setAvgRating] = useState<number>(5.0);
@@ -370,24 +371,42 @@ export const ProductDetail: React.FC = () => {
               {product.title}
             </h1>
 
-            {/* Price Tag & Affiliate Info */}
-            <div className="flex items-baseline gap-3 mb-6">
+            {/* Price Tag & Affiliate Info — real retailer price only */}
+            <div className="flex items-baseline gap-3 mb-4">
               <span className="text-3xl font-black font-grotesk text-[#7D2AE8]">
                 ₹{product.priceAtRetailer.toLocaleString('en-IN')}
               </span>
-              {product.discountPercent ? (
-                <span className="text-emerald-600 text-sm font-bold bg-emerald-50 px-2 py-0.5 rounded">
-                  {product.discountPercent}% OFF
-                </span>
-              ) : null}
               <span className="text-[#112133]/40 text-xs font-sans">
                 (Est. affiliate pricing portal)
               </span>
             </div>
 
+            {/* Coupon code — a real code from the retailer, not a fabricated discount */}
+            {product.couponCode && (
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(product.couponCode!);
+                  setCodeCopied(true);
+                  setTimeout(() => setCodeCopied(false), 2000);
+                }}
+                className="flex items-center justify-between gap-3 w-full sm:w-auto bg-[#0E7C5A]/5 hover:bg-[#0E7C5A]/10 border-2 border-dashed border-[#0E7C5A]/30 rounded-2xl px-4 py-3 mb-6 transition"
+              >
+                <div className="text-left">
+                  <span className="block text-[9px] font-black uppercase tracking-widest text-[#0E7C5A]/70">
+                    Use this code at checkout
+                  </span>
+                  <span className="block font-mono font-black text-base text-[#0E7C5A] tracking-wider">
+                    {product.couponCode}
+                  </span>
+                </div>
+                {codeCopied ? <Check size={18} className="text-[#0E7C5A]" /> : <Copy size={16} className="text-[#0E7C5A]/60" />}
+              </button>
+            )}
+
             {/* Wellness spec sheet — replaces the tall-fit verdict card */}
             {isWellnessProduct && (
-              <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm text-left">
+              <div className="bg-white border border-[#112133]/15 rounded-[16px] p-6 mb-6 shadow-sm text-left">
                 <div className="flex items-center justify-between mb-4 border-b border-black/5 pb-3">
                   <span className="font-grotesk font-black text-[10px] uppercase tracking-wider text-[#112133]/50">
                     Product Facts
@@ -455,7 +474,7 @@ export const ProductDetail: React.FC = () => {
 
             {/* Prominent Sizing Verdict indicator — fashion only */}
             {!isWellnessProduct && (
-            <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm">
+            <div className="bg-white border border-[#112133]/15 rounded-[16px] p-6 mb-6 shadow-sm">
               <div className="flex items-center justify-between mb-3 border-b border-black/5 pb-3">
                 <span className="font-grotesk font-black text-[10px] uppercase tracking-wider text-[#112133]/50">
                   VERDICT FOR YOUR PROFILE
@@ -527,7 +546,7 @@ export const ProductDetail: React.FC = () => {
 
             {/* Measurement analyzer vs selected height (Only if measurements present) */}
             {!isWellnessProduct && product.measurements && Object.keys(product.measurements).length > 0 && (
-              <div className="bg-white border border-[#112133]/15 rounded-[24px] p-6 mb-6 shadow-sm">
+              <div className="bg-white border border-[#112133]/15 rounded-[16px] p-6 mb-6 shadow-sm">
                 <h3 className="font-grotesk font-black text-xs uppercase tracking-wide text-[#7D2AE8] mb-4 flex items-center gap-1.5 text-left">
                   <Ruler size={14} />
                   <span>PHYSICAL SPECIFICATIONS VS YOUR {height}" ANATOMY</span>
@@ -608,7 +627,7 @@ export const ProductDetail: React.FC = () => {
       </div>
 
       {/* USER REVIEWS SYSTEM (NEW) */}
-      <section className="mt-16 bg-white border border-[#112133]/15 rounded-[32px] p-6 md:p-8 shadow-sm">
+      <section className="mt-16 bg-white border border-[#112133]/15 rounded-[22px] p-6 md:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/10 pb-5 mb-8 gap-4">
           <div>
             <h2 className="font-display text-2xl uppercase font-black text-[#112133] flex items-center gap-2">

@@ -11,7 +11,7 @@ const MAX_URLS = 300;
 const BATCH = 5;
 
 type UrlStatus = 'pending' | 'processing' | 'done' | 'error';
-type BulkResult = { url: string; success: boolean; savedId?: string; duplicate?: boolean; noAffiliate?: boolean; error?: string };
+type BulkResult = { url: string; success: boolean; savedId?: string; duplicate?: boolean; noAffiliate?: boolean; scrapeBlocked?: boolean; error?: string };
 
 function extractUrls(text: string): string[] {
   const matches = text.match(/https?:\/\/[^\s,;"'<>\][\)]+/g) ?? [];
@@ -33,6 +33,7 @@ export default function BulkImportScreen() {
     duplicate: results.filter(r => !r.success && r.duplicate).length,
     failed: results.filter(r => !r.success && !r.duplicate).length,
     noAffiliate: results.filter(r => r.success && r.noAffiliate).length,
+    blocked: results.filter(r => r.success && r.scrapeBlocked).length,
   }), [results]);
 
   const run = async () => {
@@ -100,7 +101,7 @@ export default function BulkImportScreen() {
                   <Pressable
                     key={v.key}
                     onPress={() => setVertical(v.key)}
-                    className="flex-1 rounded-2xl border-2 px-3 py-2.5"
+                    className="flex-1 rounded-xl border-2 px-3 py-2.5"
                     style={{
                       backgroundColor: active ? '#7D2AE8' : '#FFFFFF',
                       borderColor: active ? '#7D2AE8' : 'rgba(0,0,0,0.12)',
@@ -129,13 +130,13 @@ export default function BulkImportScreen() {
               placeholderTextColor="#11213360"
               autoCapitalize="none"
               autoCorrect={false}
-              className="bg-white border border-black/10 rounded-2xl px-4 py-4 text-xs text-[#112133]"
+              className="bg-white border border-black/10 rounded-xl px-4 py-4 text-xs text-[#112133]"
               style={{ minHeight: 180, textAlignVertical: 'top' }}
             />
             <Text className="text-[10px] text-[#112133]/40 mt-2">{parsedUrls.length} URL{parsedUrls.length === 1 ? '' : 's'} detected</Text>
 
             <Pressable onPress={run} disabled={parsedUrls.length === 0}
-              className={`mt-5 py-4 rounded-2xl flex-row items-center justify-center gap-2 ${parsedUrls.length > 0 ? 'bg-[#7D2AE8]' : 'bg-[#112133]/10'}`}>
+              className={`mt-5 py-4 rounded-xl flex-row items-center justify-center gap-2 ${parsedUrls.length > 0 ? 'bg-[#7D2AE8]' : 'bg-[#112133]/10'}`}>
               <UploadCloud size={16} color={parsedUrls.length > 0 ? '#fff' : '#112133'} />
               <Text className={`font-black text-sm uppercase ${parsedUrls.length > 0 ? 'text-white' : 'text-[#112133]/30'}`}>
                 Import {parsedUrls.length || ''} Products
@@ -157,22 +158,28 @@ export default function BulkImportScreen() {
 
             {runStatus === 'done' && (
               <View className="flex-row flex-wrap gap-2 mb-4">
-                <View className="bg-green-50 rounded-xl px-3 py-2 flex-1 min-w-[45%]">
+                <View className="bg-green-50 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
                   <Text className="text-lg font-black text-green-600">{summary.saved}</Text>
                   <Text className="text-[9px] font-black uppercase text-green-600/70">Saved</Text>
                 </View>
-                <View className="bg-yellow-50 rounded-xl px-3 py-2 flex-1 min-w-[45%]">
+                <View className="bg-yellow-50 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
                   <Text className="text-lg font-black text-yellow-600">{summary.duplicate}</Text>
                   <Text className="text-[9px] font-black uppercase text-yellow-600/70">Already existed</Text>
                 </View>
-                <View className="bg-red-50 rounded-xl px-3 py-2 flex-1 min-w-[45%]">
+                <View className="bg-red-50 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
                   <Text className="text-lg font-black text-red-500">{summary.failed}</Text>
                   <Text className="text-[9px] font-black uppercase text-red-500/70">Failed</Text>
                 </View>
-                <View className="bg-[#112133]/5 rounded-xl px-3 py-2 flex-1 min-w-[45%]">
+                <View className="bg-[#112133]/5 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
                   <Text className="text-lg font-black text-[#112133]">{summary.noAffiliate}</Text>
                   <Text className="text-[9px] font-black uppercase text-[#112133]/50">No affiliate link</Text>
                 </View>
+                {summary.blocked > 0 && (
+                  <View className="bg-amber-50 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
+                    <Text className="text-lg font-black text-amber-600">{summary.blocked}</Text>
+                    <Text className="text-[9px] font-black uppercase text-amber-600/70">Blocked — check manually</Text>
+                  </View>
+                )}
               </View>
             )}
 
@@ -180,7 +187,7 @@ export default function BulkImportScreen() {
               const st = statuses[u] ?? 'pending';
               const result = results.find(r => r.url === u);
               return (
-                <View key={u} className="flex-row items-center gap-2 bg-white rounded-xl px-3 py-2.5 mb-1.5 border border-black/5">
+                <View key={u} className="flex-row items-center gap-2 bg-white rounded-lg px-3 py-2.5 mb-1.5 border border-black/5">
                   {st === 'processing' && <ActivityIndicator size="small" color="#7D2AE8" />}
                   {st === 'done' && <CheckCircle2 size={14} color="#22C55E" />}
                   {st === 'error' && <XCircle size={14} color="#EF4444" />}
@@ -189,13 +196,14 @@ export default function BulkImportScreen() {
                     <Text className="text-[10px] text-[#112133]" numberOfLines={1}>{u}</Text>
                     {!!result?.error && <Text className="text-[9px] text-red-500 mt-0.5" numberOfLines={1}>{result.error}</Text>}
                     {!!result?.duplicate && <Text className="text-[9px] text-yellow-600 mt-0.5">Already exists</Text>}
+                    {!!result?.scrapeBlocked && <Text className="text-[9px] text-amber-600 mt-0.5">Blocked by retailer — check images/price</Text>}
                   </View>
                 </View>
               );
             })}
 
             {runStatus === 'done' && (
-              <Pressable onPress={reset} className="mt-5 py-4 rounded-2xl bg-[#112133] items-center">
+              <Pressable onPress={reset} className="mt-5 py-4 rounded-xl bg-[#112133] items-center">
                 <Text className="text-white font-black text-xs uppercase">Import More</Text>
               </Pressable>
             )}

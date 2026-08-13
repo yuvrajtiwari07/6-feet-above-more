@@ -49,6 +49,7 @@ function rowToProduct(row: any): Product {
     material:            row.material,
     tags:                row.tags ?? [],
     discountPercent:     Number(row.discount_percent ?? 0),
+    couponCode:          row.coupon_code ?? '',
     isFeatured:          row.is_featured,
     // Tall-fit curation fields (fashion)
     tallFriendly:        row.tall_friendly ?? true,
@@ -137,11 +138,12 @@ export const productRepository = {
         average_rating, measurements, verdicts,
         material, tags, discount_percent, is_featured,
         tall_friendly, height_ranges, body_types, fit_highlights,
-        vertical, form, net_quantity, concerns, key_ingredients, diet_tags
+        vertical, form, net_quantity, concerns, key_ingredients, diet_tags,
+        coupon_code
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,
         $18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,
-        $35,$36,$37,$38,$39,$40
+        $35,$36,$37,$38,$39,$40,$41
       )
       ON CONFLICT (id) DO UPDATE SET
         brand = EXCLUDED.brand, title = EXCLUDED.title,
@@ -163,6 +165,7 @@ export const productRepository = {
       p.fitHighlights ?? [],
       p.vertical ?? 'fashion', p.form ?? null, p.netQuantity ?? null,
       p.concerns ?? [], p.keyIngredients ?? [], p.dietTags ?? [],
+      p.couponCode?.trim() || null,
     ];
     const rows = await query(text, params);
     return rowToProduct(rows[0]);
@@ -182,7 +185,7 @@ export const productRepository = {
       reviewsCount: 'reviews_count',
       averageRating: 'average_rating', measurements: 'measurements',
       verdicts: 'verdicts', material: 'material',
-      tags: 'tags', discountPercent: 'discount_percent',
+      tags: 'tags', discountPercent: 'discount_percent', couponCode: 'coupon_code',
       isFeatured: 'is_featured',
       tallFriendly: 'tall_friendly', heightRanges: 'height_ranges',
       bodyTypes: 'body_types', fitHighlights: 'fit_highlights',

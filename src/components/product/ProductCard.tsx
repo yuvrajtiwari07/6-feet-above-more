@@ -9,7 +9,7 @@ export const ProductCardSkeleton: React.FC<{ size?: 'small' | 'medium' | 'large'
   const isSm = size === 'small';
   return (
     <div className={`relative flex flex-col bg-white border border-black/10 overflow-hidden animate-pulse ${
-      isSm ? 'rounded-2xl' : 'rounded-[28px]'
+      isSm ? 'rounded-2xl' : 'rounded-[20px]'
     }`}>
       <div className={`aspect-[3/4] bg-neutral-200 ${isSm ? '' : ''}`} />
       <div className={`${isSm ? 'p-3' : 'p-5'} flex flex-col gap-3`}>
@@ -159,7 +159,6 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) 
     window.open(product.affiliateUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const memberPrice = Math.floor(product.priceAtRetailer * 0.88);
   const isSm = cardSize === 'small';
 
   return (
@@ -170,7 +169,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) 
       className={`group relative flex flex-col bg-white border border-[#111111]/12 overflow-hidden transition-all duration-300 ${
         isSm 
           ? 'rounded-2xl hover:pop-shadow-sm hover:-translate-y-0.5 p-0' 
-          : 'rounded-[28px] hover:pop-shadow hover:-translate-y-1'
+          : 'rounded-[20px] hover:pop-shadow hover:-translate-y-1'
       }`}
       onClick={handleCardClick}
       style={{ cursor: 'pointer' }}
@@ -279,24 +278,19 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product }) 
             {product.title}
           </h3>
  
-          {/* Pricing Row */}
+          {/* Pricing Row — real retailer price only, no invented MRP/discount */}
           <div className={`flex flex-col gap-0.5 ${isSm ? 'mb-2' : 'mb-3.5'}`}>
             <div className="flex items-baseline gap-1.5 flex-wrap">
               <span className={`font-black font-grotesk text-black ${isSm ? 'text-sm' : 'text-lg'}`}>
                 ₹{product.priceAtRetailer.toLocaleString('en-IN')}
               </span>
-              <span className="text-black/40 text-[10px] font-sans line-through">
-                ₹{Math.floor(product.priceAtRetailer * 1.3).toLocaleString('en-IN')}
-              </span>
-              <span className="text-[#D5A021] text-[10px] font-black">
-                (23%)
-              </span>
             </div>
-            {/* The Club Price Strip */}
-            <div className={`uppercase font-black text-[#D5A021] bg-[#FFD43B]/10 rounded border border-[#FFD43B]/20 flex items-center justify-between ${isSm ? 'text-[8px] p-0.5 mt-0.5 px-1' : 'text-[10px] p-1'}`}>
-              <span>Club:</span>
-              <span className={`font-mono font-bold text-black ${isSm ? 'text-[9.5px]' : 'text-[11px]'}`}>₹{memberPrice.toLocaleString('en-IN')}</span>
-            </div>
+            {product.couponCode && (
+              <div className={`uppercase font-black text-[#0E7C5A] bg-[#0E7C5A]/10 rounded border border-[#0E7C5A]/20 flex items-center justify-between ${isSm ? 'text-[8px] p-0.5 mt-0.5 px-1' : 'text-[10px] p-1'}`}>
+                <span>Code:</span>
+                <span className={`font-mono font-bold text-black ${isSm ? 'text-[9.5px]' : 'text-[11px]'}`}>{product.couponCode}</span>
+              </div>
+            )}
           </div>
  
           {/* Dynamic Verdict text strip */}

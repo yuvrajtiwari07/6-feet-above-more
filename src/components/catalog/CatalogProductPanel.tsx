@@ -37,10 +37,6 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
   const prevImg = useCallback(() => setImgIdx(i => (i - 1 + images.length) % images.length), [images.length]);
   const nextImg = useCallback(() => setImgIdx(i => (i + 1) % images.length), [images.length]);
 
-  const memberPrice = product.discountPercent
-    ? Math.round(product.priceAtRetailer * (1 - (product.discountPercent / 100)))
-    : null;
-
   const handleGenerateAffiliate = async () => {
     if (!product.affiliateUrl && !affiliateUrl) return;
     setGenLoading(true);
@@ -70,7 +66,7 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
   };
 
   return (
-    <div className="flex flex-col bg-white border-2 border-black rounded-[20px] overflow-hidden shadow-sm min-w-[300px] max-w-[400px]">
+    <div className="flex flex-col bg-white border-2 border-black rounded-[14px] overflow-hidden shadow-sm min-w-[300px] max-w-[400px]">
       {/* Image carousel */}
       <div className="relative aspect-[3/4] bg-black/5 overflow-hidden group">
         <AnimatePresence mode="wait">
@@ -153,18 +149,16 @@ const CatalogProductPanel: React.FC<Props> = ({ product, onNavigateToDetail }) =
           <h3 className="font-display font-black text-sm text-black leading-tight line-clamp-2">{product.title}</h3>
         </div>
 
-        {/* Pricing */}
+        {/* Pricing — real retailer price only, no invented MRP/discount */}
         <div className="flex items-baseline gap-2">
           <span className="font-display font-black text-lg text-black">₹{product.priceAtRetailer.toLocaleString()}</span>
-          {memberPrice && memberPrice < product.priceAtRetailer && (
-            <>
-              <span className="text-xs text-black/40 line-through">₹{product.priceAtRetailer.toLocaleString()}</span>
-              <span className="text-xs font-black text-[#D5A021] bg-[#FFD43B] text-black/10 px-1.5 py-0.5 rounded">
-                {product.discountPercent}% off
-              </span>
-            </>
-          )}
         </div>
+        {product.couponCode && (
+          <div className="flex items-center justify-between bg-[#0E7C5A]/5 border border-dashed border-[#0E7C5A]/30 rounded-lg px-2.5 py-1.5">
+            <span className="text-[9px] font-black uppercase text-[#0E7C5A]/70">Code</span>
+            <span className="text-[11px] font-mono font-black text-[#0E7C5A]">{product.couponCode}</span>
+          </div>
+        )}
 
         {/* Verdict note for user's height */}
         {recommendation && (

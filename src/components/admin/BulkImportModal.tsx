@@ -12,6 +12,8 @@ interface BulkImportResult {
   savedId?: string;
   duplicate?: boolean;
   noAffiliate?: boolean;
+  /** Retailer blocked the scraper — saved with a guessed title only, no real images/price. */
+  scrapeBlocked?: boolean;
   error?: string;
 }
 
@@ -209,6 +211,7 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onBulkSaveDone }) =>
   const dupCount     = results.filter(r => !r.success && r.duplicate).length;
   const failCount    = results.filter(r => !r.success && !r.duplicate).length;
   const noAffCount   = results.filter(r => r.success && r.noAffiliate).length;
+  const blockedCount = results.filter(r => r.success && r.scrapeBlocked).length;
   const successCount = savedCount;  // kept for footer button logic
   const errorCount   = failCount + dupCount;
   const maxLimit = activeTab === 'text' ? 50 : 300;
@@ -510,6 +513,15 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onBulkSaveDone }) =>
                     </div>
                   </div>
                 )}
+                {blockedCount > 0 && (
+                  <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-amber-50 border border-amber-200">
+                    <AlertTriangle size={18} className="text-amber-500 flex-shrink-0" />
+                    <div>
+                      <p className="font-black text-base text-amber-700 font-grotesk leading-none">{blockedCount}</p>
+                      <p className="text-[10px] text-amber-600/70 font-sans mt-0.5">Blocked — check manually</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Per-URL results list */}
@@ -532,6 +544,9 @@ export const BulkImportModal: React.FC<Props> = ({ onClose, onBulkSaveDone }) =>
                         )}
                         {r.success && r.noAffiliate && (
                           <span className="text-[9px] font-grotesk font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100 ml-1">No Aff.</span>
+                        )}
+                        {r.success && r.scrapeBlocked && (
+                          <span className="text-[9px] font-grotesk font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 ml-1">Blocked — check images/price</span>
                         )}
                         {!r.success && r.duplicate && (
                           <span className="text-[9px] font-grotesk font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Duplicate</span>

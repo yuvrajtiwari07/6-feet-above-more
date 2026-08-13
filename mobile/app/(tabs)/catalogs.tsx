@@ -70,7 +70,7 @@ export default function CatalogsScreen() {
               <Pressable
                 onPress={() => router.push(`/catalog-category/${encodeURIComponent(cat.name)}`)}
                 style={{ width: TILE_W, aspectRatio: 3 / 4, backgroundColor: theme.bg, marginBottom: GAP }}
-                className="rounded-3xl overflow-hidden border-2 border-black justify-end p-4"
+                className="rounded-2xl overflow-hidden border-2 border-black justify-end p-4"
               >
                 {!!cat.coverImage && (
                   <Image source={cat.coverImage} style={{ position: 'absolute', width: '100%', height: '100%', opacity: 0.25 }} contentFit="cover" />

@@ -128,7 +128,7 @@ export default function FitFinderScreen() {
               <Pressable
                 key={opt}
                 onPress={() => toggle(current.key, opt, current.multi)}
-                className={`flex-row items-center gap-2 px-5 py-3.5 rounded-2xl border-2 ${
+                className={`flex-row items-center gap-2 px-5 py-3.5 rounded-xl border-2 ${
                   active
                     ? 'bg-[#0F0F10] border-[#FFD43B]'
                     : 'bg-[#F9F8F6] border-transparent'
@@ -149,7 +149,7 @@ export default function FitFinderScreen() {
         <Pressable
           onPress={handleNext}
           disabled={!canAdvance()}
-          className={`py-4 rounded-2xl flex-row items-center justify-center gap-2 ${canAdvance() ? 'bg-[#FFD43B]' : 'bg-[#112133]/10'}`}
+          className={`py-4 rounded-xl flex-row items-center justify-center gap-2 ${canAdvance() ? 'bg-[#FFD43B]' : 'bg-[#112133]/10'}`}
         >
           <Text className={`font-black text-sm uppercase tracking-wider ${canAdvance() ? 'text-black' : 'text-[#112133]/30'}`}>
             {step === STEPS.length - 1 ? 'Find My Fits' : 'Next'}

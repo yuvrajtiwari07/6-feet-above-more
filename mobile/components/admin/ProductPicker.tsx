@@ -68,7 +68,7 @@ export const ProductPicker: React.FC<Props> = ({ products, selectedIds, onChange
 
       {/* Search + filter */}
       <View className="flex-row items-center gap-2 mb-2">
-        <View className="flex-1 flex-row items-center gap-2 bg-white border border-black/10 rounded-xl px-3 py-2.5">
+        <View className="flex-1 flex-row items-center gap-2 bg-white border border-black/10 rounded-lg px-3 py-2.5">
           <Search size={13} color="#11213360" />
           <TextInput
             value={search}
@@ -79,13 +79,13 @@ export const ProductPicker: React.FC<Props> = ({ products, selectedIds, onChange
           />
         </View>
         <Pressable onPress={() => setShowSelectedOnly(v => !v)}
-          className={`px-3 py-2.5 rounded-xl ${showSelectedOnly ? 'bg-[#7D2AE8]' : 'bg-white border border-black/10'}`}>
+          className={`px-3 py-2.5 rounded-lg ${showSelectedOnly ? 'bg-[#7D2AE8]' : 'bg-white border border-black/10'}`}>
           <Text className={`text-[10px] font-black uppercase ${showSelectedOnly ? 'text-white' : 'text-[#112133]/60'}`}>Selected</Text>
         </Pressable>
       </View>
 
       {/* Grid list */}
-      <View className="border border-black/10 rounded-2xl overflow-hidden" style={{ maxHeight: 320 }}>
+      <View className="border border-black/10 rounded-xl overflow-hidden" style={{ maxHeight: 320 }}>
         <FlatList
           data={filtered}
           keyExtractor={p => p.id}

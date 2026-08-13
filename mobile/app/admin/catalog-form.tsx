@@ -11,7 +11,7 @@ const FieldLabel: React.FC<{ children: string }> = ({ children }) => (
   <Text className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-1.5 mt-4">{children}</Text>
 );
 const Input: React.FC<React.ComponentProps<typeof TextInput>> = (props) => (
-  <TextInput placeholderTextColor="#11213360" className="bg-white border border-black/10 rounded-xl px-3.5 py-3 text-sm text-[#112133]" {...props} />
+  <TextInput placeholderTextColor="#11213360" className="bg-white border border-black/10 rounded-lg px-3.5 py-3 text-sm text-[#112133]" {...props} />
 );
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
 
@@ -92,7 +92,7 @@ export default function CatalogFormScreen() {
           <Text className="text-sm font-black uppercase tracking-wide text-[#112133]">Back</Text>
         </Pressable>
         <Text className="text-sm font-black uppercase text-[#112133]">{isEdit ? 'Edit Catalog' : 'Add Catalog'}</Text>
-        <Pressable onPress={handleSave} disabled={saving} className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3.5 py-2 rounded-xl">
+        <Pressable onPress={handleSave} disabled={saving} className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3.5 py-2 rounded-lg">
           {saving ? <ActivityIndicator size="small" color="#fff" /> : <Save size={13} color="#fff" />}
           <Text className="text-[11px] font-black uppercase text-white">Save</Text>
         </Pressable>
@@ -132,7 +132,7 @@ export default function CatalogFormScreen() {
         <View className="flex-row gap-2">
           <Input value={affiliateUrl} onChangeText={setAffiliateUrl} autoCapitalize="none" autoCorrect={false} keyboardType="url" style={{ flex: 1 }} />
           <Pressable onPress={handleGenerateAffiliate} disabled={generating}
-            className="px-4 items-center justify-center rounded-xl bg-[#112133]/5">
+            className="px-4 items-center justify-center rounded-lg bg-[#112133]/5">
             {generating ? <ActivityIndicator size="small" color="#7D2AE8" /> : <Wand2 size={16} color="#7D2AE8" />}
           </Pressable>
         </View>
@@ -140,7 +140,7 @@ export default function CatalogFormScreen() {
         <FieldLabel>Tags (comma separated)</FieldLabel>
         <Input value={tagsText} onChangeText={setTagsText} placeholder="office, essentials" />
 
-        <View className="flex-row items-center justify-between mt-4 bg-white rounded-xl px-4 py-3 border border-black/5">
+        <View className="flex-row items-center justify-between mt-4 bg-white rounded-lg px-4 py-3 border border-black/5">
           <Text className="text-xs font-bold text-[#112133]">Published</Text>
           <Switch value={isPublished} onValueChange={setIsPublished} trackColor={{ true: '#22C55E' }} />
         </View>

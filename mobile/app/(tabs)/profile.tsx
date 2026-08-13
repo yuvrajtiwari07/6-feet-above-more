@@ -55,15 +55,15 @@ export default function ProfileScreen() {
             </>
           )}
           <View className="flex-row gap-4 mt-5">
-            <View className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/10">
+            <View className="flex-1 bg-white/5 rounded-xl p-3 border border-white/10">
               <Text className="text-[#FFD43B] font-black text-xl">{savedProductIds.length}</Text>
               <Text className="text-white/50 text-[10px] font-bold uppercase tracking-widest mt-0.5">Saved</Text>
             </View>
-            <View className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/10">
+            <View className="flex-1 bg-white/5 rounded-xl p-3 border border-white/10">
               <Text className="text-[#FFD43B] font-black text-sm">{height}</Text>
               <Text className="text-white/50 text-[10px] font-bold uppercase tracking-widest mt-0.5">Height</Text>
             </View>
-            <View className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/10">
+            <View className="flex-1 bg-white/5 rounded-xl p-3 border border-white/10">
               <Text className="text-[#FFD43B] font-black text-sm">{bodyType}</Text>
               <Text className="text-white/50 text-[10px] font-bold uppercase tracking-widest mt-0.5">Build</Text>
             </View>
@@ -71,7 +71,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Fit Profile */}
-        <View className="mx-4 mt-5 bg-white rounded-3xl p-5 border border-black/5">
+        <View className="mx-4 mt-5 bg-white rounded-2xl p-5 border border-black/5">
           <Text className="text-[10px] font-black uppercase tracking-widest text-[#7D2AE8] mb-3">Fit Profile</Text>
 
           {/* Height */}
@@ -87,7 +87,7 @@ export default function ProfileScreen() {
                 {HEIGHT_OPTIONS.map(h => (
                   <Pressable key={h}
                     onPress={() => { setHeight(h); setEditingHeight(false); }}
-                    className={`px-3 py-1.5 rounded-xl border ${h === height ? 'bg-[#7D2AE8] border-[#7D2AE8]' : 'border-black/10'}`}>
+                    className={`px-3 py-1.5 rounded-lg border ${h === height ? 'bg-[#7D2AE8] border-[#7D2AE8]' : 'border-black/10'}`}>
                     <Text className={`text-xs font-black ${h === height ? 'text-white' : 'text-[#112133]/70'}`}>{h}</Text>
                   </Pressable>
                 ))}
@@ -110,7 +110,7 @@ export default function ProfileScreen() {
                 {BODY_TYPES.map(bt => (
                   <Pressable key={bt}
                     onPress={() => { setBodyType(bt); setEditingBody(false); }}
-                    className={`px-4 py-2 rounded-xl border ${bt === bodyType ? 'bg-[#7D2AE8] border-[#7D2AE8]' : 'border-black/10'}`}>
+                    className={`px-4 py-2 rounded-lg border ${bt === bodyType ? 'bg-[#7D2AE8] border-[#7D2AE8]' : 'border-black/10'}`}>
                     <Text className={`text-xs font-black ${bt === bodyType ? 'text-white' : 'text-[#112133]/70'}`}>{bt}</Text>
                   </Pressable>
                 ))}
@@ -123,7 +123,7 @@ export default function ProfileScreen() {
 
         {/* Account info */}
         {user && (
-          <View className="mx-4 mt-4 bg-white rounded-3xl px-5 py-2 border border-black/5">
+          <View className="mx-4 mt-4 bg-white rounded-2xl px-5 py-2 border border-black/5">
             <Text className="text-[10px] font-black uppercase tracking-widest text-[#7D2AE8] pt-3 pb-1">Account</Text>
             <View className="flex-row items-center justify-between py-3.5 border-b border-black/5">
               <Text className="text-xs font-bold uppercase tracking-widest text-[#112133]/50">Email</Text>
@@ -140,7 +140,7 @@ export default function ProfileScreen() {
 
         {/* Admin access */}
         {user && isAdmin && (
-          <View className="mx-4 mt-4 bg-[#7D2AE8]/10 border border-[#7D2AE8]/20 rounded-3xl p-5">
+          <View className="mx-4 mt-4 bg-[#7D2AE8]/10 border border-[#7D2AE8]/20 rounded-2xl p-5">
             <View className="flex-row items-center gap-2 mb-1.5">
               <View className="w-2 h-2 bg-[#7D2AE8] rounded-full" />
               <Text className="text-xs font-black uppercase tracking-wider text-[#7D2AE8]">Admin Privileges Unlocked</Text>
@@ -151,7 +151,7 @@ export default function ProfileScreen() {
             <Pressable onPress={() => router.push('/admin')}
               android_ripple={{ color: 'rgba(255,255,255,0.25)' }}
               style={({ pressed }) => (pressed ? { opacity: 0.85 } : undefined)}
-              className="flex-row items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#7D2AE8]">
+              className="flex-row items-center justify-center gap-2 py-3.5 rounded-xl bg-[#7D2AE8]">
               <ShieldCheck size={15} color="#fff" />
               <Text className="text-xs font-black uppercase tracking-wider text-white">Enter Admin Panel</Text>
             </Pressable>
@@ -162,7 +162,7 @@ export default function ProfileScreen() {
         <View className="mx-4 mt-4 mb-10">
           {user ? (
             <Pressable onPress={handleSignOut}
-              className="flex-row items-center justify-center gap-2 py-4 rounded-2xl bg-red-50 border border-red-200">
+              className="flex-row items-center justify-center gap-2 py-4 rounded-xl bg-red-50 border border-red-200">
               <LogOut size={16} color="#EF4444" />
               <Text className="text-sm font-black uppercase tracking-wider text-red-500">Sign Out</Text>
             </Pressable>
@@ -170,7 +170,7 @@ export default function ProfileScreen() {
             <Pressable onPress={handleSignIn} disabled={signingIn}
               android_ripple={{ color: 'rgba(255,255,255,0.25)' }}
               style={({ pressed }) => (pressed ? { opacity: 0.8 } : undefined)}
-              className="flex-row items-center justify-center gap-2 py-4 rounded-2xl bg-[#7D2AE8]">
+              className="flex-row items-center justify-center gap-2 py-4 rounded-xl bg-[#7D2AE8]">
               {signingIn ? <ActivityIndicator size="small" color="#fff" /> : <User size={16} color="#fff" />}
               <Text className="text-sm font-black uppercase tracking-wider text-white">
                 {signingIn ? 'Signing in...' : 'Sign In with Google'}

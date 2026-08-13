@@ -10,7 +10,7 @@ const FieldLabel: React.FC<{ children: string }> = ({ children }) => (
   <Text className="text-[10px] font-black uppercase tracking-widest text-[#112133]/50 mb-1.5 mt-3">{children}</Text>
 );
 const Input: React.FC<React.ComponentProps<typeof TextInput>> = (props) => (
-  <TextInput placeholderTextColor="#11213360" className="bg-white border border-black/10 rounded-xl px-3.5 py-3 text-sm text-[#112133]" {...props} />
+  <TextInput placeholderTextColor="#11213360" className="bg-white border border-black/10 rounded-lg px-3.5 py-3 text-sm text-[#112133]" {...props} />
 );
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
 
@@ -91,7 +91,7 @@ export default function CatalogCategoriesAdminScreen() {
           <Text className="text-sm font-black uppercase tracking-wide text-[#112133]">Back</Text>
         </Pressable>
         <Text className="text-sm font-black uppercase text-[#112133]">Catalog Categories</Text>
-        <Pressable onPress={openNew} className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3 py-2 rounded-xl">
+        <Pressable onPress={openNew} className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3 py-2 rounded-lg">
           <Plus size={13} color="#fff" />
           <Text className="text-[11px] font-black uppercase text-white">Add</Text>
         </Pressable>
@@ -115,7 +115,7 @@ export default function CatalogCategoriesAdminScreen() {
                 <Pressable
                   key={v.key}
                   onPress={() => setVertical(v.key)}
-                  className="flex-1 rounded-xl border-2 px-3 py-2.5 items-center"
+                  className="flex-1 rounded-lg border-2 px-3 py-2.5 items-center"
                   style={{
                     backgroundColor: active ? '#7D2AE8' : '#FFFFFF',
                     borderColor: active ? '#7D2AE8' : 'rgba(0,0,0,0.12)',
@@ -149,7 +149,7 @@ export default function CatalogCategoriesAdminScreen() {
             <Switch value={isActive} onValueChange={setIsActive} trackColor={{ true: '#22C55E' }} />
           </View>
 
-          <Pressable onPress={handleSave} disabled={saving} className="mt-3 bg-[#7D2AE8] py-3 rounded-xl items-center flex-row justify-center gap-2">
+          <Pressable onPress={handleSave} disabled={saving} className="mt-3 bg-[#7D2AE8] py-3 rounded-lg items-center flex-row justify-center gap-2">
             {saving && <ActivityIndicator size="small" color="#fff" />}
             <Text className="text-white font-black text-xs uppercase">{editId ? 'Save Changes' : 'Create Category'}</Text>
           </Pressable>
@@ -164,7 +164,7 @@ export default function CatalogCategoriesAdminScreen() {
           </View>
         ) : (
           catalogCategories.map(c => (
-            <View key={c.id} className="bg-white rounded-2xl p-4 mb-3 border border-black/5 flex-row items-center">
+            <View key={c.id} className="bg-white rounded-xl p-4 mb-3 border border-black/5 flex-row items-center">
               <View className="flex-1">
                 <Text className="text-sm font-black text-[#112133]">{c.name}</Text>
                 <View className="flex-row items-center gap-2 mt-0.5">
@@ -176,10 +176,10 @@ export default function CatalogCategoriesAdminScreen() {
                   </View>
                 </View>
               </View>
-              <Pressable onPress={() => openEdit(c)} className="w-8 h-8 bg-[#112133]/5 rounded-xl items-center justify-center mr-2">
+              <Pressable onPress={() => openEdit(c)} className="w-8 h-8 bg-[#112133]/5 rounded-lg items-center justify-center mr-2">
                 <Pencil size={13} color="#112133" />
               </Pressable>
-              <Pressable onPress={() => handleDelete(c)} className="w-8 h-8 bg-red-50 rounded-xl items-center justify-center">
+              <Pressable onPress={() => handleDelete(c)} className="w-8 h-8 bg-red-50 rounded-lg items-center justify-center">
                 <Trash2 size={13} color="#EF4444" />
               </Pressable>
             </View>

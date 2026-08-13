@@ -103,7 +103,7 @@ export default function HomeScreen() {
           <View className="flex-row gap-3 flex-wrap">
             <Pressable
               onPress={() => router.push('/(tabs)/search')}
-              className="flex-row items-center gap-2 px-6 py-3 rounded-2xl border-2 border-black"
+              className="flex-row items-center gap-2 px-6 py-3 rounded-xl border-2 border-black"
               style={{ backgroundColor: isWellness ? '#7BE3B4' : '#FFD43B' }}
             >
               <Text className="text-black font-black text-xs uppercase tracking-wider">Explore</Text>
@@ -112,7 +112,7 @@ export default function HomeScreen() {
             {!isWellness && (
               <Pressable
                 onPress={() => router.push('/fit-finder')}
-                className="flex-row items-center gap-2 border-2 border-[#FFD43B] px-6 py-3 rounded-2xl"
+                className="flex-row items-center gap-2 border-2 border-[#FFD43B] px-6 py-3 rounded-xl"
               >
                 <Text className="text-[#FFD43B] font-black text-xs uppercase tracking-wider">Find My Fit</Text>
               </Pressable>
@@ -131,7 +131,7 @@ export default function HomeScreen() {
                 <Pressable
                   key={cat.name}
                   onPress={() => router.push(`/category/${encodeURIComponent(cat.name)}`)}
-                  className="w-36 h-44 rounded-3xl overflow-hidden justify-end p-4 border-2 border-black"
+                  className="w-36 h-44 rounded-2xl overflow-hidden justify-end p-4 border-2 border-black"
                   style={{ backgroundColor: cat.color }}
                 >
                   <Text className="text-2xl mb-1">{cat.icon}</Text>
@@ -161,14 +161,14 @@ export default function HomeScreen() {
                   <Pressable
                     key={cat.id}
                     onPress={() => router.push(`/catalog-category/${encodeURIComponent(cat.name)}`)}
-                    className="w-32 h-24 rounded-2xl overflow-hidden justify-end p-3 bg-[#0F0F10] border-2 border-black"
+                    className="w-32 h-24 rounded-xl overflow-hidden justify-end p-3 bg-[#0F0F10] border-2 border-black"
                   >
                     <Text className="text-white font-black text-xs uppercase tracking-tight" numberOfLines={2}>{cat.name}</Text>
                   </Pressable>
                 ))}
                 <Pressable
                   onPress={() => router.push('/complete-fits')}
-                  className="w-32 h-24 rounded-2xl overflow-hidden justify-end p-3 bg-[#7D2AE8] border-2 border-black"
+                  className="w-32 h-24 rounded-xl overflow-hidden justify-end p-3 bg-[#7D2AE8] border-2 border-black"
                 >
                   <Layers size={14} color="#FFD43B" />
                   <Text className="text-white font-black text-xs uppercase tracking-tight mt-1">Lookbooks</Text>

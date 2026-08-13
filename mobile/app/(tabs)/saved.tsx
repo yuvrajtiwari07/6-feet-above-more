@@ -32,10 +32,10 @@ export default function SavedScreen() {
           <Text className="text-[#112133] font-black text-xl uppercase tracking-wider mt-4 mb-2">Nothing saved yet</Text>
           <Text className="text-[#112133]/60 text-xs text-center mb-6">Tap the heart on any product or lookbook to save it here.</Text>
           <View className="flex-row gap-3">
-            <Pressable onPress={() => router.push('/(tabs)/search')} className="bg-[#7D2AE8] px-6 py-3 rounded-xl">
+            <Pressable onPress={() => router.push('/(tabs)/search')} className="bg-[#7D2AE8] px-6 py-3 rounded-lg">
               <Text className="text-white font-black text-xs uppercase tracking-wider">Browse Products</Text>
             </Pressable>
-            <Pressable onPress={() => router.push('/complete-fits')} className="bg-[#112133]/5 px-6 py-3 rounded-xl">
+            <Pressable onPress={() => router.push('/complete-fits')} className="bg-[#112133]/5 px-6 py-3 rounded-lg">
               <Text className="text-[#112133] font-black text-xs uppercase tracking-wider">Browse Lookbooks</Text>
             </Pressable>
           </View>
@@ -65,7 +65,7 @@ export default function SavedScreen() {
                 </View>
                 {savedFits.map(fit => (
                   <Pressable key={fit.id} onPress={() => router.push('/complete-fits')}
-                    className="bg-white rounded-2xl p-4 mb-2 border border-black/5 flex-row items-center gap-3">
+                    className="bg-white rounded-xl p-4 mb-2 border border-black/5 flex-row items-center gap-3">
                     {fit.items[0] && (() => {
                       const p = products.find(pr => pr.id === fit.items[0].productId);
                       return p?.images?.[0] ? (

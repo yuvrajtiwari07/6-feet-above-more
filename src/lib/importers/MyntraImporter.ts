@@ -81,9 +81,7 @@ export class MyntraImporter extends BaseImporter {
       }
     }
 
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    images = this.mergeImages(images, html, url);
 
     const sizeList = sizes
       .map((s: any) => s?.label ?? s?.size ?? s?.displayValue)
@@ -114,13 +112,10 @@ export class MyntraImporter extends BaseImporter {
 
   private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
-    let images = Array.isArray(data.image)
+    const structuredImages = Array.isArray(data.image)
       ? data.image
       : data.image ? [data.image] : [];
-
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const images = this.mergeImages(structuredImages, html, url);
 
     const description = this.stripHtml(data.description) || this.extractDescriptionFromDom(html);
 

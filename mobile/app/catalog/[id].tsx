@@ -22,7 +22,7 @@ export default function CatalogDetailScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
         <Text className="text-[#112133] font-bold">Catalog not found</Text>
-        <Pressable onPress={() => router.back()} className="mt-4 bg-[#7D2AE8] px-6 py-3 rounded-xl">
+        <Pressable onPress={() => router.back()} className="mt-4 bg-[#7D2AE8] px-6 py-3 rounded-lg">
           <Text className="text-white font-black text-xs uppercase">Go back</Text>
         </Pressable>
       </SafeAreaView>
@@ -60,7 +60,7 @@ export default function CatalogDetailScreen() {
           <View className="mb-5">
             {/* Cover image */}
             {catalog.coverImage && (
-              <View className="h-56 rounded-3xl overflow-hidden mb-4">
+              <View className="h-56 rounded-2xl overflow-hidden mb-4">
                 <Image source={catalog.coverImage} style={{ width: '100%', height: '100%' }} contentFit="cover" />
               </View>
             )}

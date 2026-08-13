@@ -60,7 +60,7 @@ export default function CatalogListScreen() {
             return (
               <Pressable
                 onPress={() => router.push(`/catalog/${catalog.id}`)}
-                className="bg-white rounded-3xl overflow-hidden border-2 border-black/10 mb-4"
+                className="bg-white rounded-2xl overflow-hidden border-2 border-black/10 mb-4"
               >
                 <View className="h-40 bg-black/5 flex-row">
                   {catalog.coverImage ? (

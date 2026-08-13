@@ -28,7 +28,7 @@ const CatalogCategoryTile: React.FC<Props> = ({ category, catalogCount, onClick,
     <motion.div
       whileHover={{ y: -6 }}
       onClick={onClick}
-      className={`group cursor-pointer relative aspect-[3/4] md:aspect-[10/13] rounded-[30px] overflow-hidden border-2 border-black transition-all ${theme.bg} ${theme.hover}`}
+      className={`group cursor-pointer relative aspect-[3/4] md:aspect-[10/13] rounded-[20px] overflow-hidden border-2 border-black transition-all ${theme.bg} ${theme.hover}`}
       id={`catalog-cat-tile-${category.slug}`}
     >
       {hasCover && (

@@ -47,11 +47,8 @@ export class GenericImporter extends BaseImporter {
 
   private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
-    let images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
-
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const structuredImages = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    const images = this.mergeImages(structuredImages, html, url);
 
     const sizes: string[] = [];
     const colors: string[] = [];
@@ -95,17 +92,14 @@ export class GenericImporter extends BaseImporter {
 
     if (!product) return { retailer: retailerName, retailerUrl: url };
 
-    let images: string[] = (product?.images ?? product?.media ?? product?.gallery ?? [])
+    const structuredImages: string[] = (product?.images ?? product?.media ?? product?.gallery ?? [])
       .map((img: any) => {
         const src = img?.url ?? img?.src ?? img?.imageURL ?? (typeof img === 'string' ? img : null);
         if (!src) return null;
         return src.startsWith('http') ? src : src.startsWith('//') ? `https:${src}` : null;
       })
       .filter(Boolean);
-
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const images = this.mergeImages(structuredImages, html, url);
 
     const description = this.stripHtml(product?.description ?? product?.shortDescription) || this.extractDescriptionFromDom(html);
 

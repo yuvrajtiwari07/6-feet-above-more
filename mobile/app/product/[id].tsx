@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
-  View, Text, Pressable, ScrollView, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent
+  View, Text, Pressable, ScrollView, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent, Alert
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -33,7 +33,7 @@ export default function ProductDetailScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center">
         <Text className="text-[#112133] font-bold">Product not found</Text>
-        <Pressable onPress={() => router.back()} className="mt-4 bg-[#7D2AE8] px-6 py-3 rounded-xl">
+        <Pressable onPress={() => router.back()} className="mt-4 bg-[#7D2AE8] px-6 py-3 rounded-lg">
           <Text className="text-white font-black text-xs uppercase">Go back</Text>
         </Pressable>
       </SafeAreaView>
@@ -98,7 +98,7 @@ export default function ProductDetailScreen() {
           {/* Out of stock banner */}
           {product.outOfStock && (
             <View className="absolute inset-0 bg-black/50 items-center justify-center">
-              <View className="bg-white px-8 py-4 rounded-2xl">
+              <View className="bg-white px-8 py-4 rounded-xl">
                 <Text className="font-black text-xl text-[#112133] uppercase">Out of Stock</Text>
               </View>
             </View>
@@ -122,10 +122,24 @@ export default function ProductDetailScreen() {
             </View>
           </View>
 
+          {/* Coupon code — a real code from the retailer, not a fabricated discount */}
+          {!!product.couponCode && (
+            <Pressable
+              onPress={() => Alert.alert('Coupon Code', `${product.couponCode}\n\nTap and hold the code below to copy it.`)}
+              className="flex-row items-center justify-between bg-[#0E7C5A]/5 border-2 border-dashed border-[#0E7C5A]/30 rounded-xl px-4 py-3 mb-4"
+            >
+              <View>
+                <Text className="text-[9px] font-black uppercase tracking-widest text-[#0E7C5A]/70">Use this code at checkout</Text>
+                <Text selectable className="font-mono font-black text-base text-[#0E7C5A] tracking-wider">{product.couponCode}</Text>
+              </View>
+              <Check size={18} color="#0E7C5A" />
+            </Pressable>
+          )}
+
           {/* Fit verdict */}
           {rec && (
             <Pressable onPress={() => setVerdictOpen(v => !v)}
-              className="bg-[#F9F8F6] rounded-2xl p-4 mb-4 border border-black/5">
+              className="bg-[#F9F8F6] rounded-xl p-4 mb-4 border border-black/5">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-2">
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: fitColor }} />
@@ -146,10 +160,10 @@ export default function ProductDetailScreen() {
 
           {/* Wellness fact sheet */}
           {isWellnessProduct && (
-            <View className="bg-[#F4FAF7] rounded-2xl p-4 mb-4 border border-[#0E7C5A]/15">
+            <View className="bg-[#F4FAF7] rounded-xl p-4 mb-4 border border-[#0E7C5A]/15">
               <View className="flex-row flex-wrap gap-2 mb-3">
                 {[product.productType, product.form, product.netQuantity].filter(Boolean).map(v => (
-                  <View key={v as string} className="bg-white border border-black/5 px-3 py-1.5 rounded-xl">
+                  <View key={v as string} className="bg-white border border-black/5 px-3 py-1.5 rounded-lg">
                     <Text className="text-[10px] font-black uppercase text-[#112133]/70">{v}</Text>
                   </View>
                 ))}
@@ -200,7 +214,7 @@ export default function ProductDetailScreen() {
           {/* CTA button */}
           {!!product.affiliateUrl && !product.outOfStock && (
             <Pressable onPress={() => Linking.openURL(product.affiliateUrl)}
-              className="bg-[#0F0F10] py-4 rounded-2xl flex-row items-center justify-center gap-2 mb-5">
+              className="bg-[#0F0F10] py-4 rounded-xl flex-row items-center justify-center gap-2 mb-5">
               <ExternalLink size={16} color="#FFD43B" />
               <Text className="text-white font-black text-sm uppercase tracking-wider">Shop Now</Text>
             </Pressable>
@@ -242,7 +256,7 @@ export default function ProductDetailScreen() {
           {!isWellnessProduct && product.verdicts && product.verdicts.length > 0 && (
             <View className="border-t border-black/5 pt-4">
               <Text className="text-sm font-black text-[#112133] uppercase tracking-wide mb-3">Fit by Height</Text>
-              <View className="rounded-2xl overflow-hidden border border-black/5">
+              <View className="rounded-xl overflow-hidden border border-black/5">
                 {product.verdicts.map((v, i) => (
                   <View key={v.heightRange ?? i} className={`flex-row items-center justify-between px-4 py-3 ${i % 2 === 0 ? 'bg-[#F9F8F6]' : 'bg-white'}`}>
                     <Text className="text-xs font-bold text-[#112133]">{v.heightRange}</Text>

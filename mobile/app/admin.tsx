@@ -24,7 +24,7 @@ export default function AdminScreen() {
         <Text className="text-xs text-[#112133]/50 text-center mb-6">
           {user ? 'Your account does not have admin privileges.' : 'Please sign in as admin.'}
         </Text>
-        <Pressable onPress={() => router.back()} className="flex-row items-center gap-2 bg-[#112133] px-6 py-3 rounded-2xl">
+        <Pressable onPress={() => router.back()} className="flex-row items-center gap-2 bg-[#112133] px-6 py-3 rounded-xl">
           <ArrowLeft size={14} color="#fff" />
           <Text className="text-white font-black text-xs uppercase">Go back</Text>
         </Pressable>
@@ -85,15 +85,15 @@ export default function AdminScreen() {
 
         {/* Stats */}
         <View className="flex-row gap-3 mt-5">
-          <View className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/10">
+          <View className="flex-1 bg-white/5 rounded-xl p-3 border border-white/10">
             <Text className="text-[#FFD43B] font-black text-xl">{products.length}</Text>
             <Text className="text-white/50 text-[10px] font-bold uppercase mt-0.5">Products</Text>
           </View>
-          <View className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/10">
+          <View className="flex-1 bg-white/5 rounded-xl p-3 border border-white/10">
             <Text className="text-[#FFD43B] font-black text-xl">{products.filter(p => p.outOfStock).length}</Text>
             <Text className="text-white/50 text-[10px] font-bold uppercase mt-0.5">Out of stock</Text>
           </View>
-          <View className="flex-1 bg-white/5 rounded-2xl p-3 border border-white/10">
+          <View className="flex-1 bg-white/5 rounded-xl p-3 border border-white/10">
             <Text className="text-[#FFD43B] font-black text-xl">{products.filter(p => p.isFeatured).length}</Text>
             <Text className="text-white/50 text-[10px] font-bold uppercase mt-0.5">Featured</Text>
           </View>
@@ -103,22 +103,22 @@ export default function AdminScreen() {
       {/* Quick actions */}
       <View className="flex-row flex-wrap gap-2 px-4 py-3 bg-white border-b border-black/10">
         <Pressable onPress={() => router.push('/admin/product-form')}
-          className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3 py-2 rounded-xl">
+          className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3 py-2 rounded-lg">
           <Plus size={13} color="#fff" />
           <Text className="text-[11px] font-black uppercase text-white">Add Product</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/admin/bulk-import')}
-          className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-xl">
+          className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-lg">
           <UploadCloud size={13} color="#112133" />
           <Text className="text-[11px] font-black uppercase text-[#112133]">Bulk Import</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/admin/catalogs')}
-          className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-xl">
+          className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-lg">
           <Sparkles size={13} color="#112133" />
           <Text className="text-[11px] font-black uppercase text-[#112133]">Catalogs</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/admin/catalog-categories')}
-          className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-xl">
+          className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-lg">
           <LayoutGrid size={13} color="#112133" />
           <Text className="text-[11px] font-black uppercase text-[#112133]">Categories</Text>
         </Pressable>
@@ -126,7 +126,7 @@ export default function AdminScreen() {
 
       {/* Search + stock filter */}
       <View className="px-4 pt-3 pb-2 bg-white">
-        <View className="flex-row items-center gap-2 bg-[#F9F8F6] border border-black/10 rounded-xl px-3 py-2.5 mb-2.5">
+        <View className="flex-row items-center gap-2 bg-[#F9F8F6] border border-black/10 rounded-lg px-3 py-2.5 mb-2.5">
           <Search size={13} color="#11213360" />
           <TextInput
             value={search}
@@ -153,7 +153,7 @@ export default function AdminScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16 }}>
         {filteredProducts.map(p => (
-          <View key={p.id} className="bg-white rounded-2xl px-4 py-3 mb-2 border border-black/5 flex-row items-center justify-between">
+          <View key={p.id} className="bg-white rounded-xl px-4 py-3 mb-2 border border-black/5 flex-row items-center justify-between">
             <View className="flex-1 mr-3">
               <Text className="text-sm font-black text-[#112133] leading-tight" numberOfLines={1}>{p.title}</Text>
               <View className="flex-row items-center gap-2 mt-0.5">
@@ -169,11 +169,11 @@ export default function AdminScreen() {
                 : <ToggleRight size={20} color="#22C55E" />}
             </Pressable>
             <Pressable onPress={() => router.push(`/admin/product-form?id=${p.id}`)}
-              className="w-8 h-8 bg-[#112133]/5 rounded-xl items-center justify-center mr-2">
+              className="w-8 h-8 bg-[#112133]/5 rounded-lg items-center justify-center mr-2">
               <Pencil size={13} color="#112133" />
             </Pressable>
             <Pressable onPress={() => handleDelete(p.id, p.title)}
-              className="w-8 h-8 bg-red-50 rounded-xl items-center justify-center">
+              className="w-8 h-8 bg-red-50 rounded-lg items-center justify-center">
               <Trash2 size={13} color="#EF4444" />
             </Pressable>
           </View>

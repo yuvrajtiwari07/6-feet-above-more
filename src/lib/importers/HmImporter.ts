@@ -37,10 +37,8 @@ export class HmImporter extends BaseImporter {
   private parseJsonLd(data: any, url: string, html: string): ImportedProduct {
     const offers = this.parseJsonLdOffer(data.offers);
 
-    let images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const structuredImages = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
+    const images = this.mergeImages(structuredImages, html, url);
 
     // Extract sizes from offers
     const sizes: string[] = [];
@@ -89,16 +87,13 @@ export class HmImporter extends BaseImporter {
       data?.props?.pageProps?.initialData?.product ??
       data;
 
-    let images: string[] = (product?.images ?? product?.galleryImages ?? [])
+    const structuredImages: string[] = (product?.images ?? product?.galleryImages ?? [])
       .map((img: any) => {
         const src = img?.url ?? img?.src ?? img?.baseUrl;
         return src?.startsWith('http') ? src : src ? `https:${src}` : null;
       })
       .filter(Boolean);
-
-    if (images.length === 0) {
-      images = this.extractImagesFromDom(html, url);
-    }
+    const images = this.mergeImages(structuredImages, html, url);
 
     const sizes = (product?.variants ?? product?.sizes ?? [])
       .map((v: any) => v?.size ?? v?.value ?? v?.label)

@@ -45,7 +45,7 @@ export default function CatalogsAdminScreen() {
           <Text className="text-sm font-black uppercase tracking-wide text-[#112133]">Back</Text>
         </Pressable>
         <Text className="text-sm font-black uppercase text-[#112133]">Catalogs</Text>
-        <Pressable onPress={() => router.push('/admin/catalog-form')} className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3 py-2 rounded-xl">
+        <Pressable onPress={() => router.push('/admin/catalog-form')} className="flex-row items-center gap-1.5 bg-[#7D2AE8] px-3 py-2 rounded-lg">
           <Plus size={13} color="#fff" />
           <Text className="text-[11px] font-black uppercase text-white">Add</Text>
         </Pressable>
@@ -68,12 +68,12 @@ export default function CatalogsAdminScreen() {
             </View>
           }
           renderItem={({ item: c }) => (
-            <View className="bg-white rounded-2xl p-4 mb-3 border border-black/5">
+            <View className="bg-white rounded-xl p-4 mb-3 border border-black/5">
               <View className="flex-row items-center gap-3">
                 {c.coverImage ? (
                   <Image source={c.coverImage} style={{ width: 48, height: 48, borderRadius: 12 }} contentFit="cover" />
                 ) : (
-                  <View className="w-12 h-12 rounded-xl bg-[#112133]/5 items-center justify-center">
+                  <View className="w-12 h-12 rounded-lg bg-[#112133]/5 items-center justify-center">
                     <Package size={18} color="#11213340" />
                   </View>
                 )}
@@ -89,10 +89,10 @@ export default function CatalogsAdminScreen() {
                     <Text className="text-[10px] text-[#112133]/40">{c.productIds.length} items</Text>
                   </View>
                 </View>
-                <Pressable onPress={() => router.push(`/admin/catalog-form?id=${c.id}`)} className="w-8 h-8 bg-[#112133]/5 rounded-xl items-center justify-center">
+                <Pressable onPress={() => router.push(`/admin/catalog-form?id=${c.id}`)} className="w-8 h-8 bg-[#112133]/5 rounded-lg items-center justify-center">
                   <Pencil size={13} color="#112133" />
                 </Pressable>
-                <Pressable onPress={() => handleDelete(c)} className="w-8 h-8 bg-red-50 rounded-xl items-center justify-center">
+                <Pressable onPress={() => handleDelete(c)} className="w-8 h-8 bg-red-50 rounded-lg items-center justify-center">
                   <Trash2 size={13} color="#EF4444" />
                 </Pressable>
               </View>

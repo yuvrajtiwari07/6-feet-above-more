@@ -90,7 +90,7 @@ export default function SearchScreen() {
 
       {/* Search bar + filter toggle */}
       <View className="px-4 pt-3 pb-2 bg-white border-b border-black/10">
-        <View className="flex-row items-center bg-[#112133]/5 rounded-2xl px-3 py-2.5 gap-2 mb-2">
+        <View className="flex-row items-center bg-[#112133]/5 rounded-xl px-3 py-2.5 gap-2 mb-2">
           <SearchIcon size={16} color="#112133" />
           <TextInput
             value={query}
@@ -109,7 +109,7 @@ export default function SearchScreen() {
           </Text>
           <View className="flex-row items-center gap-2">
             <GridDensitySelector />
-            <Pressable onPress={() => setFiltersOpen(v => !v)} className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-xl">
+            <Pressable onPress={() => setFiltersOpen(v => !v)} className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-lg">
               <Filter size={13} color="#112133" />
               <Text className="text-xs font-bold text-[#112133] uppercase">Filters</Text>
               {filtersOpen ? <ChevronUp size={13} color="#112133" /> : <ChevronDown size={13} color="#112133" />}
@@ -126,7 +126,7 @@ export default function SearchScreen() {
               <Text className="text-[10px] font-black uppercase tracking-widest text-[#7D2AE8] mb-2">Height</Text>
               <View className="flex-row flex-wrap gap-1.5">
                 {HEIGHT_OPTIONS.map(h => (
-                  <Pressable key={h} onPress={() => setHeight(h)} className={`px-3 py-1.5 rounded-xl ${h === height ? 'bg-[#7D2AE8]' : 'bg-[#112133]/5'}`}>
+                  <Pressable key={h} onPress={() => setHeight(h)} className={`px-3 py-1.5 rounded-lg ${h === height ? 'bg-[#7D2AE8]' : 'bg-[#112133]/5'}`}>
                     <Text className={`text-xs font-bold ${h === height ? 'text-white' : 'text-[#112133]/70'}`}>{h}</Text>
                   </Pressable>
                 ))}
@@ -192,7 +192,7 @@ export default function SearchScreen() {
           <Text className="text-[#112133]/60 text-xs text-center leading-relaxed mb-6">
             {isWellness ? 'Try another concern, or reset the filters.' : 'Try resetting filters.'}
           </Text>
-          <Pressable onPress={handleReset} className="bg-[#7D2AE8] px-6 py-3 rounded-xl">
+          <Pressable onPress={handleReset} className="bg-[#7D2AE8] px-6 py-3 rounded-lg">
             <Text className="text-white font-black text-xs uppercase tracking-wider">Clear Filters</Text>
           </Pressable>
         </View>

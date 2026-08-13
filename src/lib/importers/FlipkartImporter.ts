@@ -1,6 +1,20 @@
 // src/lib/importers/FlipkartImporter.ts
 // Imports product data from Flipkart product pages.
-// Strategy: window.__INITIAL_STATE__ embedded JSON → JSON-LD → DOM fallback
+//
+// Flipkart ships NO JSON-LD Product data (verified against live PDP pages),
+// and window.__INITIAL_STATE__ only contains nav/widget state — its top
+// nodes are `multiWidgetState` (header/category-nav) and `additionalInfo`,
+// with no real product object anywhere in the tree for a typical listing.
+// A loose "find any node with a .title" deep search reliably matches junk
+// like `{"title":"Electronics","targetUrl":"/categories/electronics"}` from
+// the top-nav category strip before it ever finds real data — which is
+// exactly what was shipping as the product's title.
+//
+// og:title / og:image, by contrast, are reliably correct (Flipkart sets them
+// for SEO), so they're the trusted baseline here. Embedded state and JSON-LD
+// are kept only as enrichment (price/sizes/rating), gated behind a much
+// stricter check (`productName` specifically, not generic `.title`) so a
+// nav tile can never satisfy it.
 
 import * as cheerio from 'cheerio';
 import { BaseImporter } from './BaseImporter.js';
@@ -15,48 +29,37 @@ export class FlipkartImporter extends BaseImporter {
 
   async importProduct(url: string): Promise<ImportedProduct> {
     const html = await this.fetchPage(url);
+    const meta = this.extractMetaTags(html);
+    const $ = cheerio.load(html);
 
-    // Strategy 1: Flipkart embeds product data as window.__INITIAL_STATE__
-    const embedded = this.extractEmbeddedState(html, [
-      /window\.__INITIAL_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s,
-      /window\.__PRELOADED_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s,
-    ]);
+    const { title: metaTitle, brand: metaBrand } = this.parseFlipkartTitle(meta['og:title']);
 
-    if (embedded) {
-      return this.parseEmbeddedData(embedded, url);
-    }
+    const structuredImages = meta['og:image'] ? [meta['og:image']] : [];
+    const images = this.mergeImages(structuredImages, html, url);
 
-    // Strategy 2: JSON-LD
+    const domPrice = this.extractPriceFromDom(html);
+    const description = this.extractDescriptionFromDom(html);
+
+    // Enrichment only — never the source of truth for title/brand.
+    const pdp = this.findRealPdpNode(html);
     const jsonLd = this.extractJsonLd(html, 'Product');
-    if (jsonLd?.name) {
-      return this.parseJsonLd(jsonLd, url);
-    }
+    const jsonLdOffers = jsonLd ? this.parseJsonLdOffer(jsonLd.offers) : {};
 
-    // Strategy 3: DOM
-    return this.parseDom(html, url);
-  }
+    const price =
+      domPrice ??
+      jsonLdOffers.price ??
+      this.parsePrice(String(pdp?.price?.finalPrice ?? pdp?.finalPrice ?? ''));
 
-  private parseEmbeddedData(data: any, url: string): ImportedProduct {
-    // Navigate common Flipkart state tree
-    const pdp = this.deepFind(data, (node: any) =>
-      node && typeof node === 'object' && (node.productName || node.title)
-    );
-
-    if (!pdp) return { retailer: 'Flipkart', retailerUrl: url };
-
-    const images: string[] = (pdp?.images ?? [])
-      .map((img: any) => img?.url ?? img?.src ?? (typeof img === 'string' ? img : null))
-      .filter((s: any): s is string => typeof s === 'string' && s.startsWith('http'));
-
-    const sizes = (pdp?.sizes ?? []).map((s: any) => s?.displayId ?? s?.id ?? s).filter(Boolean);
+    const sizes = (pdp?.sizes ?? [])
+      .map((s: any) => s?.displayId ?? s?.id ?? s)
+      .filter((s: any): s is string => typeof s === 'string');
 
     return {
-      brand: pdp?.brandName ?? pdp?.brand ?? undefined,
-      title: pdp?.productName ?? pdp?.title ?? undefined,
-      description: this.stripHtml(pdp?.description ?? pdp?.productDescription),
-      price: this.parsePrice(String(pdp?.price?.finalPrice ?? pdp?.finalPrice ?? '')),
-      originalPrice: this.parsePrice(String(pdp?.price?.mrp ?? pdp?.mrp ?? '')),
-      discountPercent: pdp?.price?.discountPercentage ?? undefined,
+      brand: metaBrand ?? pdp?.brandName ?? (jsonLd?.brand?.name ?? jsonLd?.brand) ?? undefined,
+      title: metaTitle ?? pdp?.productName ?? jsonLd?.name ?? $('h1').first().text().trim() ?? undefined,
+      description: description || this.stripHtml(pdp?.description ?? pdp?.productDescription) || this.stripHtml(jsonLd?.description) || undefined,
+      price,
+      originalPrice: jsonLdOffers.originalPrice ?? this.parsePrice(String(pdp?.price?.mrp ?? pdp?.mrp ?? '')),
       images: images.length > 0 ? images : undefined,
       sizes: sizes.length > 0 ? sizes : undefined,
       colors: pdp?.colour ? [pdp.colour] : undefined,
@@ -68,46 +71,40 @@ export class FlipkartImporter extends BaseImporter {
     };
   }
 
-  private parseJsonLd(data: any, url: string): ImportedProduct {
-    const offers = this.parseJsonLdOffer(data.offers);
-    const images = Array.isArray(data.image) ? data.image : data.image ? [data.image] : [];
-
-    return {
-      brand: data.brand?.name ?? data.brand ?? undefined,
-      title: data.name ?? undefined,
-      description: this.stripHtml(data.description),
-      ...offers,
-      images,
-      material: data.material ?? undefined,
-      averageRating: data.aggregateRating?.ratingValue
-        ? Number(data.aggregateRating.ratingValue)
-        : undefined,
-      reviewsCount: data.aggregateRating?.reviewCount
-        ? Number(data.aggregateRating.reviewCount)
-        : undefined,
-      retailer: 'Flipkart',
-      retailerUrl: url,
-    };
+  /**
+   * Flipkart's <title>/og:title is consistently formatted as
+   * "{Product Title} - Buy {Product Title} Online at Best Prices in India | Flipkart.com".
+   * Strips the marketing boilerplate, and lifts a leading ALL-CAPS run
+   * (Flipkart lists most brand names in caps, e.g. "METRONAUT Men…") as the
+   * brand. Returns nothing rather than guessing wrong for lowercase/mixed
+   * case brand names — the admin fills those in manually, same as today.
+   */
+  private parseFlipkartTitle(raw?: string): { title?: string; brand?: string } {
+    if (!raw) return {};
+    const title = raw.split(/\s+-\s+Buy\s+/i)[0].trim();
+    if (!title) return {};
+    const brandMatch = title.match(/^([A-Z0-9&]+(?:\s[A-Z0-9&]+){0,2})\s+(?=[A-Z][a-z])/);
+    return { title, brand: brandMatch?.[1] };
   }
 
-  private parseDom(html: string, url: string): ImportedProduct {
-    const $ = cheerio.load(html);
-    const meta = this.extractMetaTags(html);
-
-    const title = $('span.B_NuCI').text().trim() || meta['og:title'] || undefined;
-    const price = this.parsePrice($('div._30jeq3._16Jk6d').first().text() || meta['product:price:amount']);
-    const brand = $('span.G6XhRU').text().trim() || undefined;
-    const images = meta['og:image'] ? [meta['og:image']] : [];
-
-    return {
-      brand,
-      title,
-      price,
-      description: meta['og:description'] ?? undefined,
-      images: images.length > 0 ? images : undefined,
-      retailer: 'Flipkart',
-      retailerUrl: url,
-    };
+  /**
+   * Looks for a genuine PDP object in window.__INITIAL_STATE__ — requires
+   * `productName` specifically (not the generic `.title` key that nav/widget
+   * tiles also use) so a category-nav entry can never match.
+   */
+  private findRealPdpNode(html: string): any {
+    const embedded = this.extractEmbeddedState(html, [
+      /window\.__INITIAL_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s,
+      /window\.__PRELOADED_STATE__\s*=\s*(\{.+?\});\s*<\/script>/s,
+    ]);
+    if (!embedded) return null;
+    return this.deepFind(
+      embedded,
+      (node: any) =>
+        node && typeof node === 'object' &&
+        typeof node.productName === 'string' &&
+        (node.price || node.sizes || node.pageUrl)
+    );
   }
 
   /** Deep searches an object tree for the first node matching a predicate */

@@ -31,7 +31,7 @@ export const WellnessHome: React.FC = () => {
 
       {/* 1. HERO */}
       <section className="w-full max-w-none mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-10">
-        <div className="bg-[#0E2A21] text-white rounded-[28px] md:rounded-[40px] p-6 md:p-12 relative overflow-hidden border-2 border-black shadow-sm">
+        <div className="bg-[#0E2A21] text-white rounded-[20px] md:rounded-[26px] p-6 md:p-12 relative overflow-hidden border-2 border-black shadow-sm">
           {/* Soft accent blooms */}
           <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-[#0E7C5A]/40 blur-3xl pointer-events-none" />
           <div className="absolute right-24 bottom-0 w-52 h-52 rounded-full bg-[#FFD43B]/15 blur-3xl pointer-events-none" />
@@ -125,7 +125,7 @@ export const WellnessHome: React.FC = () => {
                   key={cat.name}
                   whileHover={{ y: -6 }}
                   onClick={() => navigate('category', { categoryName: cat.name })}
-                  className="group relative text-left aspect-[4/5] sm:aspect-[3/4] rounded-[22px] md:rounded-[30px] overflow-hidden border-2 border-black p-4 md:p-6 flex flex-col justify-end transition-all"
+                  className="group relative text-left aspect-[4/5] sm:aspect-[3/4] rounded-[15px] md:rounded-[20px] overflow-hidden border-2 border-black p-4 md:p-6 flex flex-col justify-end transition-all"
                   style={{ backgroundColor: cat.bg, color: cat.text }}
                   id={`wellness-tile-${cat.name.toLowerCase().replace(/[^a-z]+/g, '-')}`}
                 >
@@ -213,7 +213,7 @@ export const WellnessHome: React.FC = () => {
         </div>
 
         {!loadingProducts && rail.length === 0 && (
-          <div className="bg-white border-2 border-black/10 rounded-[30px] p-10 md:p-16 text-center max-w-lg mx-auto my-6">
+          <div className="bg-white border-2 border-black/10 rounded-[20px] p-10 md:p-16 text-center max-w-lg mx-auto my-6">
             <span className="text-4xl">🌱</span>
             <h3 className="text-[#112133] font-display text-xl md:text-2xl uppercase tracking-wider font-bold mt-4 mb-2">
               Stocking the shelves

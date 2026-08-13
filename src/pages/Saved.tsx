@@ -68,7 +68,7 @@ export const Saved: React.FC = () => {
 
         </div>
       ) : (
-        <div className="bg-white border border-[#112133]/15 rounded-[24px] p-16 text-center max-w-lg mx-auto my-12 shadow-sm">
+        <div className="bg-white border border-[#112133]/15 rounded-[16px] p-16 text-center max-w-lg mx-auto my-12 shadow-sm">
           <Heart size={48} className="text-[#112133]/20 mx-auto mb-4 animate-pulse" />
           <h3 className="text-[#112133] font-display text-2xl uppercase tracking-wider font-bold mb-2">
             Your Locker is Empty

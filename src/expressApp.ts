@@ -19,6 +19,7 @@ import {
   wellnessTypesFor,
 } from './data/wellness';
 import { Vertical } from './types';
+import { getGarmentVersatilityDefaults } from './lib/garmentVersatility';
 
 
 let __dirname = '';
@@ -315,6 +316,7 @@ app.post(
           success: true,
           source: 'gemini-3.5-flash',
           vertical,
+          scrapeBlocked: isBlocked,
           ...parsedResult,
           images: scraped.images && scraped.images.length > 0 ? scraped.images : (parsedResult.images || [])
         });
@@ -328,7 +330,7 @@ app.post(
       const fallbackResult = vertical === 'wellness'
         ? runWellnessFallbackParser(scraped, parsedUrl.href, retailerName)
         : runFallbackParser(scraped, parsedUrl.href, retailerName);
-      return res.json(fallbackResult);
+      return res.json({ ...fallbackResult, scrapeBlocked: isBlocked });
     } catch (err: any) {
       return res.status(502).json({
         success: false,
@@ -753,7 +755,7 @@ function detectSegmentAndType(title: string, category: string, subCategory: stri
     productSegment = 'Accessories';
     productType = text.includes('belt') ? 'Belt' : text.includes('cap') ? 'Cap' : text.includes('wallet') ? 'Wallet' : 'Socks';
   } else {
-    productType = text.includes('shirt') ? 'Shirt' : text.includes('polo') ? 'Polo' : text.includes('henley') ? 'Henley' : 'T-Shirt';
+    productType = text.includes('polo') ? 'Polo' : text.includes('henley') ? 'Henley' : text.includes('shirt') ? 'Shirt' : 'T-Shirt';
   }
   return { productSegment, productType };
 }
@@ -792,6 +794,8 @@ app.post(
       savedId?: string;
       duplicate?: boolean;
       noAffiliate?: boolean;
+      /** True if the retailer blocked our scraper — saved with a guessed title only, no real images/price. */
+      scrapeBlocked?: boolean;
       error?: string;
     }
 
@@ -911,8 +915,16 @@ app.post(
               curated.category || '',
               curated.subCategory || ''
             );
-        const categories = isWellness ? [wellnessCategory] : mapCuratedDataToCategories(curated.category || '');
+        // A polo/tee/jeans etc. is versatile enough to suit almost every
+        // category and occasion — union the smart defaults with whatever
+        // Gemini/the fallback parser returned instead of trusting one bucket.
+        const versatility = isWellness ? null : getGarmentVersatilityDefaults(productType);
+        const categories = isWellness
+          ? [wellnessCategory]
+          : [...new Set([...(versatility?.categories ?? []), ...mapCuratedDataToCategories(curated.category || '')])];
         const sizes = isWellness ? [] : getSizeOptionsServer(productSegment).slice(0, 4);
+        const mergedOccasions = [...new Set([...(versatility?.occasions ?? []), ...(curated.occasions || [])])];
+        const mergedSeasons = [...new Set([...(versatility?.seasons ?? []), ...(curated.seasons || [])])];
         const slugId = (curated.title || 'product')
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
@@ -930,8 +942,8 @@ app.post(
           productSegment,
           productType,
           images: curated.images || [],
-          occasions: isWellness ? [] : (curated.occasions || ['Daily Wear']),
-          seasons: isWellness ? [] : (curated.seasons || ['All Season']),
+          occasions: isWellness ? [] : (mergedOccasions.length > 0 ? mergedOccasions : ['Daily Wear']),
+          seasons: isWellness ? [] : (mergedSeasons.length > 0 ? mergedSeasons : ['All Season']),
           colors: isWellness ? [] : (curated.colors || []),
           sizes,
           fitType: isWellness ? '' : 'Regular Tall',
@@ -958,7 +970,6 @@ app.post(
           reviewsCount: 0,
           averageRating: 0,
           outOfStock: false,
-          discountPercent: 0,
           verificationBadges: [],
           measurements: {},
           merchantLinks2: undefined,
@@ -972,7 +983,7 @@ app.post(
           const isDup = saveResult.error.includes('already exists');
           results.push({ url, success: isDup ? false : false, duplicate: isDup, error: saveResult.error });
         } else {
-          results.push({ url, success: true, savedId: saveResult.product?.id, noAffiliate: !affiliateInfo.affiliateGenerated });
+          results.push({ url, success: true, savedId: saveResult.product?.id, noAffiliate: !affiliateInfo.affiliateGenerated, scrapeBlocked: isBlocked });
         }
       } catch (err: any) {
         console.error(`[BulkImport] Save failed for ${url}:`, err?.message);

@@ -30,7 +30,6 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
   const recommendation = isWellnessProduct
     ? null
     : getProductRecommendation(product.verdicts, height, bodyType);
-  const memberPrice = Math.floor(product.priceAtRetailer * 0.88);
 
   const handleShop = () => {
     trackAffiliateClick(product.id, product.retailer, product.affiliateUrl);
@@ -72,7 +71,7 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
       from={{ opacity: 0, translateY: 12 }}
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 300 }}
-      className={`bg-white border border-black/10 overflow-hidden ${isSm ? 'rounded-2xl' : 'rounded-[24px]'}`}
+      className={`bg-white border border-black/10 overflow-hidden ${isSm ? 'rounded-xl' : 'rounded-[24px]'}`}
     >
       {/* Image carousel */}
       <Pressable onPress={() => router.push(`/product/${product.id}`)} className="aspect-[3/4] relative"
@@ -154,20 +153,21 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
 
         <Text className={`text-black font-black ${isSm ? 'text-xs mb-1.5' : 'text-sm mb-2'}`} numberOfLines={1}>{product.title}</Text>
 
-        {/* Pricing */}
+        {/* Pricing — real retailer price only, no invented MRP/discount */}
         <View className={isSm ? 'mb-2' : 'mb-3'}>
           <View className="flex-row items-baseline gap-1.5">
             <Text className={`font-black text-black ${isSm ? 'text-sm' : 'text-lg'}`}>₹{product.priceAtRetailer.toLocaleString('en-IN')}</Text>
-            <Text className="text-black/40 text-[10px] line-through">₹{Math.floor(product.priceAtRetailer * 1.3).toLocaleString('en-IN')}</Text>
           </View>
-          <View className={`flex-row items-center justify-between bg-[#FFD43B]/10 border border-[#FFD43B]/20 rounded ${isSm ? 'px-1 py-0.5 mt-0.5' : 'px-2 py-1'}`}>
-            <Text className={`text-[#D5A021] font-black uppercase ${isSm ? 'text-[8px]' : 'text-[10px]'}`}>Club:</Text>
-            <Text className={`text-black font-bold ${isSm ? 'text-[9px]' : 'text-[11px]'}`}>₹{memberPrice.toLocaleString('en-IN')}</Text>
-          </View>
+          {!!product.couponCode && (
+            <View className={`flex-row items-center justify-between bg-[#0E7C5A]/10 border border-[#0E7C5A]/20 rounded ${isSm ? 'px-1 py-0.5 mt-0.5' : 'px-2 py-1'}`}>
+              <Text className={`text-[#0E7C5A] font-black uppercase ${isSm ? 'text-[8px]' : 'text-[10px]'}`}>Code:</Text>
+              <Text className={`text-black font-bold ${isSm ? 'text-[9px]' : 'text-[11px]'}`}>{product.couponCode}</Text>
+            </View>
+          )}
         </View>
 
         {/* Verdict strip */}
-        <View className={`bg-[#FAF9F6] border border-black/5 ${isSm ? 'rounded-xl p-1.5 mb-2' : 'rounded-2xl p-3 mb-3'}`}>
+        <View className={`bg-[#FAF9F6] border border-black/5 ${isSm ? 'rounded-lg p-1.5 mb-2' : 'rounded-xl p-3 mb-3'}`}>
           <Text className={`text-[#D5A021] font-black ${isSm ? 'text-[8px]' : 'text-[9px]'} mb-0.5`}>{height} TALL VERDICT</Text>
           <Text className={`text-black/70 ${isSm ? 'text-[9px]' : 'text-xs'}`} numberOfLines={isSm ? 1 : 2}>
             {recommendation ? `Verified as ${recommendation.fitRecommendation} for your profile.` : 'Optimized torso length & wide shoulder-cuts.'}
@@ -178,14 +178,14 @@ export const ProductCard = React.memo(({ product, cardWidth }: ProductCardProps)
         <View className="flex-row gap-1.5">
           <Pressable
             onPress={() => router.push(`/product/${product.id}`)}
-            className={`flex-[2] items-center justify-center bg-[#F5F5F7] border border-black/10 rounded-xl ${isSm ? 'py-1.5' : 'py-3'}`}
+            className={`flex-[2] items-center justify-center bg-[#F5F5F7] border border-black/10 rounded-lg ${isSm ? 'py-1.5' : 'py-3'}`}
             android_ripple={RIPPLE_DARK} style={pressFeedback}
           >
             <Text className={`text-black font-black uppercase tracking-wider ${isSm ? 'text-[9px]' : 'text-xs'}`}>Sizing</Text>
           </Pressable>
           <Pressable
             onPress={handleShop}
-            className={`flex-[3] flex-row items-center justify-center gap-0.5 bg-black rounded-2xl ${isSm ? 'py-1.5' : 'py-3'}`}
+            className={`flex-[3] flex-row items-center justify-center gap-0.5 bg-black rounded-xl ${isSm ? 'py-1.5' : 'py-3'}`}
             android_ripple={RIPPLE_LIGHT} style={pressFeedback}
           >
             <Text className={`text-white font-black uppercase ${isSm ? 'text-[9px]' : 'text-xs'}`}>Shop</Text>
@@ -204,7 +204,7 @@ export const ProductCardSkeleton = ({ size = 'medium' }: { size?: 'small' | 'med
       from={{ opacity: 0.5 }}
       animate={{ opacity: 1 }}
       transition={{ type: 'timing', duration: 700, loop: true }}
-      className={`bg-white border border-black/10 overflow-hidden ${isSm ? 'rounded-2xl' : 'rounded-[24px]'}`}
+      className={`bg-white border border-black/10 overflow-hidden ${isSm ? 'rounded-xl' : 'rounded-[24px]'}`}
     >
       <View className="aspect-[3/4] bg-neutral-200" />
       <View className={`${isSm ? 'p-3' : 'p-5'} gap-2`}>
@@ -214,10 +214,10 @@ export const ProductCardSkeleton = ({ size = 'medium' }: { size?: 'small' | 'med
         </View>
         <View className="h-4 w-full bg-neutral-200 rounded" />
         <View className="h-4 w-3/4 bg-neutral-200 rounded" />
-        <View className="h-10 w-full bg-neutral-100 rounded-xl" />
+        <View className="h-10 w-full bg-neutral-100 rounded-lg" />
         <View className="flex-row gap-1.5">
-          <View className={`flex-[2] ${isSm ? 'h-7' : 'h-10'} bg-neutral-200 rounded-xl`} />
-          <View className={`flex-[3] ${isSm ? 'h-7' : 'h-10'} bg-neutral-200 rounded-2xl`} />
+          <View className={`flex-[2] ${isSm ? 'h-7' : 'h-10'} bg-neutral-200 rounded-lg`} />
+          <View className={`flex-[3] ${isSm ? 'h-7' : 'h-10'} bg-neutral-200 rounded-xl`} />
         </View>
       </View>
     </MotiView>

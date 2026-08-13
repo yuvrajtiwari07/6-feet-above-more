@@ -22,7 +22,7 @@ export class AmazonImporter extends BaseImporter {
     if (jsonLd?.name) {
       const base = this.parseJsonLd(jsonLd, url);
       // Augment with DOM data (Amazon's JSON-LD is often sparse)
-      return this.augmentWithDom($, base, url);
+      return this.augmentWithDom($, base, url, html);
     }
 
     // Strategy 2: Amazon-specific DOM selectors
@@ -51,12 +51,16 @@ export class AmazonImporter extends BaseImporter {
     };
   }
 
-  private augmentWithDom($: cheerio.CheerioAPI, base: ImportedProduct, url: string): ImportedProduct {
-    // Amazon stores additional images in a JSON blob in the page
-    if (!base.images || base.images.length === 0) {
-      const imgData = this.extractAmazonImages($);
-      if (imgData.length > 0) base.images = imgData;
+  private augmentWithDom($: cheerio.CheerioAPI, base: ImportedProduct, url: string, html: string): ImportedProduct {
+    // Amazon's JSON-LD usually has only 1 image — its real gallery lives in a
+    // separate `colorImages` JSON blob, so always merge rather than only
+    // filling in when JSON-LD came back completely empty.
+    const galleryImages = this.extractAmazonImages($);
+    let merged = [...new Set([...(base.images ?? []), ...galleryImages])];
+    if (merged.length === 0) {
+      merged = this.extractImagesFromDom(html, url);
     }
+    base.images = merged;
 
     if (!base.brand) {
       base.brand = $('#bylineInfo').text().replace('Brand: ', '').trim() || undefined;
@@ -104,9 +108,10 @@ export class AmazonImporter extends BaseImporter {
     const reviewsCount = parseInt(reviewsText.replace(/[^\d]/g, '')) || undefined;
 
     // Images
-    const images = this.extractAmazonImages($);
+    let images = this.extractAmazonImages($);
     const ogImage = meta['og:image'];
     if (ogImage && !images.includes(ogImage)) images.unshift(ogImage);
+    if (images.length === 0) images = this.extractImagesFromDom(html, url);
 
     // Sizes (Amazon variation table)
     const sizes: string[] = [];
