@@ -25,7 +25,7 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 text-near-black backdrop-blur-xl border-b border-near-black/5 transition-all shadow-sm">
-      <div className="w-full max-w-none mx-auto px-4 md:px-8 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
+      <div className="w-full max-w-none mx-auto px-4 md:px-8 py-2.5 flex flex-wrap items-center gap-2.5">
 
         {/* Brand Block */}
         <div
@@ -41,18 +41,25 @@ export const Header: React.FC = () => {
               <path d="M78 12 L81 19 L88 22 L81 25 L78 32 L75 25 L68 22 L75 19 Z" fill="#FFD43B" stroke="none" />
             </svg>
           </div>
-          <div className="hidden sm:flex flex-col text-left">
+          {/* Fixed width — the two taglines are different lengths, and a
+              content-sized column here would push the switcher sideways
+              every time the vertical changes (exactly the shift being fixed). */}
+          <div className="hidden sm:flex flex-col text-left sm:w-[172px]">
             <span className="font-extrabold tracking-tighter text-md leading-none select-none font-display text-black">
               6Feet<span className="text-[#D5A021] font-extrabold">n</span>Above
             </span>
-            <span className="text-[8px] uppercase tracking-[0.2em] text-black/40 font-black font-grotesk mt-0.5 leading-none">
+            <span className="text-[8px] uppercase tracking-[0.2em] text-black/40 font-black font-grotesk mt-0.5 leading-none whitespace-nowrap">
               {isWellness ? 'Nutrition, skin & health care' : 'Clothes that finally fit'}
             </span>
           </div>
         </div>
 
-        {/* Storefront switcher */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scroller-hide">
+        {/* Storefront switcher — one bordered toggle track, both options fixed
+            inside it. Sits right after the logo with an explicit spacer (not
+            justify-between) pushing the right controls away, so it never
+            shifts position when a sibling group's width changes (e.g. the
+            height pill disappearing in wellness mode). */}
+        <div className="inline-flex items-center gap-1 bg-black/5 p-1 rounded-lg border border-black/15 shrink-0 overflow-x-auto scroller-hide">
           {VERTICALS.map(v => {
             const Icon = v.icon;
             const isActive = vertical === v.key;
@@ -60,8 +67,8 @@ export const Header: React.FC = () => {
               <button
                 key={v.key}
                 onClick={() => setVertical(v.key)}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border-2 transition-all shrink-0 ${
-                  isActive ? `${v.active} shadow-sm` : 'bg-black/5 text-black/55 border-transparent hover:bg-black/10'
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md transition-all shrink-0 ${
+                  isActive ? `${v.active} shadow-sm` : 'text-black/55 hover:text-black hover:bg-black/5'
                 }`}
                 id={`vertical-switch-${v.key}`}
                 aria-pressed={isActive}
@@ -76,8 +83,12 @@ export const Header: React.FC = () => {
           })}
         </div>
 
+        {/* Flexible spacer — absorbs width changes on either side so the
+            switcher above never has to move. */}
+        <div className="flex-1 min-w-0" />
+
         {/* Right controls: height, saved, profile */}
-        <div className="flex items-center gap-2 ml-auto md:ml-0">
+        <div className="flex items-center gap-2">
           {!isWellness && (
             <div className="relative hidden md:block">
               <button

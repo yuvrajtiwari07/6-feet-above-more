@@ -61,8 +61,9 @@ export const Header: React.FC = () => {
         </View>
       </View>
 
-      {/* Row 2: storefront switcher */}
-      <View className="flex-row items-center gap-2 px-4 pb-2">
+      {/* Row 2: storefront switcher — one bordered toggle track, both
+          options fixed inside it, the active one highlighted. */}
+      <View className="flex-row items-center gap-1 mx-4 mb-2 p-1 rounded-lg border" style={{ borderColor: '#11213326', backgroundColor: '#11213308' }}>
         {VERTICALS.map(v => {
           const isActive = vertical === v.key;
           const Icon = v.key === 'wellness' ? Leaf : Shirt;
@@ -70,11 +71,8 @@ export const Header: React.FC = () => {
             <Pressable
               key={v.key}
               onPress={() => handleSwitch(v.key)}
-              className="flex-1 flex-row items-center justify-center gap-1.5 rounded-lg px-2 py-2 border-2"
-              style={{
-                backgroundColor: isActive ? v.bg : '#11213308',
-                borderColor: isActive ? '#000000' : 'transparent',
-              }}
+              className="flex-1 flex-row items-center justify-center gap-1.5 rounded-md px-2 py-1.5"
+              style={{ backgroundColor: isActive ? v.bg : 'transparent' }}
               android_ripple={RIPPLE}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
