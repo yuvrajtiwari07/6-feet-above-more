@@ -1,0 +1,19 @@
+name: AI Jobs Tick
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Advance next AI discovery/retag job
+        run: |
+          curl -sf -X POST "$APP_URL/api/admin/ai-jobs/tick" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

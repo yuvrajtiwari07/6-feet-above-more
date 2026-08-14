@@ -23,6 +23,8 @@ import {
 import { CatalogCategoryAdmin } from '../components/admin/CatalogCategoryAdmin';
 import { CatalogAdmin } from '../components/admin/CatalogAdmin';
 import { BulkImportModal } from '../components/admin/BulkImportModal';
+import { DiscoveryPanel } from '../components/admin/DiscoveryPanel';
+import { RetagPanel } from '../components/admin/RetagPanel';
 
 //name
 
@@ -157,7 +159,7 @@ export const Admin: React.FC = () => {
   } = useApp();
 
   // Tab state
-  const [activeAdminTab, setActiveAdminTab] = useState<'products' | 'categories' | 'catalogs'>('products');
+  const [activeAdminTab, setActiveAdminTab] = useState<'products' | 'categories' | 'catalogs' | 'discovery' | 'retag'>('products');
   const [onImportSuccessCallback, setOnImportSuccessCallback] = useState<((p: Product) => void) | null>(null);
 
   // Bulk import modal state
@@ -1267,6 +1269,30 @@ export const Admin: React.FC = () => {
           <span className="flex items-center gap-1.5">
             <LayoutGrid size={13} />
             Catalogs
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setActiveAdminTab('discovery'); setShowForm(false); }}
+          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${activeAdminTab === 'discovery' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
+            }`}
+          id="admin-tab-discovery"
+        >
+          <span className="flex items-center gap-1.5">
+            <Search size={13} />
+            AI Discovery
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setActiveAdminTab('retag'); setShowForm(false); }}
+          className={`pb-3 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${activeAdminTab === 'retag' ? 'border-[#7D2AE8] text-[#7D2AE8]' : 'border-transparent text-black/55 hover:text-black'
+            }`}
+          id="admin-tab-retag"
+        >
+          <span className="flex items-center gap-1.5">
+            <Sparkles size={13} />
+            AI Re-tag
           </span>
         </button>
       </div>
@@ -2615,6 +2641,16 @@ export const Admin: React.FC = () => {
       {/* CATALOGS TAB CONTENT */}
       {activeAdminTab === 'catalogs' && (
         <CatalogAdmin onOpenImportModal={handleOpenImportModal} />
+      )}
+
+      {/* AI DISCOVERY TAB CONTENT */}
+      {activeAdminTab === 'discovery' && (
+        <DiscoveryPanel />
+      )}
+
+      {/* AI RETAG TAB CONTENT */}
+      {activeAdminTab === 'retag' && (
+        <RetagPanel products={products} />
       )}
       {/* BULK IMPORT MODAL */}
       {showBulkModal && (

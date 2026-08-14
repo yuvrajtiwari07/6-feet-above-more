@@ -122,6 +122,16 @@ export default function AdminScreen() {
           <LayoutGrid size={13} color="#112133" />
           <Text className="text-[11px] font-black uppercase text-[#112133]">Categories</Text>
         </Pressable>
+        <Pressable onPress={() => router.push('/admin/discovery')}
+          className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-lg">
+          <Search size={13} color="#112133" />
+          <Text className="text-[11px] font-black uppercase text-[#112133]">AI Discovery</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push('/admin/retag')}
+          className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-lg">
+          <Sparkles size={13} color="#112133" />
+          <Text className="text-[11px] font-black uppercase text-[#112133]">AI Re-tag</Text>
+        </Pressable>
       </View>
 
       {/* Search + stock filter */}

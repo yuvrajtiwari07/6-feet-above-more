@@ -236,4 +236,22 @@ export const productRepository = {
     }
     return null;
   },
+
+  /**
+   * Fuzzy name-based duplicate check (pg_trgm) — catches the same product
+   * listed with slightly different titles across retailers/categories,
+   * which the exact title+brand check in productService.create misses.
+   */
+  async findSimilarByTitle(title: string, brand: string, threshold = 0.55): Promise<{ id: string; title: string; score: number }[]> {
+    if (!title?.trim() || !brand?.trim()) return [];
+    const rows = await query(
+      `SELECT id, title, similarity(title, $2) AS score
+       FROM products
+       WHERE LOWER(brand) = LOWER($1) AND similarity(title, $2) > $3
+       ORDER BY score DESC
+       LIMIT 5`,
+      [brand.trim(), title.trim(), threshold]
+    );
+    return rows.map((r: any) => ({ id: r.id, title: r.title, score: Number(r.score) }));
+  },
 };
