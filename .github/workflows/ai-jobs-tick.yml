@@ -1,8 +1,12 @@
 name: AI Jobs Tick
 
+# Manual only — no schedule trigger. Fire this from the Actions tab
+# ("Run workflow") or from the command line with `gh workflow run
+# ai-jobs-tick.yml` whenever you actually want a job to advance. The
+# admin panel's "Run Now" button hits the same endpoint directly from
+# your browser session and doesn't need this workflow at all — this is
+# just an alternate manual trigger.
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch: {}
 
 jobs:
@@ -13,7 +17,8 @@ jobs:
         run: |
           curl -sf -X POST "$APP_URL/api/admin/ai-jobs/tick" \
             -H "Authorization: Bearer $CRON_SECRET" \
-            -H "Content-Type: application/json"
+            -H "Content-Type: application/json" \
+            --max-time 25
         env:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
