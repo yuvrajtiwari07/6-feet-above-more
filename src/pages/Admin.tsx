@@ -165,6 +165,31 @@ export const Admin: React.FC = () => {
   // Bulk import modal state
   const [showBulkModal, setShowBulkModal] = useState(false);
 
+  // ── AI Jobs auto-tick ────────────────────────────────────────
+  // No external scheduler (Vercel Hobby cron is capped at once/day, and we
+  // don't want a GitHub Actions dependency) — instead, whenever an admin has
+  // this page open with auto-run enabled, the browser itself pings the tick
+  // endpoint on an interval. Preference persists across reloads; several
+  // admins/tabs auto-ticking at once is harmless (the tick endpoint atomically
+  // claims one job at a time, so nothing double-processes).
+  const AI_TICK_INTERVAL_MS = 60_000;
+  const [autoTick, setAutoTick] = useState(() => localStorage.getItem('ai-jobs-auto-tick') === '1');
+  useEffect(() => {
+    localStorage.setItem('ai-jobs-auto-tick', autoTick ? '1' : '0');
+    if (!autoTick) return;
+    const tick = async () => {
+      try {
+        const token = await getAccessToken();
+        await fetch('/api/admin/ai-jobs/tick', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+      } catch {
+        // transient — next interval retries
+      }
+    };
+    tick();
+    const interval = setInterval(tick, AI_TICK_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [autoTick]);
+
   const handleBulkSaveDone = useCallback(async (savedCount: number) => {
     if (savedCount > 0) {
       await refetchProducts();
@@ -1203,6 +1228,18 @@ export const Admin: React.FC = () => {
               <ShieldCheck size={12} />
               <span>Verified System Admin Gate</span>
             </span>
+            <button
+              onClick={() => setAutoTick(v => !v)}
+              title="While on, this browser tab pings the AI discovery/retag job worker every 60s. No external scheduler — only runs while this page is open."
+              className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border transition-colors ${autoTick
+                ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                : 'bg-black/5 text-[#112133]/40 border-black/10'
+                }`}
+              id="admin-ai-autotick-toggle"
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${autoTick ? 'bg-green-500 animate-pulse' : 'bg-[#112133]/30'}`} />
+              <span>AI Jobs Auto-Run {autoTick ? 'On' : 'Off'}</span>
+            </button>
           </div>
           <h1 className="text-5xl md:text-6xl font-black font-display uppercase tracking-tight text-[#112133] leading-none">
             ADMIN LOCKER

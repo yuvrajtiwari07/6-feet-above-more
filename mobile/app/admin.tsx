@@ -1,20 +1,41 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Shield, Plus, Trash2, Pencil, RefreshCw, LogOut, ArrowLeft,
   UploadCloud, Sparkles, LayoutGrid, Search, ToggleLeft, ToggleRight,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { useApp } from '../lib/context/AppContext';
+import { useApp, apiFetch } from '../lib/context/AppContext';
 
 const STOCK_FILTERS = ['All', 'In stock', 'Out of stock'] as const;
+const AI_TICK_INTERVAL_MS = 60_000;
+const AUTO_TICK_STORAGE_KEY = 'ai-jobs-auto-tick';
 
 export default function AdminScreen() {
   const { user, logout, allProducts: products, refetchProducts, deleteProduct, updateProduct, isAdmin } = useApp();
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [stockFilter, setStockFilter] = useState<typeof STOCK_FILTERS[number]>('All');
+
+  // ── AI Jobs auto-tick ──────────────────────────────────────
+  // Same idea as web: no external scheduler, this screen pings the tick
+  // endpoint on an interval while it's open and auto-run is on. Persisted
+  // across app restarts via AsyncStorage. Safe to run alongside the web
+  // admin's own auto-tick — the endpoint atomically claims one job at a time.
+  const [autoTick, setAutoTick] = useState(false);
+  useEffect(() => {
+    AsyncStorage.getItem(AUTO_TICK_STORAGE_KEY).then(v => { if (v === '1') setAutoTick(true); });
+  }, []);
+  useEffect(() => {
+    AsyncStorage.setItem(AUTO_TICK_STORAGE_KEY, autoTick ? '1' : '0');
+    if (!autoTick) return;
+    const tick = () => { apiFetch('/api/admin/ai-jobs/tick', { method: 'POST' }).catch(() => {}); };
+    tick();
+    const interval = setInterval(tick, AI_TICK_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [autoTick]);
 
   if (!user || !isAdmin) {
     return (
@@ -131,6 +152,13 @@ export default function AdminScreen() {
           className="flex-row items-center gap-1.5 bg-[#112133]/5 px-3 py-2 rounded-lg">
           <Sparkles size={13} color="#112133" />
           <Text className="text-[11px] font-black uppercase text-[#112133]">AI Re-tag</Text>
+        </Pressable>
+        <Pressable onPress={() => setAutoTick(v => !v)}
+          className={`flex-row items-center gap-1.5 px-3 py-2 rounded-lg ${autoTick ? 'bg-green-500/10' : 'bg-[#112133]/5'}`}>
+          {autoTick ? <ToggleRight size={13} color="#22C55E" /> : <ToggleLeft size={13} color="#112133" />}
+          <Text className={`text-[11px] font-black uppercase ${autoTick ? 'text-green-600' : 'text-[#112133]'}`}>
+            Auto-Run {autoTick ? 'On' : 'Off'}
+          </Text>
         </Pressable>
       </View>
 
